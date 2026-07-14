@@ -122,7 +122,6 @@ textarea{width:100%;height:90px}
 .done{ text-align:center;padding:26px 10px}
 .done .big{font-size:44px;margin-bottom:8px}
 /* ---------- v2 additions ---------- */
-.banner{background:var(--acc-soft);border-radius:var(--r);padding:12px 14px;margin:10px 0;font-size:14px}
 .undo-chip{background:none;border:1px dashed var(--line);border-radius:10px;color:var(--ink2);font-size:12px;padding:3px 10px;cursor:pointer}
 .search{width:100%;font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:6px 0;box-sizing:border-box}
 .lvhead{display:flex;align-items:baseline;gap:10px;margin:22px 4px 2px;font-size:17px;font-weight:700}
@@ -145,9 +144,6 @@ textarea{width:100%;height:90px}
 .nb-zi{font-size:30px}
 .nb-mid{flex:1;min-width:0;font-size:14.5px}
 .nb-note{font-size:13px;color:var(--ink2);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.skgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px;margin:10px 0}
-.skc{background:var(--card);border:1.5px solid var(--line);border-radius:10px;font-size:25px;padding:8px 0;cursor:pointer;color:var(--ink)}
-.skc.on{background:var(--ok-soft);border-color:var(--ok)}
 </style>
 </head>
 <body>
@@ -162,7 +158,6 @@ textarea{width:100%;height:90px}
   <!-- LEARN -->
   <section id="view-learn" class="view on">
     <div id="learn-status"></div>
-    <div id="learn-banner"></div>
     <div id="learn-area"></div>
   </section>
   <!-- QUIZ -->
@@ -917,7 +912,7 @@ const INT=[0, 5*60e3, 60*60e3, 864e5, 3*864e5, 7*864e5, 14*864e5]; // per box
 const MASTER_BOX=5;
 const LSKEY="hanzi100";
 let storageOK=true;
-let S={prog:{},nb:{},newPerDay:8,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},skipDone:{},forceUnlock:{}};
+let S={prog:{},nb:{},newPerDay:8,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},forceUnlock:{}};
 function load(){try{const raw=localStorage.getItem(LSKEY);if(raw){const p=JSON.parse(raw);S=Object.assign(S,p);}}catch(e){storageOK=false}}
 function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){storageOK=false}}
 function dayStr(d){d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
@@ -1026,8 +1021,8 @@ function nbAdd(c){
 let SWIPED=false,drag=null;
 function swipeFeedback(el,dx){
   const k=el.querySelector(".sw-know"),n=el.querySelector(".sw-nb");
-  if(k)k.style.opacity=dx<0?Math.min(1,-dx/90):0;
-  if(n)n.style.opacity=dx>0?Math.min(1,dx/90):0;
+  if(k)k.style.opacity=dx<0?Math.min(1,-dx/55):0;
+  if(n)n.style.opacity=dx>0?Math.min(1,dx/55):0;
 }
 function fly(el,dir,cb){
   el.style.transition="transform .22s ease-in, opacity .22s";
@@ -1037,66 +1032,39 @@ function fly(el,dir,cb){
 }
 function bindSwipe(el,onLeft,onRight){
   el.addEventListener("pointerdown",e=>{
-    drag={x0:e.clientX,y0:e.clientY,dx:0,on:false};
+    drag={x0:e.clientX,y0:e.clientY,dx:0,on:false,px:e.clientX,pt:e.timeStamp,vx:0};
     if(el.setPointerCapture)try{el.setPointerCapture(e.pointerId)}catch(x){}
   });
   el.addEventListener("pointermove",e=>{
     if(!drag)return;
     const dx=e.clientX-drag.x0,dy=e.clientY-drag.y0;
     if(!drag.on){
-      if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.2){drag.on=true;SWIPED=true}
-      else if(Math.abs(dy)>16){drag=null;return}
+      if(Math.abs(dx)>6&&Math.abs(dx)>=Math.abs(dy)){drag.on=true;SWIPED=true}
+      else if(Math.abs(dy)>30&&Math.abs(dy)>2*Math.abs(dx)){drag=null;return}
       else return;
     }
+    const dt=e.timeStamp-drag.pt;
+    if(dt>0)drag.vx=0.7*drag.vx+0.3*((e.clientX-drag.px)/dt);
+    drag.px=e.clientX;drag.pt=e.timeStamp;
     drag.dx=dx;
     el.style.transform="translateX("+dx+"px) rotate("+(dx/24)+"deg)";
     swipeFeedback(el,dx);
   });
   const end=()=>{
     if(!drag)return;
-    const dx=drag.dx;drag=null;
+    const dx=drag.dx,vx=drag.vx;drag=null;
     setTimeout(()=>SWIPED=false,300);
-    if(dx<=-80)fly(el,-1,onLeft);
-    else if(dx>=80)fly(el,1,onRight);
-    else{el.style.transition="transform .18s";el.style.transform="";swipeFeedback(el,0);setTimeout(()=>el.style.transition="",200)}
+    const commit=Math.min(64,(el.offsetWidth||320)*0.2);
+    if(dx<=-commit||(dx<=-24&&vx<=-0.25))fly(el,-1,onLeft);
+    else if(dx>=commit||(dx>=24&&vx>=0.25))fly(el,1,onRight);
+    else{el.style.transition="transform .15s";el.style.transform="";swipeFeedback(el,0);setTimeout(()=>el.style.transition="",180)}
   };
   el.addEventListener("pointerup",end);
   el.addEventListener("pointercancel",end);
 }
-function paintBanner(){
-  const el=document.getElementById("learn-banner");
-  const nl=newList();
-  if(!nl.length){el.innerHTML="";return}
-  const n=lvOf(nl[0]);
-  if(S.skipDone[n]){el.innerHTML="";return}
-  el.innerHTML='<div class="banner">📋 Starting <b>Level '+n+'</b>. Already know some of these characters? Skip them ahead so you only study the new ones.'+
-   '<div><button class="btn sm" id="b-skip" style="margin-top:8px">Mark known characters</button> <button class="btn sm line" id="b-skipno" style="margin-top:8px">They\'re all new to me</button></div></div>';
-  document.getElementById("b-skip").onclick=()=>openSkipTest(n);
-  document.getElementById("b-skipno").onclick=()=>{S.skipDone[n]=1;save();nextCard();};
-}
-function openSkipTest(n){
-  const chars=lvChars(n).map(d=>d.c);
-  const sel=new Set(chars.filter(c=>S.prog[c]&&S.prog[c].known));
-  document.getElementById("modal-body").innerHTML=
-   '<h2 style="margin-top:0">Level '+n+' — tap what you already know</h2>'+
-   '<p class="muted">Tap every character you can already read (sound + meaning). They\'ll be scheduled for a far-future review instead of taught from scratch.</p>'+
-   '<div class="skgrid">'+chars.map(c=>'<button class="skc'+(sel.has(c)?" on":"")+'" data-c="'+c+'">'+c+"</button>").join("")+"</div>"+
-   '<div class="ansrow"><button class="btn line" id="sk-cancel">Cancel</button><button class="btn" id="sk-save">Save (<span id="sk-n">'+sel.size+"</span>)</button></div>";
-  document.getElementById("modal").classList.add("on");
-  document.querySelectorAll(".skc").forEach(b=>b.onclick=()=>{
-    const c=b.dataset.c;sel.has(c)?sel.delete(c):sel.add(c);
-    b.classList.toggle("on");document.getElementById("sk-n").textContent=sel.size;
-  });
-  document.getElementById("sk-cancel").onclick=closeModal;
-  document.getElementById("sk-save").onclick=()=>{
-    sel.forEach(c=>{const p=S.prog[c];if(!p||p.box<6)S.prog[c]={box:6,due:Date.now()+INT[6],seen:1,ok:1,ng:0,known:1}});
-    chars.forEach(c=>{const p=S.prog[c];if(p&&p.known&&!sel.has(c))delete S.prog[c]});
-    S.skipDone[n]=1;save();closeModal();nextCard();toast(sel.size+" marked as already known");
-  };
-}
 function nextCard(){
   stayCard=false;
-  paintLearnStatus();paintBanner();
+  paintLearnStatus();
   const due=dueList();
   if(due.length){cur=byChar(due[0]);curIsNew=false;revealed=false;paintCard();return}
   const nl=newList();
@@ -1110,17 +1078,17 @@ const SWTAGS='<div class="sw-tag sw-know">✓ Know it</div><div class="sw-tag sw
 function paintCard(){
   const a=document.getElementById("learn-area");
   if(curIsNew){
-    a.innerHTML='<div class="hintline">New character! Swipe ← if you already know it · swipe → to learn it (goes in your notebook)</div>'+
+    a.innerHTML='<div class="hintline">New character! Swipe ← if you already know it · swipe → to add to notebook & learn</div>'+
       '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,true)+"</div>"+
-      '<div class="ansrow"><button class="btn line" id="b-know">← Already know it</button><button class="btn" id="b-learn">Learn it → 📓</button></div>';
+      '<div class="ansrow"><button class="btn line" id="b-know">← Already know it</button><button class="btn" id="b-learn">Add to notebook →</button></div>';
     const el=document.getElementById("c-card");
     bindSwipe(el,gradeNewKnown,gradeNew);
     document.getElementById("b-know").onclick=gradeNewKnown;
     document.getElementById("b-learn").onclick=gradeNew;
     speak(cur.c);
   }else if(!revealed){
-    a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → I don\'t (adds to notebook) · tap to flip</div>'+
-      '<div class="card swipeable" id="c-card">'+SWTAGS+'<div class="bigchar">'+cur.c+'</div><div class="taphint">tap card to reveal</div></div>';
+    a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → add to notebook · tap to flip</div>'+
+      '<div class="card swipeable" id="c-card" style="touch-action:none">'+SWTAGS+'<div class="bigchar">'+cur.c+'</div><div class="taphint">tap card to reveal</div></div>';
     const el=document.getElementById("c-card");
     el.onclick=()=>{if(SWIPED)return;revealed=true;paintCard();};
     bindSwipe(el,()=>grade(true),()=>{nbAdd(cur.c);grade(false,true)});
@@ -1133,9 +1101,9 @@ function paintCard(){
     document.getElementById("b-next").onclick=nextCard;
     speak(cur.c);
   }else{
-    a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → I don\'t (adds to notebook)</div>'+
+    a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → add to notebook</div>'+
       '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,false)+"</div>"+
-      '<div class="ansrow"><button class="btn ok" id="b-good">← I know it</button><button class="btn bad" id="b-again">Don\'t know →</button></div>';
+      '<div class="ansrow"><button class="btn ok" id="b-good">← I know it</button><button class="btn bad" id="b-again">Add to notebook →</button></div>';
     const el=document.getElementById("c-card");
     bindSwipe(el,()=>grade(true),()=>{nbAdd(cur.c);grade(false)});
     document.getElementById("b-good").onclick=()=>grade(true);
@@ -1463,8 +1431,7 @@ function paintStats(){
   let lvhtml="";
   for(let n=1;n<=maxLevel();n++){
     const lc=lvChars(n),started=lvStarted(n),mast=lc.filter(d=>stateOf(d.c)==="mastered").length;
-    lvhtml+='<div class="setrow"><span>Level '+n+(unlocked(n)?"":" 🔒")+'<br><span class="muted" style="font-size:12.5px">'+started+"/"+lc.length+" started · "+mast+" mastered</span></span>"+
-     (unlocked(n)?'<button class="btn sm line sk-btn" data-lv="'+n+'">Skip-test</button>':"")+"</div>";
+    lvhtml+='<div class="setrow"><span>Level '+n+(unlocked(n)?"":" 🔒")+'<br><span class="muted" style="font-size:12.5px">'+started+"/"+lc.length+" started · "+mast+" mastered</span></span></div>";
   }
   document.getElementById("stats-area").innerHTML=
   '<h2>Progress</h2><div class="statgrid">'+
@@ -1499,7 +1466,6 @@ function paintStats(){
   const sa=document.getElementById("s-audio");sa.value=S.audio?"1":"0";
   sa.onchange=()=>{S.audio=sa.value==="1";save()};
   document.getElementById("stats-area").querySelectorAll(".chip").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
-  document.getElementById("stats-area").querySelectorAll(".sk-btn").forEach(b=>b.onclick=()=>openSkipTest(+b.dataset.lv));
   document.getElementById("stats-area").querySelectorAll(".nb-row").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
   document.getElementById("s-exp").onclick=()=>{
     const data=JSON.stringify(S);
@@ -1515,7 +1481,7 @@ function paintStats(){
     };
   };
   document.getElementById("s-reset").onclick=()=>{
-    if(confirm("Erase ALL progress? This cannot be undone.")){S={prog:{},nb:{},newPerDay:8,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},skipDone:{},forceUnlock:{}};UNDO=null;SES={learned:[],rev:0,missed:new Set()};save();paintStats();paintStreak();nextCard()}
+    if(confirm("Erase ALL progress? This cannot be undone.")){S={prog:{},nb:{},newPerDay:8,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},forceUnlock:{}};UNDO=null;SES={learned:[],rev:0,missed:new Set()};save();paintStats();paintStreak();nextCard()}
   };
 }
 
@@ -1546,7 +1512,7 @@ function paintGate(){
   g.innerHTML='<div class="inner"><div class="bigzi">汉</div><h2 style="margin:0 0 6px">你好!</h2>'+
    '<p class="muted">This app was made just for Leah 💛<br>Enter the magic word to come in.</p>'+
    '<input class="search" id="gate-in" placeholder="magic word" autocomplete="off" autocapitalize="none" style="text-align:center">'+
-   '<div style="margin-top:10px"><button class="btn" id="gate-go" style="width:100%">开门 — open the door</button></div>'+
+   '<div style="margin-top:10px"><button class="btn" id="gate-go" style="width:100%">Enter</button></div>'+
    '<p class="muted" id="gate-err" style="min-height:18px;font-size:13px;margin-top:8px"></p></div>';
   document.body.appendChild(g);
   const tryGo=()=>{
