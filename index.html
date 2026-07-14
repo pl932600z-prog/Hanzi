@@ -139,6 +139,10 @@ textarea{width:100%;height:90px}
 .sw-know{left:12px;background:var(--ok);color:#fff}
 .sw-nb{right:12px;background:var(--amber);color:#fff}
 .hintline{text-align:center;font-size:12.5px;color:var(--ink2);margin:6px 2px 2px}
+.statusrow{display:flex;gap:8px;margin:12px 0 4px}
+.statusrow .stbtn{flex:1;padding:10px 4px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:13.5px;cursor:pointer}
+.statusrow .stbtn.on{border-color:var(--acc);background:var(--acc-soft);font-weight:700}
+.listtoggle{width:100%;text-align:left;background:none;border:none;color:var(--ink);font-size:16px;font-weight:700;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .nb-row{display:flex;gap:12px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer}
 .nb-row:last-child{border-bottom:none}
 .nb-zi{font-size:30px}
@@ -150,7 +154,7 @@ textarea{width:100%;height:90px}
 <header>
   <div>
     <h1>Han<span>zi</span></h1>
-    <div class="tagline">For Leah - happy learning!</div>
+    <div class="tagline">For Leah - happy learning! 💛</div>
   </div>
   <div id="streak"></div>
 </header>
@@ -961,7 +965,28 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function pyHTML(d){return '<span class="t'+d.t+'">'+esc(d.py)+"</span>"}
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),1800)}
-function stateOf(c){const p=S.prog[c];if(!p)return"new";return p.box>=MASTER_BOX?"mastered":"learning"}
+/* status model — the dot IS the notebook: 🟡 in notebook, 🟢 known, ⚪ new */
+function stateOf(c){
+  if(S.nb[c])return"learning";
+  const p=S.prog[c];
+  if(p&&(p.box>=MASTER_BOX||p.known))return"mastered";
+  if(p)return"learning";
+  return"new";
+}
+function setStatus(c,st){
+  if(st==="new"){delete S.prog[c];delete S.nb[c]}
+  else if(st==="nb"){
+    if(!S.nb[c])S.nb[c]={ts:Date.now(),note:"",n:1};
+    const p=S.prog[c];
+    if(!p)S.prog[c]={box:1,due:Date.now(),seen:0,ok:0,ng:0};
+    else{delete p.known;if(p.box>=MASTER_BOX){p.box=1;p.due=Date.now()}}
+  }else{
+    const p=S.prog[c]||{};
+    delete S.nb[c];
+    S.prog[c]={box:6,due:Date.now()+INT[6],seen:p.seen||1,ok:p.ok||1,ng:p.ng||0,known:1};
+  }
+  save();
+}
 function fmtDue(ts){const diff=ts-Date.now();if(diff<=0)return"now";const m=Math.round(diff/6e4);if(m<60)return m+" min";const h=Math.round(m/60);if(h<24)return h+" h";return Math.round(h/24)+" d"}
 
 /* distractors: prefer same family, unique by the field shown */
@@ -990,7 +1015,7 @@ function cardBackHTML(d,isNew){
 }
 
 /* ================= LEARN ================= */
-let cur=null,curIsNew=false,revealed=false,stayCard=false,UNDO=null;
+let cur=null,curIsNew=false,UNDO=null;
 let SES={learned:[],rev:0,missed:new Set()};
 function dueList(){const now=Date.now();return Object.keys(S.prog).filter(c=>S.prog[c].due<=now).sort((a,b)=>S.prog[a].due-S.prog[b].due)}
 function newList(){const out=[];for(let n=1;n<=maxLevel();n++){if(!unlocked(n))break;lvChars(n).forEach(d=>{if(!S.prog[d.c])out.push(d.c)})}return out}
@@ -1063,15 +1088,14 @@ function bindSwipe(el,onLeft,onRight){
   el.addEventListener("pointercancel",end);
 }
 function nextCard(){
-  stayCard=false;
   paintLearnStatus();
   const due=dueList();
-  if(due.length){cur=byChar(due[0]);curIsNew=false;revealed=false;paintCard();return}
+  if(due.length){cur=byChar(due[0]);curIsNew=false;paintCard();return}
   const nl=newList();
-  if(nl.length&&todayCount()<S.newPerDay){cur=byChar(nl[0]);curIsNew=true;revealed=true;paintCard();return}
+  if(nl.length&&todayCount()<S.newPerDay){cur=byChar(nl[0]);curIsNew=true;paintCard();return}
   /* pull recently-missed cards (due within 2 min) back immediately instead of dead-ending */
   const soon=Object.keys(S.prog).filter(c=>S.prog[c].due<=Date.now()+12e4).sort((a,b)=>S.prog[a].due-S.prog[b].due)[0];
-  if(soon){cur=byChar(soon);curIsNew=false;revealed=false;paintCard();return}
+  if(soon){cur=byChar(soon);curIsNew=false;paintCard();return}
   cur=null;paintDone(nl.length)
 }
 const SWTAGS='<div class="sw-tag sw-know">✓ Know it</div><div class="sw-tag sw-nb">📓 Notebook</div>';
@@ -1085,20 +1109,6 @@ function paintCard(){
     bindSwipe(el,gradeNewKnown,gradeNew);
     document.getElementById("b-know").onclick=gradeNewKnown;
     document.getElementById("b-learn").onclick=gradeNew;
-    speak(cur.c);
-  }else if(!revealed){
-    a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → add to notebook · tap to flip</div>'+
-      '<div class="card swipeable" id="c-card" style="touch-action:none">'+SWTAGS+'<div class="bigchar">'+cur.c+'</div><div class="taphint">tap card to reveal</div></div>';
-    const el=document.getElementById("c-card");
-    el.onclick=()=>{if(SWIPED)return;revealed=true;paintCard();};
-    bindSwipe(el,()=>grade(true),()=>{nbAdd(cur.c);grade(false,true)});
-  }else if(stayCard){
-    a.innerHTML='<div class="hintline">📓 In your notebook — study it, then continue</div>'+
-      '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,false)+"</div>"+
-      '<div class="ansrow"><button class="btn" id="b-next">Next →</button></div>';
-    const el=document.getElementById("c-card");
-    bindSwipe(el,nextCard,nextCard);
-    document.getElementById("b-next").onclick=nextCard;
     speak(cur.c);
   }else{
     a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → add to notebook</div>'+
@@ -1124,15 +1134,13 @@ function gradeNew(){
   nbAdd(cur.c);
   touchStreak();save();nextCard();
 }
-function grade(good,stay){
+function grade(good){
   snapshot(cur.c,false);
   const p=S.prog[cur.c];p.seen++;S.tot.rev++;
   if(good){p.ok++;S.tot.ok++;p.box=Math.min(6,p.box+1)}else{p.ng++;p.box=Math.max(1,p.box-2)}
   p.due=Date.now()+(good?INT[p.box]:6e4);
   SES.rev++;if(!good)SES.missed.add(cur.c);
-  touchStreak();save();
-  if(stay){stayCard=true;revealed=true;paintCard();paintLearnStatus()}
-  else nextCard();
+  touchStreak();save();nextCard();
 }
 function paintDone(newLeft){
   const f=forecast();
@@ -1394,14 +1402,16 @@ function renderBrowse(query){
   });
 }
 function openModal(c){
-  const d=byChar(c),p=S.prog[c],nb=S.nb[c];
+  const d=byChar(c),p=S.prog[c],nb=S.nb[c],st=stateOf(c);
   const stats=p?('<p class="muted" style="text-align:center">seen '+p.seen+"× · correct "+p.ok+" · missed "+p.ng+" · next review: "+fmtDue(p.due)+"</p>"):'<p class="muted" style="text-align:center">not started yet</p>';
-  const nbUI=nb
-   ?('<p class="muted" style="margin:10px 0 4px">📓 In notebook'+(nb.n>1?" · added "+nb.n+"×":"")+'</p>'+
-     '<textarea id="nb-note" placeholder="Your notes — memory tricks, reminders, anything…">'+esc(nb.note||"")+"</textarea>"+
-     '<div class="row" style="margin-top:8px"><button class="btn sm" id="nb-save">Save note</button><button class="btn sm line" id="nb-del">Remove from notebook</button></div>')
-   :('<div style="margin-top:10px;text-align:center"><button class="btn sm line" id="nb-addbtn">📓 Add to notebook</button></div>');
-  document.getElementById("modal-body").innerHTML=cardBackHTML(d,false)+stats+nbUI+
+  const cur2st={new:"new",learning:"nb",mastered:"known"};
+  const stRow='<div class="statusrow">'+[["new","⚪ New"],["nb","🟡 Notebook"],["known","🟢 Known"]].map(x=>
+    '<button class="stbtn'+(cur2st[st]===x[0]?" on":"")+'" data-st="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
+  const noteUI=nb
+   ?('<textarea id="nb-note" placeholder="Your notes — memory tricks, reminders, anything…">'+esc(nb.note||"")+"</textarea>"+
+     '<div class="row" style="margin-top:8px"><button class="btn sm" id="nb-save">Save note</button></div>')
+   :"";
+  document.getElementById("modal-body").innerHTML=cardBackHTML(d,false)+stats+stRow+noteUI+
    '<div class="ansrow"><button class="btn line" id="m-review">Review now</button><button class="btn" id="m-close">Close</button></div>';
   document.getElementById("modal").classList.add("on");
   document.getElementById("m-close").onclick=closeModal;
@@ -1409,25 +1419,32 @@ function openModal(c){
     if(!S.prog[c])S.prog[c]={box:1,due:Date.now(),seen:0,ok:0,ng:0};else S.prog[c].due=Date.now();
     save();closeModal();switchView("learn");toast(c+" added to review queue");
   };
+  document.querySelectorAll("#modal-body .stbtn").forEach(b=>b.onclick=()=>{
+    if(cur2st[stateOf(c)]===b.dataset.st)return;
+    setStatus(c,b.dataset.st);refreshUnder();openModal(c);
+    toast(c+(b.dataset.st==="new"?" reset to new ⚪":b.dataset.st==="nb"?" added to notebook 🟡":" marked as known 🟢"));
+  });
   const sv=document.getElementById("nb-save");
-  if(sv)sv.onclick=()=>{S.nb[c].note=document.getElementById("nb-note").value.trim();save();toast("Note saved ✓")};
-  const del=document.getElementById("nb-del");
-  if(del)del.onclick=()=>{delete S.nb[c];save();toast(c+" removed from notebook");openModal(c)};
-  const add=document.getElementById("nb-addbtn");
-  if(add)add.onclick=()=>{nbAdd(c);openModal(c)};
+  if(sv)sv.onclick=()=>{S.nb[c].note=document.getElementById("nb-note").value.trim();save();refreshUnder();toast("Note saved ✓")};
+}
+/* repaint whichever view sits under the modal so lists & dots stay fresh */
+function refreshUnder(){
+  const v=document.querySelector(".view.on");
+  if(!v)return;
+  if(v.id==="view-stats")paintStats();
+  else if(v.id==="view-browse"){const q=document.getElementById("b-q");renderBrowse(q?q.value.trim():"")}
+  else if(v.id==="view-learn")paintLearnStatus();
 }
 function closeModal(){document.getElementById("modal").classList.remove("on")}
 document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 
 /* ================= STATS ================= */
+let NB_OPEN=false,KN_OPEN=false;
 function paintStats(){
-  const chars=Object.keys(S.prog);
-  const mastered=chars.filter(c=>S.prog[c].box>=MASTER_BOX).length;
-  const learning=chars.length-mastered;
-  const acc=S.tot.rev?Math.round(100*S.tot.ok/S.tot.rev):0;
-  const weak=chars.filter(c=>S.prog[c].ng>0).sort((a,b)=>S.prog[b].ng-S.prog[a].ng).slice(0,6);
+  const mastered=DATA.filter(d=>stateOf(d.c)==="mastered").length;
+  const learning=DATA.filter(d=>stateOf(d.c)==="learning").length;
+  const knownList=DATA.filter(d=>stateOf(d.c)==="mastered");
   const nbk=Object.keys(S.nb).sort((a,b)=>S.nb[b].ts-S.nb[a].ts);
-  const f=forecast();
   let lvhtml="";
   for(let n=1;n<=maxLevel();n++){
     const lc=lvChars(n),started=lvStarted(n),mast=lc.filter(d=>stateOf(d.c)==="mastered").length;
@@ -1435,23 +1452,21 @@ function paintStats(){
   }
   document.getElementById("stats-area").innerHTML=
   '<h2>Progress</h2><div class="statgrid">'+
-   '<div class="stat"><b style="color:var(--ok)">'+mastered+'</b><span>mastered</span></div>'+
-   '<div class="stat"><b style="color:var(--amber)">'+learning+'</b><span>learning</span></div>'+
-   '<div class="stat"><b>'+(DATA.length-chars.length)+'</b><span>to go</span></div></div>'+
-  '<div class="card"><div class="row"><span class="grow">🔥 Day streak</span><b>'+S.streak+'</b></div>'+
-   '<div class="row" style="margin-top:8px"><span class="grow">Total answers</span><b>'+S.tot.rev+'</b></div>'+
-   '<div class="row" style="margin-top:8px"><span class="grow">Accuracy</span><b>'+acc+'%</b></div>'+
-   '<div class="row" style="margin-top:8px"><span class="grow">Due tomorrow</span><b>'+f.tomorrow+'</b></div>'+
-   '<div class="row" style="margin-top:8px"><span class="grow">Due in next 7 days</span><b>'+f.week+'</b></div></div>'+
+   '<div class="stat"><b style="color:var(--ok)">'+mastered+'</b><span>🟢 known</span></div>'+
+   '<div class="stat"><b style="color:var(--amber)">'+learning+'</b><span>🟡 in notebook</span></div>'+
+   '<div class="stat"><b>'+(DATA.length-mastered-learning)+'</b><span>⚪ new</span></div></div>'+
+  '<div class="card"><div class="row"><span class="grow">🔥 Day streak</span><b>'+S.streak+'</b></div></div>'+
   '<h2>Levels</h2><div class="card">'+lvhtml+'</div>'+
-  (weak.length?('<h2>Needs attention</h2><div class="grid">'+weak.map(c=>'<button class="chip '+stateOf(c)+'" data-c="'+c+'">'+c+'<span class="dot"></span></button>').join("")+"</div>"):"")+
-  '<h2>📓 Notebook ('+nbk.length+')</h2>'+
-  (nbk.length
-   ?('<div class="card" style="padding:8px 16px">'+nbk.map(c=>{
+  '<h2>My lists</h2><div class="card" style="padding:0;overflow:hidden">'+
+   '<button class="listtoggle" id="t-nb">📓 Notebook ('+nbk.length+')<span>'+(NB_OPEN?"▾":"▸")+"</span></button>"+
+   (NB_OPEN?('<div style="padding:0 16px 12px">'+(nbk.length?nbk.map(c=>{
       const d=byChar(c),e=S.nb[c];
       return '<div class="nb-row" data-c="'+c+'"><span class="nb-zi">'+c+'</span><div class="nb-mid"><div>'+pyHTML(d)+" · "+esc(d.m)+"</div>"+(e.note?'<div class="nb-note">'+esc(e.note)+"</div>":"")+"</div>"+(e.n>1?'<span class="muted">'+e.n+"×</span>":"")+"</div>";
-     }).join("")+"</div>")
-   :'<div class="card"><p class="muted" style="margin:0">Empty so far — in Learn, swipe right on anything you don\'t know and it lands here. Tap an entry to add your own notes.</p></div>')+
+     }).join(""):'<p class="muted" style="margin:6px 0">Empty so far — swipe right in Learn on anything you don\'t know.</p>')+"</div>"):"")+
+   '<div style="border-top:1px solid var(--line)"></div>'+
+   '<button class="listtoggle" id="t-kn">🟢 Known ('+knownList.length+')<span>'+(KN_OPEN?"▾":"▸")+"</span></button>"+
+   (KN_OPEN?('<div style="padding:0 16px 14px">'+(knownList.length?('<div class="grid">'+knownList.map(chipHTML).join("")+"</div>"):'<p class="muted" style="margin:6px 0">Swipe left in Learn on characters you already know.</p>')+"</div>"):"")+
+  "</div>"+
   '<h2>Settings</h2><div class="card">'+
    '<div class="setrow"><span>New characters per day</span><select id="s-new"><option>5</option><option>8</option><option>12</option><option>20</option></select></div>'+
    '<div class="setrow"><span>Audio (pronunciation)</span><select id="s-audio"><option value="1">on</option><option value="0">off</option></select></div>'+
@@ -1467,6 +1482,8 @@ function paintStats(){
   sa.onchange=()=>{S.audio=sa.value==="1";save()};
   document.getElementById("stats-area").querySelectorAll(".chip").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
   document.getElementById("stats-area").querySelectorAll(".nb-row").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
+  document.getElementById("t-nb").onclick=()=>{NB_OPEN=!NB_OPEN;paintStats()};
+  document.getElementById("t-kn").onclick=()=>{KN_OPEN=!KN_OPEN;paintStats()};
   document.getElementById("s-exp").onclick=()=>{
     const data=JSON.stringify(S);
     document.getElementById("s-io").innerHTML='<p class="muted">Copy this text and save it anywhere (e.g. a note):</p><textarea id="s-txt" readonly></textarea>';
