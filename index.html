@@ -60,7 +60,7 @@ nav button.on{color:var(--acc);background:var(--acc-soft)}
 .grow{flex:1}
 h2{font-size:16px;margin:18px 4px 6px}
 /* ---------- learn ---------- */
-#learn-status{display:flex;gap:14px;justify-content:center;margin:6px 0;font-size:13px;color:var(--ink2)}
+#learn-status{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;margin:6px 0;font-size:13px;color:var(--ink2)}
 #learn-status b{color:var(--ink)}
 .bigchar{font-size:min(38vw,150px);line-height:1.15;text-align:center;margin:6px 0}
 .newtag{display:inline-block;background:var(--amber);color:#fff;font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px;margin-bottom:4px}
@@ -122,7 +122,7 @@ textarea{width:100%;height:90px}
 .done{ text-align:center;padding:26px 10px}
 .done .big{font-size:44px;margin-bottom:8px}
 /* ---------- v2 additions ---------- */
-.undo-chip{background:none;border:1px dashed var(--line);border-radius:10px;color:var(--ink2);font-size:12px;padding:3px 10px;cursor:pointer}
+.undo-chip{background:var(--acc-soft);border:1.5px solid var(--acc);border-radius:999px;color:var(--acc);font-size:13px;font-weight:700;padding:6px 14px;cursor:pointer;line-height:1}
 .search{width:100%;font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:6px 0;box-sizing:border-box}
 .lvhead{display:flex;align-items:baseline;gap:10px;margin:22px 4px 2px;font-size:17px;font-weight:700}
 .lvhead .muted{font-weight:400;font-size:13px}
@@ -1153,47 +1153,124 @@ function grade(good){
 }
 function paintDone(newLeft){
   let h='<div class="card done"><div class="big">🎉</div><b>All caught up!</b>';
-  if(SES.learned.length||SES.rev){
-    h+='<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px"><b>This session</b>';
-    if(SES.learned.length)h+='<p class="muted" style="margin:6px 0 2px">Learned '+SES.learned.length+' new:</p><div class="sumlist">'+SES.learned.map(c=>'<span class="zi2">'+c+"</span>").join("")+"</div>";
-    if(SES.rev)h+='<p class="muted" style="margin:6px 0 2px">Reviewed '+SES.rev+" card"+(SES.rev>1?"s":"")+"</p>";
-    if(SES.missed.size)h+='<p class="muted" style="margin:6px 0 2px">Tricky ones:</p><div class="sumlist">'+[...SES.missed].map(c=>'<span class="zi2">'+c+"</span>").join("")+"</div>"+
-      '<div><button class="btn line" id="b-redrill" style="margin-top:6px">Re-drill these now</button></div>';
-    h+="</div>";
+  if(SES.learned.length){
+    h+='<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px">'+
+     '<p class="muted" style="margin:0 0 2px">Learned '+SES.learned.length+' new:</p><div class="sumlist">'+SES.learned.map(c=>'<span class="zi2">'+c+"</span>").join("")+"</div></div>";
   }
   if(newLeft>0)h+='<p style="margin-top:12px"><button class="btn line" id="b-more">+ Learn '+S.newPerDay+' extra new character'+(S.newPerDay>1?"s":"")+'</button></p>';
-  h+='<p style="margin-top:8px"><button class="btn" id="b-brag">🎉 Show off progress to Paul</button></p>';
+  h+='<p style="margin-top:8px"><button class="btn" id="b-brag">Show off progress to Paul 💛</button></p>';
   h+='<p class="muted" style="margin-top:10px">Or try a Quiz or Browse 👇</p></div>';
   document.getElementById("learn-area").innerHTML=h;
   const m=document.getElementById("b-more");
   if(m)m.onclick=()=>{todayCount();S.today.extra=(S.today.extra||0)+S.newPerDay;save();nextCard();};
-  const r=document.getElementById("b-redrill");
-  if(r)r.onclick=()=>{SES.missed.forEach(c=>{if(S.prog[c])S.prog[c].due=Date.now()});SES.missed.clear();save();nextCard();};
   document.getElementById("b-brag").onclick=shareProgress;
 }
-function shareProgress(){
-  const known=DATA.filter(x=>stateOf(x.c)==="mastered").length;
-  const nb=Object.keys(S.nb).length;
-  const togo=DATA.length-known-nb;
-  const today=todayCount();
-  const now=new Date();
-  let txt="🀄 Leah's Hanzi progress · "+(now.getMonth()+1)+"/"+now.getDate()+"\n";
-  if(S.streak>0)txt+="🔥 "+S.streak+"-day streak\n";
-  txt+=(today>0?("✨ New today: "+today+(SES.learned.length?" — "+SES.learned.join(" "):"")):"📖 All reviews done today")+"\n";
-  txt+="🟢 Known: "+known+" · 🟡 Notebook: "+nb+" · ⚪ To go: "+togo+" of "+DATA.length+"\n";
-  txt+="加油! 💛";
-  if(navigator.share){navigator.share({text:txt}).catch(()=>{})}
-  else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast("Copied! Paste it to Paul 📋")).catch(()=>shareFallback(txt))}
-  else shareFallback(txt);
+function shareStats(){
+  return {
+    known:DATA.filter(x=>stateOf(x.c)==="mastered").length,
+    nb:Object.keys(S.nb).length,
+    today:todayCount(),
+    date:(new Date().getMonth()+1)+"/"+new Date().getDate()
+  };
 }
-function shareFallback(txt){
-  document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">🎉 Progress card</h2>'+
-   '<textarea id="share-txt" readonly style="height:130px">'+esc(txt)+"</textarea>"+
-   '<p class="muted">Copy this and send it to Paul.</p>'+
+/* WeChat's iOS share extension only accepts images/links (not text) — so the card is a PNG */
+function drawShareCard(){
+  const W=1000,H=1250;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;
+  const g=cv.getContext?cv.getContext("2d"):null;
+  if(!g)return null;
+  const st=shareStats(),togo=DATA.length-st.known-st.nb;
+  const ZH="'PingFang SC','Hiragino Sans GB','Heiti SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif";
+  const UI="'Helvetica Neue',Helvetica,Arial,"+ZH;
+  const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,"#c4653c");gr.addColorStop(1,"#9d4522");
+  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.textAlign="center";g.textBaseline="middle";
+  g.fillStyle="rgba(255,255,255,0.09)";g.font="700 640px "+ZH;
+  g.fillText("汉",W/2,H/2+30);
+  g.fillStyle="#fff";g.font="700 60px "+UI;
+  g.fillText("Leah's Hanzi Progress",W/2,140);
+  g.fillStyle="rgba(255,255,255,.85)";g.font="400 40px "+UI;
+  g.fillText(st.date,W/2,212);
+  let y=380;
+  g.fillStyle="#fff";g.font="600 52px "+UI;
+  if(S.streak>0){g.fillText(S.streak+"-day streak 🔥",W/2,y);y+=96}
+  if(st.today>0){
+    g.fillText(st.today+" new today ✨",W/2,y);y+=96;
+    if(SES.learned.length){
+      g.font="600 84px "+ZH;
+      g.fillText(SES.learned.slice(0,8).join("  "),W/2,y+18);y+=150;
+      g.font="600 52px "+UI;
+    }
+  }else{g.fillText("All reviews done ✓",W/2,y);y+=96}
+  y+=60;
+  /* status trio: drawn circles (emoji-independent) */
+  const cols=[["#3ecb74",st.known,"known"],["#ffc12e",st.nb,"notebook"],["rgba(255,255,255,.6)",togo,"to go"]];
+  const xs=[W/2-300,W/2,W/2+300];
+  cols.forEach((c,i)=>{
+    g.beginPath();g.fillStyle=c[0];g.arc(xs[i],y,26,0,7);g.fill();
+    g.fillStyle="#fff";g.font="700 64px "+UI;g.fillText(String(c[1]),xs[i],y+86);
+    g.fillStyle="rgba(255,255,255,.8)";g.font="400 32px "+UI;g.fillText(c[2],xs[i],y+142);
+  });
+  y+=200;
+  g.fillStyle="rgba(255,255,255,.7)";g.font="400 30px "+UI;
+  g.fillText(DATA.length+" characters total",W/2,y);
+  /* footer: 加油! + drawn heart */
+  g.fillStyle="#fff";g.font="600 62px "+ZH;
+  g.fillText("加油!",W/2-34,H-110);
+  (function(x,yy,s){
+    g.fillStyle="#ffd34d";g.beginPath();
+    g.moveTo(x,yy+s*0.9);
+    g.bezierCurveTo(x+s*1.4,yy-s*0.1,x+s*0.6,yy-s*1.15,x,yy-s*0.35);
+    g.bezierCurveTo(x-s*0.6,yy-s*1.15,x-s*1.4,yy-s*0.1,x,yy+s*0.9);
+    g.fill();
+  })(W/2+82,H-116,30);
+  return cv;
+}
+function shareProgress(){
+  const cv=drawShareCard();
+  if(!cv){shareTextFlow();return}
+  if(cv.toBlob&&navigator.canShare&&navigator.share){
+    try{
+      cv.toBlob(b=>{
+        if(!b){shareImgFallback(cv);return}
+        const f=new File([b],"hanzi-progress.png",{type:"image/png"});
+        if(navigator.canShare({files:[f]}))navigator.share({files:[f]}).catch(()=>{});
+        else shareImgFallback(cv);
+      },"image/png");
+      return;
+    }catch(e){}
+  }
+  shareImgFallback(cv);
+}
+function shareImgFallback(cv){
+  let url=null;
+  try{url=cv.toDataURL("image/png")}catch(e){}
+  if(!url){shareTextFlow();return}
+  document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">Progress card 💛</h2>'+
+   '<p class="muted">Press and hold the picture, then save or share it to Paul.</p>'+
+   '<div style="text-align:center"><img id="share-img" style="width:100%;border-radius:16px" alt="progress card"></div>'+
    '<div class="ansrow"><button class="btn" id="m-close">Close</button></div>';
+  document.getElementById("share-img").src=url;
   document.getElementById("modal").classList.add("on");
   document.getElementById("m-close").onclick=closeModal;
-  const ta=document.getElementById("share-txt");ta.focus();ta.select();
+}
+function shareTextFlow(){
+  const st=shareStats(),togo=DATA.length-st.known-st.nb;
+  let txt="Leah's Hanzi progress · "+st.date+"\n";
+  if(S.streak>0)txt+="🔥 "+S.streak+"-day streak\n";
+  txt+=(st.today>0?("✨ New today: "+st.today+(SES.learned.length?" — "+SES.learned.join(" "):"")):"📖 All reviews done today")+"\n";
+  txt+="🟢 Known: "+st.known+" · 🟡 Notebook: "+st.nb+" · ⚪ To go: "+togo+" of "+DATA.length+"\n";
+  txt+="加油! 💛";
+  if(navigator.share){navigator.share({text:txt}).catch(()=>{})}
+  else{
+    document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">Progress card 💛</h2>'+
+     '<textarea id="share-txt" readonly style="height:130px">'+esc(txt)+"</textarea>"+
+     '<p class="muted">Copy this and send it to Paul.</p>'+
+     '<div class="ansrow"><button class="btn" id="m-close">Close</button></div>';
+    document.getElementById("modal").classList.add("on");
+    document.getElementById("m-close").onclick=closeModal;
+    const ta=document.getElementById("share-txt");ta.focus();ta.select();
+  }
 }
 
 /* ================= QUIZ ================= */
@@ -1230,17 +1307,21 @@ function buildCharMode(mode){
       expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),say:(mode==="a2c"?t.c:null),cls:cls,c:t.c};
   });
 }
-function wordsPool(){
+function mkWordPool(list){
   const out=[],seen=new Set();
-  basePool().forEach(d=>d.w.forEach(w=>{if(!seen.has(w[0])){seen.add(w[0]);out.push({wd:w[0],py:w[1],m:w[2],c:d.c})}}));
+  list.forEach(d=>d.w.forEach(w=>{if(!seen.has(w[0])){seen.add(w[0]);out.push({wd:w[0],py:w[1],m:w[2],c:d.c})}}));
   return out;
 }
+function wordsPool(){return mkWordPool(basePool())}
+let WORDS_ALL=null;
+function wordsPoolAll(){if(!WORDS_ALL)WORDS_ALL=mkWordPool(DATA);return WORDS_ALL}
 function buildW2M(){
   const pool=shuffle(wordsPool());
-  if(pool.length<6)return [];
+  if(pool.length<1)return [];
+  const all=wordsPoolAll();
   return pool.slice(0,QLEN).map(t=>{
     const seen=new Set([t.m]);const ds=[];
-    for(const o of shuffle(pool)){if(ds.length>=3)break;if(seen.has(o.m))continue;seen.add(o.m);ds.push(o)}
+    for(const o of shuffle(all)){if(ds.length>=3)break;if(o.wd===t.wd||seen.has(o.m))continue;seen.add(o.m);ds.push(o)}
     if(ds.length<3)return null;
     return {p:'<div class="qprompt"><div style="font-size:44px">'+t.wd+"</div></div>",
       opts:shuffle([{h:esc(t.m),ok:true}].concat(ds.map(d=>({h:esc(d.m),ok:false})))),
@@ -1252,7 +1333,7 @@ function tonesOf(w){const t=[];for(const ch of w.py)if(TONEMAP[ch])t.push(TONEMA
 function patLabel(p){return p.map(x=>x===0?"neutral":x).join(" – ")}
 function buildTone(){
   const pool=shuffle(wordsPool().filter(w=>/^[一-鿿]{2}$/.test(w.wd)&&!/儿$/.test(w.wd)));
-  if(pool.length<5)return [];
+  if(pool.length<1)return [];
   return pool.slice(0,QLEN).map(t=>{
     const cor=tonesOf(t);
     const opts=[{h:patLabel(cor),ok:true}];const seen=new Set([cor.join()]);
@@ -1266,21 +1347,23 @@ function buildTone(){
       opts:shuffle(opts),expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt tonebtn",c:t.c};
   }).filter(Boolean);
 }
-function compPool(){
+function compEntries(list){
   const map={};
-  basePool().forEach(d=>d.k.forEach(k=>{
+  list.forEach(d=>d.k.forEach(k=>{
     const g=k[0];
     if(g.length>2||/[+ ]/.test(g)||/\(sound\)/.test(k[1]))return;
     if(!map[g])map[g]=k[1].replace(/\s*\(.*?\)\s*/g,"");
   }));
   return Object.keys(map).map(g=>({g:g,m:map[g]}));
 }
+let COMPS_ALL=null;
+function compAll(){if(!COMPS_ALL)COMPS_ALL=compEntries(DATA);return COMPS_ALL}
 function compChars(g){return DATA.filter(d=>d.k.some(k=>k[0]===g)).slice(0,6).map(d=>d.c).join(" ")}
 function buildComp(){
-  const pool=shuffle(compPool());
-  if(pool.length<6)return [];
+  const pool=shuffle(compEntries(basePool()));
+  if(pool.length<1)return [];
   return pool.slice(0,QLEN).map((t,i)=>{
-    const others=shuffle(pool.filter(x=>x.g!==t.g&&x.m!==t.m)).slice(0,3);
+    const others=shuffle(compAll().filter(x=>x.g!==t.g&&x.m!==t.m)).slice(0,3);
     if(others.length<3)return null;
     let p,opts,cls;
     if(i%2===0){
@@ -1296,7 +1379,7 @@ function buildComp(){
 function startQuiz(mode){
   let qs;
   if(mode==="w2m")qs=buildW2M();else if(mode==="tone")qs=buildTone();else if(mode==="comp")qs=buildComp();else qs=buildCharMode(mode);
-  if(!qs||qs.length<4){toast("Not enough characters in this scope yet — switch scope or study more!");return}
+  if(!qs||qs.length<2){toast("Not enough characters in this scope yet — switch scope or study more!");return}
   Q={mode:mode,qs:qs,i:0,score:0};
   document.getElementById("quiz-home").classList.add("hidden");
   document.getElementById("quiz-play").classList.remove("hidden");
@@ -1345,7 +1428,7 @@ function answerQ(i){
   if(right){Q.score++}else if(q.c&&S.prog[q.c]){S.prog[q.c].due=Date.now();S.prog[q.c].ng++}
   S.tot.rev++;if(right)S.tot.ok++;
   touchStreak();save();
-  Q.timer=right?setTimeout(qAdvance,1300):null; /* misses wait for Next */
+  Q.timer=(right&&!q.c)?setTimeout(qAdvance,1300):null; /* status-row questions always wait for Next */
 }
 function endQuiz(showScore){
   if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null}
