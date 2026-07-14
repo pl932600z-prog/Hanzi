@@ -923,8 +923,9 @@ const INT=[0, 5*60e3, 60*60e3, 864e5, 3*864e5, 7*864e5, 14*864e5]; // per box
 const MASTER_BOX=5;
 const LSKEY="hanzi100";
 let storageOK=true;
-let S={prog:{},nb:{},newPerDay:8,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},forceUnlock:{}};
-function load(){try{const raw=localStorage.getItem(LSKEY);if(raw){const p=JSON.parse(raw);S=Object.assign(S,p);}}catch(e){storageOK=false}}
+let S={prog:{},nb:{},newPerDay:3,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},forceUnlock:{}};
+function load(){try{const raw=localStorage.getItem(LSKEY);if(raw){const p=JSON.parse(raw);S=Object.assign(S,p);}}catch(e){storageOK=false}
+  if(![3,5,10].includes(S.newPerDay))S.newPerDay=3;}
 function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){storageOK=false}}
 function dayStr(d){d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
 function touchStreak(){const t=dayStr();if(S.lastDay===t)return;const y=dayStr(new Date(Date.now()-864e5));S.streak=(S.lastDay===y)?S.streak+1:1;S.lastDay=t;save();paintStreak()}
@@ -1030,7 +1031,7 @@ function newList(){const out=[];for(let n=1;n<=maxLevel();n++){if(!unlocked(n))b
 function paintLearnStatus(){
   const due=dueList().length,nl=newList().length,tc=todayCount();
   document.getElementById("learn-status").innerHTML=
-   "<span>Due: <b>"+due+"</b></span><span>New today: <b>"+tc+"/"+quotaMax()+"</b></span><span>Unseen: <b>"+nl+"</b></span>"+
+   "<span>New today: <b>"+tc+"/"+quotaMax()+"</b></span><span>Unseen: <b>"+nl+"</b></span>"+
    (UNDO?' <button class="undo-chip" id="b-undo">↩ undo '+UNDO.c+"</button>":"");
   const u=document.getElementById("b-undo");if(u)u.onclick=doUndo;
 }
@@ -1151,11 +1152,7 @@ function grade(good){
   touchStreak();save();nextCard();
 }
 function paintDone(newLeft){
-  const f=forecast();
-  const nexts=Object.keys(S.prog).map(c=>S.prog[c].due).filter(d=>d>Date.now()).sort((a,b)=>a-b)[0];
-  let h='<div class="card done"><div class="big">🎉</div><b>All caught up!</b>'+
-   '<p class="muted">Later today: '+f.today+" · tomorrow: "+f.tomorrow+" · next 7 days: "+f.week+"</p>"+
-   (nexts?'<p class="muted">Next review in '+fmtDue(nexts)+".</p>":"");
+  let h='<div class="card done"><div class="big">🎉</div><b>All caught up!</b>';
   if(SES.learned.length||SES.rev){
     h+='<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px"><b>This session</b>';
     if(SES.learned.length)h+='<p class="muted" style="margin:6px 0 2px">Learned '+SES.learned.length+' new:</p><div class="sumlist">'+SES.learned.map(c=>'<span class="zi2">'+c+"</span>").join("")+"</div>";
@@ -1164,35 +1161,60 @@ function paintDone(newLeft){
       '<div><button class="btn line" id="b-redrill" style="margin-top:6px">Re-drill these now</button></div>';
     h+="</div>";
   }
-  if(newLeft>0)h+='<p style="margin-top:12px"><button class="btn line" id="b-more">+ Learn 5 extra new characters</button></p>';
+  if(newLeft>0)h+='<p style="margin-top:12px"><button class="btn line" id="b-more">+ Learn '+S.newPerDay+' extra new character'+(S.newPerDay>1?"s":"")+'</button></p>';
+  h+='<p style="margin-top:8px"><button class="btn" id="b-brag">🎉 Show off progress to Paul</button></p>';
   h+='<p class="muted" style="margin-top:10px">Or try a Quiz or Browse 👇</p></div>';
   document.getElementById("learn-area").innerHTML=h;
   const m=document.getElementById("b-more");
-  if(m)m.onclick=()=>{todayCount();S.today.extra=(S.today.extra||0)+5;save();nextCard();};
+  if(m)m.onclick=()=>{todayCount();S.today.extra=(S.today.extra||0)+S.newPerDay;save();nextCard();};
   const r=document.getElementById("b-redrill");
   if(r)r.onclick=()=>{SES.missed.forEach(c=>{if(S.prog[c])S.prog[c].due=Date.now()});SES.missed.clear();save();nextCard();};
+  document.getElementById("b-brag").onclick=shareProgress;
+}
+function shareProgress(){
+  const known=DATA.filter(x=>stateOf(x.c)==="mastered").length;
+  const nb=Object.keys(S.nb).length;
+  const togo=DATA.length-known-nb;
+  const today=todayCount();
+  const now=new Date();
+  let txt="🀄 Leah's Hanzi progress · "+(now.getMonth()+1)+"/"+now.getDate()+"\n";
+  if(S.streak>0)txt+="🔥 "+S.streak+"-day streak\n";
+  txt+=(today>0?("✨ New today: "+today+(SES.learned.length?" — "+SES.learned.join(" "):"")):"📖 All reviews done today")+"\n";
+  txt+="🟢 Known: "+known+" · 🟡 Notebook: "+nb+" · ⚪ To go: "+togo+" of "+DATA.length+"\n";
+  txt+="加油! 💛";
+  if(navigator.share){navigator.share({text:txt}).catch(()=>{})}
+  else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast("Copied! Paste it to Paul 📋")).catch(()=>shareFallback(txt))}
+  else shareFallback(txt);
+}
+function shareFallback(txt){
+  document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">🎉 Progress card</h2>'+
+   '<textarea id="share-txt" readonly style="height:130px">'+esc(txt)+"</textarea>"+
+   '<p class="muted">Copy this and send it to Paul.</p>'+
+   '<div class="ansrow"><button class="btn" id="m-close">Close</button></div>';
+  document.getElementById("modal").classList.add("on");
+  document.getElementById("m-close").onclick=closeModal;
+  const ta=document.getElementById("share-txt");ta.focus();ta.select();
 }
 
 /* ================= QUIZ ================= */
 const QLEN=10;
 let Q=null,QSCOPE=null;
 function seenChars(){return Object.keys(S.prog)}
-function defaultScope(){return seenChars().length>=8?"learned":"all"}
+/* scopes follow the status model — never-seen ⚪ chars are never quizzed:
+   all = 🟡+🟢 (everything started) · learned = 🟢 known · notebook = 🟡 */
 function paintScope(){
-  if(QSCOPE===null)QSCOPE=defaultScope();
+  if(QSCOPE===null)QSCOPE="all";
   const el=document.getElementById("q-scope");
   el.innerHTML='<div class="scoperow"><span class="muted" style="font-size:13px">Test scope:</span>'+
-   [["all","All"],["learned","Learned"],["notebook","📓 Notebook"]].map(x=>
+   [["all","All"],["learned","🟢 Learned"],["notebook","🟡 Notebook"]].map(x=>
     '<button class="scope-btn'+(QSCOPE===x[0]?" on":"")+'" data-sc="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
   el.querySelectorAll(".scope-btn").forEach(b=>b.onclick=()=>{QSCOPE=b.dataset.sc;paintScope()});
 }
 function basePool(){
-  if(QSCOPE===null)QSCOPE=defaultScope();
+  if(QSCOPE===null)QSCOPE="all";
   if(QSCOPE==="notebook")return Object.keys(S.nb).map(byChar).filter(Boolean);
-  if(QSCOPE==="learned")return seenChars().map(byChar).filter(Boolean);
-  const out=[];
-  for(let n=1;n<=maxLevel();n++){if(!unlocked(n))break;lvChars(n).forEach(d=>out.push(d))}
-  return out;
+  if(QSCOPE==="learned")return DATA.filter(d=>stateOf(d.c)==="mastered");
+  return seenChars().map(byChar).filter(Boolean);
 }
 function buildCharMode(mode){
   const pool=basePool();
@@ -1516,7 +1538,7 @@ function paintStats(){
    (KN_OPEN?('<div style="padding:0 16px 14px">'+(knownList.length?('<div class="grid">'+knownList.map(chipHTML).join("")+"</div>"):'<p class="muted" style="margin:6px 0">Swipe left in Learn on characters you already know.</p>')+"</div>"):"")+
   "</div>"+
   '<h2>Settings</h2><div class="card">'+
-   '<div class="setrow"><span>New characters per day</span><select id="s-new"><option>5</option><option>8</option><option>12</option><option>20</option></select></div>'+
+   '<div class="setrow"><span>New characters per day</span><select id="s-new"><option>3</option><option>5</option><option>10</option></select></div>'+
    '<div class="setrow"><span>Audio (pronunciation)</span><select id="s-audio"><option value="1">on</option><option value="0">off</option></select></div>'+
    (storageOK?"":'<p class="muted">⚠️ This browser is blocking saved progress (private mode?). Use Export below to keep a backup.</p>')+
   '</div>'+
@@ -1546,7 +1568,7 @@ function paintStats(){
     };
   };
   document.getElementById("s-reset").onclick=()=>{
-    if(confirm("Erase ALL progress? This cannot be undone.")){S={prog:{},nb:{},newPerDay:8,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},forceUnlock:{}};UNDO=null;SES={learned:[],rev:0,missed:new Set()};save();paintStats();paintStreak();nextCard()}
+    if(confirm("Erase ALL progress? This cannot be undone.")){S={prog:{},nb:{},newPerDay:3,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},forceUnlock:{}};UNDO=null;SES={learned:[],rev:0,missed:new Set()};save();paintStats();paintStreak();nextCard()}
   };
 }
 
