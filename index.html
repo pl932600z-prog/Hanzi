@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Hanzi · 汉字</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -112,6 +113,9 @@ textarea{width:100%;height:90px}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 #modal.on{display:flex}
 #modal .sheet{background:var(--card);border-radius:20px 20px 0 0;max-width:560px;width:100%;max-height:82vh;overflow-y:auto;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}
+#gate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
+#gate .inner{max-width:340px;width:100%;text-align:center}
+#gate .bigzi{font-size:64px;margin-bottom:8px;color:var(--acc)}
 .toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);
   padding:10px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none;white-space:nowrap}
 .toast.on{opacity:1}
@@ -925,7 +929,8 @@ function info(c){const d=byChar(c);if(d)return d;const e=EXTRAS[c];return e?{c:c
 /* ================= LEVELS ================= */
 const IDX={};DATA.forEach((d,i)=>IDX[d.c]=i);
 const LV_NEED=70;
-const PASS="zhima"; /* 芝麻开门 — open sesame! */
+const PASS="zhima"; /* 芝麻开门 — open sesame! (level unlock) */
+const GATE="kaimen"; /* 开门 — app entry magic word */
 function maxLevel(){return Math.ceil(DATA.length/100)}
 function lvOf(c){return Math.floor(IDX[c]/100)+1}
 function lvChars(n){return DATA.slice((n-1)*100,n*100)}
@@ -1534,8 +1539,26 @@ document.body.addEventListener("click",e=>{
   if(el)speak(el.dataset.say);
 });
 
+/* ================= GATE ================= */
+function paintGate(){
+  if(S.gate)return;
+  const g=document.createElement("div");g.id="gate";
+  g.innerHTML='<div class="inner"><div class="bigzi">汉</div><h2 style="margin:0 0 6px">你好!</h2>'+
+   '<p class="muted">This app was made just for Leah 💛<br>Enter the magic word to come in.</p>'+
+   '<input class="search" id="gate-in" placeholder="magic word" autocomplete="off" autocapitalize="none" style="text-align:center">'+
+   '<div style="margin-top:10px"><button class="btn" id="gate-go" style="width:100%">开门 — open the door</button></div>'+
+   '<p class="muted" id="gate-err" style="min-height:18px;font-size:13px;margin-top:8px"></p></div>';
+  document.body.appendChild(g);
+  const tryGo=()=>{
+    const v=(document.getElementById("gate-in").value||"").trim().toLowerCase();
+    if(v===GATE){S.gate=1;save();g.remove();toast("欢迎! Welcome in 💛")}
+    else document.getElementById("gate-err").textContent=v?"Hmm, that's not it — ask Paul!":"";
+  };
+  document.getElementById("gate-go").onclick=tryGo;
+  document.getElementById("gate-in").addEventListener("keydown",e=>{if(e.key==="Enter")tryGo()});
+}
 /* ================= BOOT ================= */
-load();initTTS();paintStreak();nextCard();
+load();initTTS();paintStreak();nextCard();paintGate();
 /* offline support when hosted (no effect when opened as a local file) */
 if("serviceWorker" in navigator&&location.protocol==="https:"){try{navigator.serviceWorker.register("./sw.js")}catch(e){}}
 </script>
