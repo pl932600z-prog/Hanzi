@@ -139,6 +139,12 @@ textarea{width:100%;height:90px}
 .sw-know{left:12px;background:var(--ok);color:#fff}
 .sw-nb{right:12px;background:var(--amber);color:#fff}
 .hintline{text-align:center;font-size:12.5px;color:var(--ink2);margin:6px 2px 2px}
+.scoperow{display:flex;gap:8px;align-items:center;margin:10px 2px 12px;flex-wrap:wrap}
+.scope-btn{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:13.5px;cursor:pointer}
+.scope-btn.on{border-color:var(--acc);background:var(--acc-soft);font-weight:700}
+.q-status{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:10px;font-size:19px;color:var(--ink)}
+.qs-btn{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:5px 9px;font-size:14px;cursor:pointer}
+.qs-btn.on{border-color:var(--acc);background:var(--acc-soft)}
 .statusrow{display:flex;gap:8px;margin:12px 0 4px}
 .statusrow .stbtn{flex:1;padding:10px 4px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:13.5px;cursor:pointer}
 .statusrow .stbtn.on{border-color:var(--acc);background:var(--acc-soft);font-weight:700}
@@ -168,7 +174,8 @@ textarea{width:100%;height:90px}
   <section id="view-quiz" class="view">
     <div id="quiz-home">
       <h2>Quiz yourself</h2>
-      <p class="muted" style="margin:4px">10 questions from the characters you've studied.</p>
+      <p class="muted" style="margin:4px">10 questions per round.</p>
+      <div id="q-scope"></div>
       <div class="modes">
         <button class="mode" data-mode="c2m"><b>字 → English</b>See the character, pick the meaning</button>
         <button class="mode" data-mode="c2p"><b>字 → Pinyin</b>See the character, pick the sound</button>
@@ -922,13 +929,14 @@ function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){stora
 function dayStr(d){d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
 function touchStreak(){const t=dayStr();if(S.lastDay===t)return;const y=dayStr(new Date(Date.now()-864e5));S.streak=(S.lastDay===y)?S.streak+1:1;S.lastDay=t;save();paintStreak()}
 function todayCount(){const t=dayStr();if(S.today.day!==t){S.today={day:t,n:0}}return S.today.n}
+function quotaMax(){todayCount();return S.newPerDay+(S.today.extra||0)}
 function byChar(c){return DATA.find(d=>d.c===c)}
 function info(c){const d=byChar(c);if(d)return d;const e=EXTRAS[c];return e?{c:c,py:e.py,t:e.t,m:e.m}:null}
 
 /* ================= LEVELS ================= */
 const IDX={};DATA.forEach((d,i)=>IDX[d.c]=i);
 const LV_NEED=70;
-const PASS="zhima"; /* 芝麻开门 — open sesame! (level unlock) */
+const PASS={2:"jiayou",3:"lihai"}; /* level unlock codes: 加油 / 厉害 */
 const GATE="kaimen"; /* 开门 — app entry magic word */
 function maxLevel(){return Math.ceil(DATA.length/100)}
 function lvOf(c){return Math.floor(IDX[c]/100)+1}
@@ -1022,7 +1030,7 @@ function newList(){const out=[];for(let n=1;n<=maxLevel();n++){if(!unlocked(n))b
 function paintLearnStatus(){
   const due=dueList().length,nl=newList().length,tc=todayCount();
   document.getElementById("learn-status").innerHTML=
-   "<span>Due: <b>"+due+"</b></span><span>New today: <b>"+tc+"/"+S.newPerDay+"</b></span><span>Unseen: <b>"+nl+"</b></span>"+
+   "<span>Due: <b>"+due+"</b></span><span>New today: <b>"+tc+"/"+quotaMax()+"</b></span><span>Unseen: <b>"+nl+"</b></span>"+
    (UNDO?' <button class="undo-chip" id="b-undo">↩ undo '+UNDO.c+"</button>":"");
   const u=document.getElementById("b-undo");if(u)u.onclick=doUndo;
 }
@@ -1092,7 +1100,7 @@ function nextCard(){
   const due=dueList();
   if(due.length){cur=byChar(due[0]);curIsNew=false;paintCard();return}
   const nl=newList();
-  if(nl.length&&todayCount()<S.newPerDay){cur=byChar(nl[0]);curIsNew=true;paintCard();return}
+  if(nl.length&&todayCount()<quotaMax()){cur=byChar(nl[0]);curIsNew=true;paintCard();return}
   /* pull recently-missed cards (due within 2 min) back immediately instead of dead-ending */
   const soon=Object.keys(S.prog).filter(c=>S.prog[c].due<=Date.now()+12e4).sort((a,b)=>S.prog[a].due-S.prog[b].due)[0];
   if(soon){cur=byChar(soon);curIsNew=false;paintCard();return}
@@ -1138,7 +1146,7 @@ function grade(good){
   snapshot(cur.c,false);
   const p=S.prog[cur.c];p.seen++;S.tot.rev++;
   if(good){p.ok++;S.tot.ok++;p.box=Math.min(6,p.box+1)}else{p.ng++;p.box=Math.max(1,p.box-2)}
-  p.due=Date.now()+(good?INT[p.box]:6e4);
+  p.due=Date.now()+(good?INT[p.box]:6e5); /* miss → back in 10 min (no instant loop) */
   SES.rev++;if(!good)SES.missed.add(cur.c);
   touchStreak();save();nextCard();
 }
@@ -1160,16 +1168,32 @@ function paintDone(newLeft){
   h+='<p class="muted" style="margin-top:10px">Or try a Quiz or Browse 👇</p></div>';
   document.getElementById("learn-area").innerHTML=h;
   const m=document.getElementById("b-more");
-  if(m)m.onclick=()=>{todayCount();S.today.n=Math.max(0,S.today.n-5);save();nextCard();};
+  if(m)m.onclick=()=>{todayCount();S.today.extra=(S.today.extra||0)+5;save();nextCard();};
   const r=document.getElementById("b-redrill");
   if(r)r.onclick=()=>{SES.missed.forEach(c=>{if(S.prog[c])S.prog[c].due=Date.now()});SES.missed.clear();save();nextCard();};
 }
 
 /* ================= QUIZ ================= */
 const QLEN=10;
-let Q=null;
+let Q=null,QSCOPE=null;
 function seenChars(){return Object.keys(S.prog)}
-function basePool(){let p=seenChars().map(byChar).filter(Boolean);if(p.length<8)p=DATA.slice(0,20);return p}
+function defaultScope(){return seenChars().length>=8?"learned":"all"}
+function paintScope(){
+  if(QSCOPE===null)QSCOPE=defaultScope();
+  const el=document.getElementById("q-scope");
+  el.innerHTML='<div class="scoperow"><span class="muted" style="font-size:13px">Test scope:</span>'+
+   [["all","All"],["learned","Learned"],["notebook","📓 Notebook"]].map(x=>
+    '<button class="scope-btn'+(QSCOPE===x[0]?" on":"")+'" data-sc="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
+  el.querySelectorAll(".scope-btn").forEach(b=>b.onclick=()=>{QSCOPE=b.dataset.sc;paintScope()});
+}
+function basePool(){
+  if(QSCOPE===null)QSCOPE=defaultScope();
+  if(QSCOPE==="notebook")return Object.keys(S.nb).map(byChar).filter(Boolean);
+  if(QSCOPE==="learned")return seenChars().map(byChar).filter(Boolean);
+  const out=[];
+  for(let n=1;n<=maxLevel();n++){if(!unlocked(n))break;lvChars(n).forEach(d=>out.push(d))}
+  return out;
+}
 function buildCharMode(mode){
   const pool=basePool();
   return shuffle(pool).slice(0,QLEN).map(t=>{
@@ -1250,7 +1274,7 @@ function buildComp(){
 function startQuiz(mode){
   let qs;
   if(mode==="w2m")qs=buildW2M();else if(mode==="tone")qs=buildTone();else if(mode==="comp")qs=buildComp();else qs=buildCharMode(mode);
-  if(!qs||qs.length<4){toast("Study a few more characters first!");return}
+  if(!qs||qs.length<4){toast("Not enough characters in this scope yet — switch scope or study more!");return}
   Q={mode:mode,qs:qs,i:0,score:0};
   document.getElementById("quiz-home").classList.add("hidden");
   document.getElementById("quiz-play").classList.remove("hidden");
@@ -1266,19 +1290,43 @@ function paintQ(){
   if(q.say)speak(q.say);
   document.querySelectorAll("#quiz-play .opt").forEach(b=>b.onclick=()=>answerQ(+b.dataset.i));
 }
+function qAdvance(){
+  if(!Q)return;
+  if(Q.timer){clearTimeout(Q.timer);Q.timer=null}
+  Q.i++;Q.i>=Q.qs.length?endQuiz(true):paintQ();
+}
+function qStatusRow(c){
+  const map={new:"new",learning:"nb",mastered:"known"};
+  const cur=map[stateOf(c)];
+  return '<div class="q-status" id="q-status"><span>'+c+"</span>"+
+   [["new","⚪"],["nb","🟡"],["known","🟢"]].map(x=>'<button class="qs-btn'+(cur===x[0]?" on":"")+'" data-st="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
+}
+function bindQStatus(c){
+  document.querySelectorAll("#q-status .qs-btn").forEach(b=>b.onclick=()=>{
+    if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null} /* pause auto-advance while editing */
+    setStatus(c,b.dataset.st);
+    const row=document.getElementById("q-status");
+    if(row){row.outerHTML=qStatusRow(c);bindQStatus(c)}
+    toast(c+(b.dataset.st==="new"?" → new ⚪":b.dataset.st==="nb"?" → notebook 🟡":" → known 🟢"));
+  });
+}
 function answerQ(i){
   const q=Q.qs[Q.i],right=q.opts[i].ok;
   document.querySelectorAll("#quiz-play .opt").forEach((b,j)=>{
     b.disabled=true;
     if(q.opts[j].ok)b.classList.add("right");else if(j===i)b.classList.add("wrong");
   });
-  document.getElementById("q-expl").innerHTML=q.expl||"";
+  document.getElementById("q-expl").innerHTML=(q.expl||"")+(q.c?qStatusRow(q.c):"")+
+   '<div style="margin-top:10px"><button class="btn sm line" id="q-next">Next →</button></div>';
+  if(q.c)bindQStatus(q.c);
+  document.getElementById("q-next").onclick=qAdvance;
   if(right){Q.score++}else if(q.c&&S.prog[q.c]){S.prog[q.c].due=Date.now();S.prog[q.c].ng++}
   S.tot.rev++;if(right)S.tot.ok++;
   touchStreak();save();
-  setTimeout(()=>{Q.i++;Q.i>=Q.qs.length?endQuiz(true):paintQ()},right?900:1900);
+  Q.timer=right?setTimeout(qAdvance,1300):null; /* misses wait for Next */
 }
 function endQuiz(showScore){
+  if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null}
   if(showScore===true){
     document.getElementById("quiz-play").innerHTML=
     '<div class="card done"><div class="big">'+(Q.score>=8?"🏆":Q.score>=5?"👍":"💪")+'</div><b>'+Q.score+" / "+Q.qs.length+'</b><p class="muted">'+
@@ -1397,7 +1445,7 @@ function renderBrowse(query){
     const n=+b.dataset.lv;
     const inp=document.getElementById("pw"+n);
     const guess=(inp&&inp.value||"").trim().toLowerCase();
-    if(guess===PASS){S.forceUnlock[n]=1;save();renderBrowse("");toast("加油! Level "+n+" unlocked 🎉")}
+    if(guess===PASS[n]){S.forceUnlock[n]=1;save();renderBrowse("");toast("加油! Level "+n+" unlocked 🎉")}
     else toast(guess?"Hmm, that's not it — ask Paul!":"Type the passcode first");
   });
 }
@@ -1508,6 +1556,7 @@ function switchView(v){
   document.getElementById("view-"+v).classList.add("on");
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
   if(v==="learn")nextCard();
+  if(v==="quiz")paintScope();
   if(v==="browse")paintBrowse();
   if(v==="stats")paintStats();
   window.scrollTo(0,0);
