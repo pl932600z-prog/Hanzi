@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Hanzi · 汉字</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Hanzi">
+<meta name="theme-color" content="#b4552d">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#f6f5f2; --card:#ffffff; --ink:#26241f; --ink2:#6b675e; --line:#e5e2da;
+  --acc:#b4552d; --acc-soft:#f6e3d9; --ok:#2e9e4f; --ok-soft:#e0f2e5; --bad:#d64541; --bad-soft:#fae3e2;
+  --amber:#d98e1f; --t1:#d64541; --t2:#2e9e4f; --t3:#2b7de0; --t4:#9b59b6; --t0:#8a8f98;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 4px 14px rgba(0,0,0,.05); --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#17161a; --card:#232227; --ink:#eceae5; --ink2:#a09c93; --line:#37353c;
+    --acc:#e0764a; --acc-soft:#3a2a22; --ok:#4cba6e; --ok-soft:#20321f; --bad:#e0605c; --bad-soft:#3a2323;
+    --amber:#e0a33e; --t1:#ef7b74; --t2:#5fc983; --t3:#6aa6ef; --t4:#bd87d6; --t0:#8a8f98;
+    --sh:0 1px 3px rgba(0,0,0,.4); }
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:16px;line-height:1.45;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 6px;max-width:560px;margin:0 auto}
+header h1{font-size:18px;margin:0;letter-spacing:.3px}
+header h1 span{color:var(--acc)}
+.tagline{font-size:12px;color:var(--ink2);margin-top:1px}
+.pos{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--ink2);vertical-align:2px;margin-left:6px;white-space:nowrap}
+#streak{font-size:14px;color:var(--ink2)}
+main{max-width:560px;margin:0 auto;padding:8px 14px}
+.view{display:none}
+.view.on{display:block}
+/* ---------- nav ---------- */
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:20}
+nav button{flex:1;max-width:110px;background:none;border:none;color:var(--ink2);font-size:11px;padding:5px 2px;cursor:pointer;border-radius:10px}
+nav button .zi{display:block;font-size:20px;line-height:1.2}
+nav button.on{color:var(--acc);background:var(--acc-soft)}
+/* ---------- shared ---------- */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:18px;margin:10px 0}
+.btn{display:inline-block;border:none;border-radius:14px;padding:14px 18px;font-size:16px;font-weight:600;cursor:pointer;
+  background:var(--acc);color:#fff;min-height:48px}
+.btn.line{background:none;border:1.5px solid var(--line);color:var(--ink)}
+.btn.ok{background:var(--ok)} .btn.bad{background:var(--bad)}
+.btn.sm{padding:8px 14px;min-height:38px;font-size:14px;font-weight:500}
+.btn:disabled{opacity:.45}
+.muted{color:var(--ink2);font-size:14px}
+.t1{color:var(--t1)} .t2{color:var(--t2)} .t3{color:var(--t3)} .t4{color:var(--t4)} .t0{color:var(--t0)}
+.spk{background:var(--acc-soft);color:var(--acc);border:none;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;vertical-align:middle}
+.hidden{display:none!important}
+.row{display:flex;gap:10px;align-items:center}
+.grow{flex:1}
+h2{font-size:16px;margin:18px 4px 6px}
+/* ---------- learn ---------- */
+#learn-status{display:flex;gap:14px;justify-content:center;margin:6px 0;font-size:13px;color:var(--ink2)}
+#learn-status b{color:var(--ink)}
+.bigchar{font-size:min(38vw,150px);line-height:1.15;text-align:center;margin:6px 0}
+.newtag{display:inline-block;background:var(--amber);color:#fff;font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px;margin-bottom:4px}
+.pyline{text-align:center;font-size:26px;font-weight:600;margin:2px 0 6px}
+.meaning{text-align:center;font-size:19px;margin-bottom:10px}
+.comps{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.comp{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:5px 10px;font-size:14px}
+.comp b{font-size:18px;margin-right:5px;font-weight:500}
+.mn{background:var(--acc-soft);border-radius:12px;padding:10px 14px;font-size:15px;margin:10px 0}
+.words{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.word{display:flex;align-items:baseline;gap:10px;padding:5px 2px;font-size:15px;cursor:pointer}
+.word .wz{font-size:19px}
+.word .wp{color:var(--ink2)}
+.ansrow{display:flex;gap:12px;margin-top:14px}
+.ansrow .btn{flex:1}
+.taphint{text-align:center;color:var(--ink2);font-size:13px;margin-top:14px}
+.famtag{text-align:center;font-size:13px;color:var(--ink2);margin-bottom:2px}
+/* ---------- quiz ---------- */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:14px;cursor:pointer;text-align:left;font-size:15px;color:var(--ink)}
+.mode b{display:block;font-size:16px;margin-bottom:3px}
+.qprompt{text-align:center;font-size:20px;margin:14px 0}
+.qprompt .bigchar{font-size:min(30vw,110px)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 10px;font-size:17px;cursor:pointer;color:var(--ink);min-height:56px}
+.opt.zi{font-size:34px}
+.opt.right{background:var(--ok-soft);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.qbar{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--ink2);margin:4px 2px}
+.expl{margin-top:12px;font-size:14px;color:var(--ink2);text-align:center;min-height:20px}
+/* ---------- browse ---------- */
+.famhead{display:flex;justify-content:space-between;align-items:baseline;margin:16px 4px 6px}
+.famhead h3{margin:0;font-size:16px}
+.famhead h3 .zi{color:var(--acc);margin-right:6px;font-size:18px}
+.famnote{font-size:12.5px;color:var(--ink2);margin:0 4px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.chip{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 2px 8px;font-size:28px;text-align:center;cursor:pointer;color:var(--ink)}
+.chip .dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--line)}
+.chip.learning .dot{background:var(--amber)}
+.chip.mastered .dot{background:var(--ok)}
+/* ---------- stats ---------- */
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.stat{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:14px 6px}
+.stat b{display:block;font-size:26px}
+.stat span{font-size:12.5px;color:var(--ink2)}
+.setrow{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line);font-size:15px}
+select,textarea{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px}
+textarea{width:100%;height:90px}
+/* ---------- modal ---------- */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+#modal.on{display:flex}
+#modal .sheet{background:var(--card);border-radius:20px 20px 0 0;max-width:560px;width:100%;max-height:82vh;overflow-y:auto;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}
+.toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:10px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+.done{ text-align:center;padding:26px 10px}
+.done .big{font-size:44px;margin-bottom:8px}
+/* ---------- v2 additions ---------- */
+.banner{background:var(--acc-soft);border-radius:var(--r);padding:12px 14px;margin:10px 0;font-size:14px}
+.undo-chip{background:none;border:1px dashed var(--line);border-radius:10px;color:var(--ink2);font-size:12px;padding:3px 10px;cursor:pointer}
+.search{width:100%;font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:6px 0;box-sizing:border-box}
+.lvhead{display:flex;align-items:baseline;gap:10px;margin:22px 4px 2px;font-size:17px;font-weight:700}
+.lvhead .muted{font-weight:400;font-size:13px}
+.lock{background:var(--card);border:1.5px dashed var(--line);border-radius:var(--r);padding:16px;margin:14px 0;text-align:center;color:var(--ink2);font-size:14px}
+.sent{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;cursor:pointer}
+.sent .sz{font-size:18px;line-height:1.5}
+.sent .sp{font-size:12.5px;color:var(--ink2)}
+.sent .se{font-size:13.5px;margin-top:2px}
+.tonebtn{font-size:17px;letter-spacing:1px}
+.sumlist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.sumlist .zi2{font-size:22px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:2px 8px}
+.card.swipeable{will-change:transform;user-select:none;-webkit-user-select:none;position:relative;touch-action:pan-y}
+.sw-tag{position:absolute;top:14px;font-size:15px;font-weight:800;padding:6px 12px;border-radius:10px;opacity:0;pointer-events:none;z-index:3}
+.sw-know{left:12px;background:var(--ok);color:#fff}
+.sw-nb{right:12px;background:var(--amber);color:#fff}
+.hintline{text-align:center;font-size:12.5px;color:var(--ink2);margin:6px 2px 2px}
+.nb-row{display:flex;gap:12px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.nb-row:last-child{border-bottom:none}
+.nb-zi{font-size:30px}
+.nb-mid{flex:1;min-width:0;font-size:14.5px}
+.nb-note{font-size:13px;color:var(--ink2);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.skgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px;margin:10px 0}
+.skc{background:var(--card);border:1.5px solid var(--line);border-radius:10px;font-size:25px;padding:8px 0;cursor:pointer;color:var(--ink)}
+.skc.on{background:var(--ok-soft);border-color:var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Han<span>zi</span></h1>
+    <div class="tagline">For Leah - happy learning!</div>
+  </div>
+  <div id="streak"></div>
+</header>
+<main>
+  <!-- LEARN -->
+  <section id="view-learn" class="view on">
+    <div id="learn-status"></div>
+    <div id="learn-banner"></div>
+    <div id="learn-area"></div>
+  </section>
+  <!-- QUIZ -->
+  <section id="view-quiz" class="view">
+    <div id="quiz-home">
+      <h2>Quiz yourself</h2>
+      <p class="muted" style="margin:4px">10 questions from the characters you've studied.</p>
+      <div class="modes">
+        <button class="mode" data-mode="c2m"><b>字 → English</b>See the character, pick the meaning</button>
+        <button class="mode" data-mode="c2p"><b>字 → Pinyin</b>See the character, pick the sound</button>
+        <button class="mode" data-mode="m2c"><b>English → 字</b>See the meaning, pick the character</button>
+        <button class="mode" data-mode="a2c" id="mode-audio"><b>🔊 Listening</b>Hear it, pick the character</button>
+        <button class="mode" data-mode="w2m"><b>词 Words</b>See a word, pick the meaning</button>
+        <button class="mode" data-mode="tone"><b>声 Tones</b>Pick the tone pattern of a word</button>
+        <button class="mode" data-mode="comp"><b>部 Components</b>Match parts to their meanings</button>
+      </div>
+    </div>
+    <div id="quiz-play" class="hidden"></div>
+  </section>
+  <!-- BROWSE -->
+  <section id="view-browse" class="view">
+    <div id="browse-area"></div>
+  </section>
+  <!-- STATS -->
+  <section id="view-stats" class="view">
+    <div id="stats-area"></div>
+  </section>
+</main>
+<nav>
+  <button data-view="learn" class="on"><span class="zi">学</span>Learn</button>
+  <button data-view="quiz"><span class="zi">测</span>Quiz</button>
+  <button data-view="browse"><span class="zi">览</span>Browse</button>
+  <button data-view="stats"><span class="zi">我</span>Me</button>
+</nav>
+<div id="modal"><div class="sheet" id="modal-body"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= DATA ================= */
+/* f = family index; t = tone (0-4); k = components; mn = mnemonic; w = words */
+const FAMS=[
+ ["氵","Water","Three drops on the left — these characters involve liquid."],
+ ["讠","Speech","A compressed 言 (words) — talking, language, communication."],
+ ["心","Heart","心 or squeezed 忄 — feelings and thinking happen in the heart."],
+ ["扌","Hand","A squeezed 手 (hand) — actions you do with your hands."],
+ ["亻","Person","A squeezed 人 (person) — people and what they do."],
+ ["青","Blue-green","青 (qīng) gives its SOUND to a whole family: 请清晴睛情."],
+ ["木","Tree","A tree with branches and roots — wood and things built of it."],
+ ["日","Sun","A picture of the sun — time, weather, brightness."],
+ ["雨","Rain","Raindrops under a cloud — weather from the sky."],
+ ["⻊","Foot","A squeezed 足 (foot) — walking, running, roads."],
+ ["钅","Metal","A squeezed 金 (gold) — metals and things made of metal."],
+ ["火","Fire","Flames (or 灬, fire dots below) — heat and light."],
+ ["疒","Sickness","A person leaning on a bed — illness and pain."],
+ ["纟","Silk","A twisted thread — string, fabric, and connections."],
+ ["口","Mouth","An open mouth — speaking, eating, sounds."],
+ ["女","Woman","A kneeling figure — originally 'woman', in many family words."],
+ ["门","Gate","Double doors — spaces, openings, in and out."],
+ ["✦","Essentials","No single radical — small, high-frequency glue words you'll meet constantly."],
+ ["宀","Roof","A roof with a chimney — homes, rooms, and what happens indoors."],
+ ["辶","Walk","A foot on a winding road — movement and travel."],
+ ["艹","Grass","Two sprouts — plants, vegetables, and things that grow."],
+ ["月","Body","Inside characters, 月 is usually 'flesh' — body parts."],
+ ["目","Eye","A tall eye — seeing and looking."],
+ ["土","Earth","A plant sprouting from the ground — soil, land, places."],
+ ["王","King / jade","A string of jade beads — precious things and play."],
+ ["车","Vehicle","A cart seen from above — wheels and transport."],
+ ["饣","Food","A squeezed 食 (food) — eating and meals."],
+ ["衤","Clothes","A squeezed 衣 (clothes) — garments and covering."],
+ ["刂","Knife","A squeezed 刀 (knife) — cutting and dividing."],
+ ["山","Mountain","Three peaks — mountains and steep places."],
+ ["广","Shelter","A roof against a cliff — buildings open on one side: shops, halls."],
+ ["阝","City / mound","On the right: city. On the left: hill. Places either way."],
+ ["犭","Animal","A squeezed dog — beasts and pets."],
+ ["竹","Bamboo","Two bamboo stalks on top — things once made of bamboo: pens, counting rods."],
+ ["穴","Cave","A roof over an opening — holes, openings, emptiness."],
+ ["页","Head / page","Originally a head — faces; nowadays also pages."],
+ ["石","Stone","A cliff with a rock below — hard things."],
+ ["田","Field","A divided rice paddy — farmland and boundaries."],
+ ["力","Strength","A flexed arm (or a plow) — effort and power."],
+ ["又","Right hand","A hand — grabbing, receiving, doing again."],
+ ["见","See","An eye on legs — seeing and perceiving."],
+ ["贝","Shell / money","A cowrie shell, ancient money — value, cost, wealth."],
+ ["礻","Spirit","A squeezed 示 (altar) — gods, rituals, blessings."],
+ ["隹","Bird","A short-tailed bird — appears in surprising places."],
+ ["尸","Reclining body","A person lying or sitting — bodies, dwellings, layers."],
+ ["立","Stand","A person standing on the ground — standing, upright."],
+ ["米","Rice","Grains around a cross — rice and powdery things."],
+ ["虫","Insect","A crawling creature — bugs, snakes, and small animals."],
+ ["鸟","Bird (full)","A perched bird with a claw — bird species."],
+ ["马","Horse","A galloping horse — horses and riding."],
+ ["皿","Dish","A shallow bowl on a stand — containers."]
+];
+const DATA=[
+/* --- Water 氵 --- */
+{c:"河",py:"hé",t:2,m:"river",pos:"noun",f:0,k:[["氵","water"],["可","can (kě)"]],mn:"Water 氵 + 可 'can' — the water that CAN carry boats: a river. 可 also hints at the sound (kě → hé).",w:[["河边","hébiān","riverside"],["黄河","Huánghé","the Yellow River"]]},
+{c:"湖",py:"hú",t:2,m:"lake",pos:"noun",f:0,k:[["氵","water"],["胡","hú (sound)"]],mn:"Water 氵 + 胡 which says its name for it: hú. A big calm body of water — a lake.",w:[["西湖","Xīhú","West Lake (Hangzhou)"],["湖水","húshuǐ","lake water"]]},
+{c:"海",py:"hǎi",t:3,m:"sea, ocean",pos:"noun",f:0,k:[["氵","water"],["每","every (měi)"]],mn:"Water 氵 + 每 'every' — EVERY river eventually flows into it: the sea.",w:[["大海","dàhǎi","the sea"],["上海","Shànghǎi","Shanghai"]]},
+{c:"洗",py:"xǐ",t:3,m:"to wash",pos:"verb",f:0,k:[["氵","water"],["先","first (xiān)"]],mn:"Water 氵 + 先 'first' — FIRST, add water: that's how every wash begins. 先 also hints the sound (xiān → xǐ).",w:[["洗手","xǐshǒu","wash your hands"],["洗澡","xǐzǎo","take a shower/bath"]]},
+{c:"游",py:"yóu",t:2,m:"to swim; to tour",pos:"verb",f:0,k:[["氵","water"],["方","flag pole"],["子","child"]],mn:"A child 子 swims through the water 氵 toward the flag 方 — swimming (and touring around).",w:[["游泳","yóuyǒng","to swim"],["旅游","lǚyóu","to travel, tour"]]},
+{c:"泳",py:"yǒng",t:3,m:"swimming",pos:"noun",f:0,k:[["氵","water"],["永","forever (yǒng)"]],mn:"Water 氵 + 永 'forever' (same sound yǒng) — you could glide through water forever: swimming.",w:[["游泳","yóuyǒng","to swim"],["泳衣","yǒngyī","swimsuit"]]},
+{c:"汽",py:"qì",t:4,m:"steam, vapor",pos:"noun",f:0,k:[["氵","water"],["气","air, gas (qì)"]],mn:"Water 氵 turned to 气 'air' — steam! Same sound as 气 (qì). Steam once powered the first cars.",w:[["汽车","qìchē","car (steam-cart!)"],["汽水","qìshuǐ","soda, fizzy drink"]]},
+{c:"深",py:"shēn",t:1,m:"deep",pos:"adjective",f:0,k:[["氵","water"],["木","tree (sunk below)"]],mn:"Water 氵 so deep that a whole tree 木 has sunk under the roof of the surface — deep.",w:[["深海","shēnhǎi","the deep sea"],["深色","shēnsè","dark color"]]},
+/* --- Speech 讠 --- */
+{c:"话",py:"huà",t:4,m:"speech, words",pos:"noun",f:1,k:[["讠","speech"],["舌","tongue (shé)"]],mn:"Speech 讠 + 舌 'tongue' — what your tongue produces: words, talk.",w:[["说话","shuōhuà","to speak"],["电话","diànhuà","telephone"]]},
+{c:"语",py:"yǔ",t:3,m:"language",pos:"noun",f:1,k:[["讠","speech"],["吾","I, me (wú)"]],mn:"Speech 讠 + 吾 'I' (old word) — the speech *I* use: my language. 吾 (wú) hints the sound yǔ.",w:[["汉语","Hànyǔ","Chinese language"],["语法","yǔfǎ","grammar"]]},
+{c:"词",py:"cí",t:2,m:"word",pos:"noun",f:1,k:[["讠","speech"],["司","to manage (sī)"]],mn:"Speech 讠 + 司 'manage' — the units that manage meaning in speech: words. 司 (sī) hints cí.",w:[["生词","shēngcí","new vocabulary word"],["词典","cídiǎn","dictionary"]]},
+{c:"课",py:"kè",t:4,m:"lesson, class",pos:"noun",f:1,k:[["讠","speech"],["果","fruit, result (guǒ)"]],mn:"Speech 讠 that bears fruit 果 — a lesson: talk that produces results.",w:[["上课","shàngkè","attend class"],["课本","kèběn","textbook"]]},
+{c:"读",py:"dú",t:2,m:"to read",pos:"verb",f:1,k:[["讠","speech"],["卖","to sell (mài)"]],mn:"Speech 讠 + 卖 'sell' — a street seller reads out his goods aloud all day: to read.",w:[["读书","dúshū","to read / to study"],["阅读","yuèdú","reading"]]},
+{c:"讲",py:"jiǎng",t:3,m:"to speak, explain",pos:"verb",f:1,k:[["讠","speech"],["井","well (jǐng)"]],mn:"Speech 讠 + 井 'well' — villagers gather at the well to talk things over: to speak, to explain. 井 (jǐng) hints jiǎng.",w:[["讲话","jiǎnghuà","give a speech"],["讲课","jiǎngkè","to lecture"]]},
+{c:"试",py:"shì",t:4,m:"to try; test",pos:"verb",f:1,k:[["讠","speech"],["式","formula, style (shì)"]],mn:"Speech 讠 + 式 'formula' (same sound shì) — recite the formula out loud to test it: to try.",w:[["考试","kǎoshì","exam"],["试试","shìshi","give it a try"]]},
+/* --- Heart 心/忄 --- */
+{c:"想",py:"xiǎng",t:3,m:"to think; to want",pos:"verb",f:2,k:[["相","mutual (xiāng)"],["心","heart"]],mn:"相 (xiāng, gives the sound) sitting on a heart 心 — an image resting on your heart: to think of, to want.",w:[["想念","xiǎngniàn","to miss (someone)"],["想法","xiǎngfǎ","idea, opinion"]]},
+{c:"忘",py:"wàng",t:4,m:"to forget",pos:"verb",f:2,k:[["亡","to lose, perish (wáng)"],["心","heart"]],mn:"亡 'lost' on top of 心 'heart' — what is lost from the heart is forgotten. 亡 (wáng) gives the sound.",w:[["忘记","wàngjì","to forget"],["难忘","nánwàng","unforgettable"]]},
+{c:"念",py:"niàn",t:4,m:"to miss; read aloud",pos:"verb",f:2,k:[["今","now (jīn)"],["心","heart"]],mn:"今 'now' over 心 'heart' — someone on your heart right NOW: to miss them, to murmur their name.",w:[["想念","xiǎngniàn","to miss"],["念书","niànshū","to study / read aloud"]]},
+{c:"怕",py:"pà",t:4,m:"to fear",pos:"verb",f:2,k:[["忄","heart"],["白","white (bái)"]],mn:"Heart 忄 + 白 'white' — your heart goes white with fear. 白 (bái) hints the sound pà.",w:[["害怕","hàipà","to be afraid"],["可怕","kěpà","scary"]]},
+{c:"情",py:"qíng",t:2,m:"feeling, emotion",pos:"noun",f:2,k:[["忄","heart"],["青","qīng (sound)"]],mn:"Heart 忄 + 青 — when 青 stands next to a heart, it means feelings. Part of the 青 sound family (qíng).",w:[["事情","shìqing","matter, affair"],["心情","xīnqíng","mood"]]},
+{c:"意",py:"yì",t:4,m:"idea, meaning",pos:"noun",f:2,k:[["音","sound (yīn)"],["心","heart"]],mn:"音 'sound' above 心 'heart' — the sound your heart makes: your idea, what you mean.",w:[["意思","yìsi","meaning"],["同意","tóngyì","to agree"]]},
+{c:"感",py:"gǎn",t:3,m:"to feel",pos:"verb",f:2,k:[["咸","all (xián)"],["心","heart"]],mn:"咸 'all' pressing on the heart 心 — when everything touches your heart at once: to feel.",w:[["感觉","gǎnjué","feeling, to feel"],["感谢","gǎnxiè","to thank"]]},
+{c:"急",py:"jí",t:2,m:"urgent, anxious",pos:"adjective",f:2,k:[["⺈彐","a grabbing hand"],["心","heart"]],mn:"A hand grabbing your heart 心 from above — that clutch in your chest: urgent! anxious!",w:[["着急","zháojí","worried, in a hurry"],["急忙","jímáng","hurriedly"]]},
+{c:"忙",py:"máng",t:2,m:"busy",pos:"adjective",f:2,k:[["忄","heart"],["亡","to lose (wáng)"]],mn:"Heart 忄 + 亡 'lost' — so busy your heart goes missing. Compare 忘 (heart BELOW = forget). 亡 (wáng) hints máng.",w:[["帮忙","bāngmáng","to help out"],["很忙","hěn máng","very busy"]]},
+{c:"总",py:"zǒng",t:3,m:"always; overall",pos:"adverb",f:2,k:[["口","mouth"],["心","heart"]],mn:"A mouth 口 over a heart 心 with sparks on top — the heart always gets the final word: always, in total.",w:[["总是","zǒngshì","always"],["总统","zǒngtǒng","president"]]},
+/* --- Hand 扌 --- */
+{c:"打",py:"dǎ",t:3,m:"to hit; to play",pos:"verb",f:3,k:[["扌","hand"],["丁","nail (dīng)"]],mn:"Hand 扌 + 丁 'nail' — a hand hammering a nail: to hit (and by extension, to play ball, make calls...).",w:[["打电话","dǎ diànhuà","make a phone call"],["打球","dǎqiú","play ball"]]},
+{c:"找",py:"zhǎo",t:3,m:"to look for",pos:"verb",f:3,k:[["扌","hand"],["戈","spear (gē)"]],mn:"Hand 扌 + 戈 'spear' — hand on your spear, hunting around: to look for. Careful: 我 'I' has one extra stroke!",w:[["找到","zhǎodào","to find"],["找钱","zhǎoqián","to give change"]]},
+{c:"把",py:"bǎ",t:3,m:"to hold; (grammar word)",pos:"verb",f:3,k:[["扌","hand"],["巴","bā (sound)"]],mn:"Hand 扌 + 巴 (bā, the sound) — to grip something. In grammar, 把 'takes hold of' the object and moves it before the verb.",w:[["一把伞","yì bǎ sǎn","an umbrella (measure word)"],["把门关上","bǎ mén guānshàng","close the door"]]},
+{c:"拿",py:"ná",t:2,m:"to take, hold",pos:"verb",f:3,k:[["合","to join, close"],["手","hand"]],mn:"合 'close together' on top of 手 'hand' — fingers closing around something: to take it.",w:[["拿到","nádào","to get, obtain"],["拿走","názǒu","to take away"]]},
+{c:"接",py:"jiē",t:1,m:"to receive; pick up",pos:"verb",f:3,k:[["扌","hand"],["立","to stand"],["女","woman"]],mn:"A hand 扌 reaching to the woman 女 standing 立 at the door — to receive, to welcome, to pick someone up.",w:[["接电话","jiē diànhuà","answer the phone"],["接人","jiē rén","pick someone up"]]},
+{c:"换",py:"huàn",t:4,m:"to exchange",pos:"verb",f:3,k:[["扌","hand"],["奂","huàn (sound)"]],mn:"Hand 扌 + 奂 which simply says huàn — one hand gives, the other takes: to exchange, to swap.",w:[["换钱","huànqián","exchange money"],["换车","huànchē","transfer (bus/train)"]]},
+{c:"推",py:"tuī",t:1,m:"to push",pos:"verb",f:3,k:[["扌","hand"],["隹","short-tailed bird (zhuī)"]],mn:"Hand 扌 + 隹 'bird' — gently pushing a plump bird forward: to push.",w:[["推门","tuī mén","push the door"],["推荐","tuījiàn","to recommend"]]},
+{c:"拉",py:"lā",t:1,m:"to pull",pos:"verb",f:3,k:[["扌","hand"],["立","to stand (lì)"]],mn:"Hand 扌 + 立 'stand' — grab someone standing and pull them along. 立 (lì) hints lā. Opposite of 推!",w:[["拉开","lākāi","pull open"],["拉手","lāshǒu","hold hands"]]},
+{c:"抱",py:"bào",t:4,m:"to hug, carry",pos:"verb",f:3,k:[["扌","hand"],["包","to wrap (bāo)"]],mn:"Hand 扌 + 包 'wrap' — arms wrapping around someone: a hug. 包 (bāo) gives the sound bào.",w:[["拥抱","yōngbào","to embrace"],["抱着","bàozhe","holding in one's arms"]]},
+/* --- Person 亻 --- */
+{c:"住",py:"zhù",t:4,m:"to live (somewhere)",pos:"verb",f:4,k:[["亻","person"],["主","master (zhǔ)"]],mn:"Person 亻 + 主 'master' — where a person is master of the house is where they live. 主 (zhǔ) gives zhù.",w:[["住在","zhù zài","to live in/at"],["记住","jìzhu","to remember firmly"]]},
+{c:"位",py:"wèi",t:4,m:"position; person (polite)",pos:"measure word",f:4,k:[["亻","person"],["立","to stand"]],mn:"A person 亻 standing 立 in their spot — a position, a seat; also the polite way to count people.",w:[["座位","zuòwèi","seat"],["一位老师","yí wèi lǎoshī","a teacher (polite)"]]},
+{c:"件",py:"jiàn",t:4,m:"item (measure word)",pos:"measure word",f:4,k:[["亻","person"],["牛","ox (niú)"]],mn:"A person 亻 dividing up an ox 牛 — cutting things into countable pieces: items, matters.",w:[["一件衣服","yí jiàn yīfu","a piece of clothing"],["一件事","yí jiàn shì","a matter"]]},
+{c:"便",py:"biàn",t:4,m:"convenient",pos:"adjective",f:4,k:[["亻","person"],["更","to change (gèng)"]],mn:"A person 亻 + 更 'change' — a person changes things to make them easier: convenient. Watch out: in 便宜 'cheap' it reads pián!",w:[["方便","fāngbiàn","convenient"],["便宜","piányi","cheap (pián!)"]]},
+{c:"停",py:"tíng",t:2,m:"to stop",pos:"verb",f:4,k:[["亻","person"],["亭","pavilion (tíng)"]],mn:"A person 亻 beside a pavilion 亭 — travelers stop at the roadside pavilion to rest. Same sound: tíng.",w:[["停车","tíngchē","to park"],["不停","bù tíng","nonstop"]]},
+{c:"像",py:"xiàng",t:4,m:"to resemble; like",pos:"verb",f:4,k:[["亻","person"],["象","elephant, image (xiàng)"]],mn:"A person 亻 + 象 'elephant' — people who've never seen one draw a person-sized elephant: it merely RESEMBLES one.",w:[["好像","hǎoxiàng","to seem, as if"],["像…一样","xiàng…yíyàng","just like…"]]},
+{c:"借",py:"jiè",t:4,m:"to borrow / lend",pos:"verb",f:4,k:[["亻","person"],["昔","the past (xī)"]],mn:"A person 亻 + 昔 'the past' — what you borrowed belongs to someone's past; give it back! Works both ways: borrow AND lend.",w:[["借书","jiè shū","borrow books"],["借给","jiègěi","lend to"]]},
+/* --- 青 sound family --- */
+{c:"请",py:"qǐng",t:3,m:"please; to invite",pos:"verb",f:5,k:[["讠","speech"],["青","qīng (sound)"]],mn:"Speech 讠 + 青 — polite words: please! The whole 青 family sounds like qing; the left part tells the meaning.",w:[["请问","qǐngwèn","excuse me, may I ask"],["请客","qǐngkè","to treat (pay for) someone"]]},
+{c:"清",py:"qīng",t:1,m:"clear, pure",pos:"adjective",f:5,k:[["氵","water"],["青","qīng (sound)"]],mn:"Water 氵 + 青 — water so clean you can see the blue-green bottom: clear.",w:[["清楚","qīngchu","clear (easy to understand)"],["清水","qīngshuǐ","clear water"]]},
+{c:"晴",py:"qíng",t:2,m:"sunny",pos:"adjective",f:5,k:[["日","sun"],["青","qīng (sound)"]],mn:"Sun 日 + 青 — the sun out in a blue-green sky: sunny weather. Compare 睛 (eye) and 情 (feeling)!",w:[["晴天","qíngtiān","sunny day"],["晴朗","qínglǎng","fine and clear"]]},
+{c:"睛",py:"jīng",t:1,m:"eyeball",pos:"noun",f:5,k:[["目","eye"],["青","qīng (sound)"]],mn:"Eye 目 + 青 — the shiny dark-green pupil: eyeball. Almost always in the word 眼睛.",w:[["眼睛","yǎnjing","eye(s)"],["画龙点睛","huà lóng diǎn jīng","'dot the dragon's eyes' — the finishing touch (idiom)"]]},
+/* --- Tree 木 --- */
+{c:"树",py:"shù",t:4,m:"tree",pos:"noun",f:6,k:[["木","tree"],["对","correct (duì)"]],mn:"Wood 木 + 对 'correct, upright' — the plant that stands correctly upright: a tree.",w:[["大树","dàshù","big tree"],["树叶","shùyè","tree leaf"]]},
+{c:"林",py:"lín",t:2,m:"woods, forest",pos:"noun",f:6,k:[["木","tree"],["木","tree"]],mn:"Two trees 木木 side by side — a woods. (Three trees 森 make a full forest!)",w:[["森林","sēnlín","forest"],["树林","shùlín","woods, grove"]]},
+{c:"楼",py:"lóu",t:2,m:"building, floor",pos:"noun",f:6,k:[["木","wood"],["米","rice"],["女","woman"]],mn:"A wooden 木 tower storing rice 米, with the family 女 living upstairs — a multi-story building.",w:[["楼上","lóushàng","upstairs"],["大楼","dàlóu","big building"]]},
+{c:"桥",py:"qiáo",t:2,m:"bridge",pos:"noun",f:6,k:[["木","wood"],["乔","tall (qiáo)"]],mn:"Wood 木 + 乔 'tall' (same sound qiáo) — a tall wooden arch over the river: a bridge.",w:[["大桥","dàqiáo","great bridge"],["天桥","tiānqiáo","pedestrian overpass"]]},
+{c:"椅",py:"yǐ",t:3,m:"chair",pos:"noun",f:6,k:[["木","wood"],["奇","strange (qí)"]],mn:"Wood 木 + 奇 'strange' — when chairs arrived in China (people sat on mats before!), they were strange wooden things.",w:[["椅子","yǐzi","chair"],["轮椅","lúnyǐ","wheelchair"]]},
+/* --- Sun 日 --- */
+{c:"晚",py:"wǎn",t:3,m:"evening; late",pos:"noun",f:7,k:[["日","sun"],["免","to avoid (miǎn)"]],mn:"The sun 日 + 免 'escape' — the sun escapes below the horizon: evening, late. 免 (miǎn) hints wǎn.",w:[["晚上","wǎnshang","evening"],["晚饭","wǎnfàn","dinner"]]},
+{c:"昨",py:"zuó",t:2,m:"yesterday",pos:"noun",f:7,k:[["日","sun"],["乍","suddenly (zhà)"]],mn:"The sun 日 + 乍 'suddenly' — suddenly that sun is gone; it belongs to yesterday.",w:[["昨天","zuótiān","yesterday"],["昨晚","zuówǎn","last night"]]},
+{c:"春",py:"chūn",t:1,m:"spring (season)",pos:"noun",f:7,k:[["三 + 人","three people"],["日","sun"]],mn:"Three 三 people 人 out under the sun 日 — everyone comes outside when spring arrives.",w:[["春天","chūntiān","spring"],["春节","Chūnjié","Spring Festival"]]},
+{c:"暖",py:"nuǎn",t:3,m:"warm",pos:"adjective",f:7,k:[["日","sun"],["爫+友","hands helping"]],mn:"The sun 日 lending a helping hand — its rays reach down and warm you up.",w:[["暖和","nuǎnhuo","nice and warm"],["温暖","wēnnuǎn","warm (also of feelings)"]]},
+/* --- Rain 雨 --- */
+{c:"雪",py:"xuě",t:3,m:"snow",pos:"noun",f:8,k:[["雨","rain"],["彐","hand/broom"]],mn:"Rain 雨 + a broom 彐 — the only rain you can sweep up with a broom: snow.",w:[["下雪","xiàxuě","to snow"],["雪人","xuěrén","snowman"]]},
+{c:"零",py:"líng",t:2,m:"zero",pos:"numeral",f:8,k:[["雨","rain"],["令","order (lìng)"]],mn:"Rain 雨 + 令 'command' — the sky commands the temperature down to zero. 令 (lìng) gives líng.",w:[["零下","língxià","below zero"],["零钱","língqián","small change"]]},
+{c:"需",py:"xū",t:1,m:"to need",pos:"verb",f:8,k:[["雨","rain"],["而","beard/and (ér)"]],mn:"Rain 雨 over 而 (a drooping beard) — the farmer stands in the drizzle, beard dripping, waiting for the rain he NEEDS.",w:[["需要","xūyào","to need"],["必需","bìxū","essential"]]},
+{c:"雷",py:"léi",t:2,m:"thunder",pos:"noun",f:8,k:[["雨","rain"],["田","field (tián)"]],mn:"Rain 雨 booming over the fields 田 — thunder rolling across the farmland.",w:[["打雷","dǎléi","to thunder"],["雷雨","léiyǔ","thunderstorm"]]},
+/* --- Foot ⻊ --- */
+{c:"跑",py:"pǎo",t:3,m:"to run",pos:"verb",f:9,k:[["⻊","foot"],["包","to wrap (bāo)"]],mn:"Foot ⻊ + 包 'bundle' — grab your bundle and run! 包 (bāo) hints pǎo. Compare 抱: with a HAND it's hug.",w:[["跑步","pǎobù","to jog, run"],["跑得快","pǎo de kuài","runs fast"]]},
+{c:"跳",py:"tiào",t:4,m:"to jump",pos:"verb",f:9,k:[["⻊","foot"],["兆","omen (zhào)"]],mn:"Foot ⻊ + 兆 'omen' — see a bad omen and your feet JUMP. 兆 (zhào) hints tiào.",w:[["跳舞","tiàowǔ","to dance"],["跳高","tiàogāo","high jump"]]},
+{c:"路",py:"lù",t:4,m:"road",pos:"noun",f:9,k:[["⻊","foot"],["各","each (gè)"]],mn:"Foot ⻊ + 各 'each' — each pair of feet wears its own path: a road.",w:[["马路","mǎlù","street"],["路口","lùkǒu","intersection"]]},
+{c:"跟",py:"gēn",t:1,m:"to follow; with",pos:"verb",f:9,k:[["⻊","foot"],["艮","gèn (sound)"]],mn:"Foot ⻊ + 艮 — feet on someone's heels: to follow, to go WITH. Compare 银 (silver): same right side, metal left.",w:[["跟我来","gēn wǒ lái","follow me"],["跟…一起","gēn…yìqǐ","together with…"]]},
+/* --- Metal 钅 --- */
+{c:"钱",py:"qián",t:2,m:"money",pos:"noun",f:10,k:[["钅","metal"],["戋","small, narrow (jiān)"]],mn:"Metal 钅 + 戋 'small bits' — small bits of metal jingling in your pocket: money.",w:[["花钱","huāqián","spend money"],["零钱","língqián","change, coins"]]},
+{c:"银",py:"yín",t:2,m:"silver",pos:"noun",f:10,k:[["钅","metal"],["艮","gèn (sound)"]],mn:"Metal 钅 + 艮 — the precious white metal: silver. Banks (银行) were once silver-houses. Compare 跟 (foot = follow).",w:[["银行","yínháng","bank"],["银色","yínsè","silver color"]]},
+{c:"错",py:"cuò",t:4,m:"wrong; mistake",pos:"adjective",f:10,k:[["钅","metal"],["昔","the past (xī)"]],mn:"Metal 钅 + 昔 'the past' — a coin struck badly stays wrong forever: a mistake, cast in metal.",w:[["不错","búcuò","not bad, pretty good"],["错了","cuò le","(that's) wrong"]]},
+{c:"钟",py:"zhōng",t:1,m:"clock; o'clock",pos:"noun",f:10,k:[["钅","metal"],["中","middle (zhōng)"]],mn:"Metal 钅 + 中 'middle' (same sound zhōng) — the metal bell hanging in the middle of the tower: a clock.",w:[["一点钟","yì diǎn zhōng","one o'clock"],["闹钟","nàozhōng","alarm clock"]]},
+/* --- Fire 火 --- */
+{c:"灯",py:"dēng",t:1,m:"lamp, light",pos:"noun",f:11,k:[["火","fire"],["丁","nail (dīng)"]],mn:"Fire 火 on a nail 丁 — a little flame fixed to the wall: a lamp. 丁 (dīng) hints dēng.",w:[["开灯","kāidēng","turn on the light"],["红绿灯","hónglǜdēng","traffic light"]]},
+{c:"烧",py:"shāo",t:1,m:"to burn; fever",pos:"verb",f:11,k:[["火","fire"],["尧","yáo (sound)"]],mn:"Fire 火 + 尧 (an ancient legendary king) — even kings' palaces can burn. Also what your body does with fever: 发烧.",w:[["发烧","fāshāo","have a fever"],["烧水","shāoshuǐ","boil water"]]},
+{c:"热",py:"rè",t:4,m:"hot",pos:"adjective",f:11,k:[["执","to hold"],["灬","fire (dots)"]],mn:"执 'holding' something over 灬 fire-dots — hold your hand over flames: HOT.",w:[["热水","rèshuǐ","hot water"],["热闹","rènao","lively, bustling"]]},
+{c:"照",py:"zhào",t:4,m:"to shine; photo",pos:"verb",f:11,k:[["日","sun"],["召","to summon (zhào)"],["灬","fire (dots)"]],mn:"Sun 日 + 召 (zhào, the sound) + fire 灬 below — light blazing from two sources: to shine; a photograph is captured light.",w:[["照片","zhàopiàn","photo"],["照相","zhàoxiàng","take a photo"]]},
+/* --- Sickness 疒 --- */
+{c:"病",py:"bìng",t:4,m:"illness",pos:"noun",f:12,k:[["疒","sickness bed"],["丙","third (bǐng)"]],mn:"The sick-bed radical 疒 (a person leaning on a bed) + 丙 (bǐng, the sound) — illness.",w:[["生病","shēngbìng","get sick"],["病人","bìngrén","patient"]]},
+{c:"疼",py:"téng",t:2,m:"to ache",pos:"verb",f:12,k:[["疒","sickness bed"],["冬","winter (dōng)"]],mn:"Sickness 疒 + 冬 'winter' — old aches come back in winter cold: to hurt. (心疼 = your heart aches for someone.)",w:[["头疼","tóuténg","headache"],["心疼","xīnténg","to ache for, cherish"]]},
+{c:"瘦",py:"shòu",t:4,m:"thin, skinny",pos:"adjective",f:12,k:[["疒","sickness bed"],["叟","old man (sǒu)"]],mn:"Sickness 疒 + 叟 'old man' — an old man after long illness: thin. 叟 (sǒu) hints shòu.",w:[["很瘦","hěn shòu","very thin"],["瘦肉","shòuròu","lean meat"]]},
+/* --- Silk 纟 --- */
+{c:"红",py:"hóng",t:2,m:"red",pos:"adjective",f:13,k:[["纟","silk"],["工","work (gōng)"]],mn:"Silk 纟 + 工 'work' — the most prized work of the dyers: red silk. 工 (gōng) hints hóng.",w:[["红色","hóngsè","red"],["红包","hóngbāo","red envelope (gift money)"]]},
+{c:"绿",py:"lǜ",t:4,m:"green",pos:"adjective",f:13,k:[["纟","silk"],["录","to record (lù)"]],mn:"Silk 纟 + 录 (lù, the sound) — silk dyed the color of spring leaves: green.",w:[["绿色","lǜsè","green"],["绿茶","lǜchá","green tea"]]},
+{c:"累",py:"lèi",t:4,m:"tired",pos:"adjective",f:13,k:[["田","field"],["糸","silk"]],mn:"A field 田 of silk 糸 to spool — after a day in the mulberry field winding thread: tired.",w:[["很累","hěn lèi","very tired"],["累死了","lèi sǐ le","dead tired!"]]},
+{c:"级",py:"jí",t:2,m:"level, grade",pos:"noun",f:13,k:[["纟","silk"],["及","to reach (jí)"]],mn:"Silk 纟 + 及 'reach' (same sound jí) — silk was graded by quality; which level does yours reach?",w:[["年级","niánjí","grade (in school)"],["高级","gāojí","high-level, fancy"]]},
+{c:"练",py:"liàn",t:4,m:"to practice",pos:"verb",f:13,k:[["纟","silk"],["柬","selected (jiǎn)"]],mn:"Raw silk 纟 must be boiled and worked again and again until soft — to practice, to train.",w:[["练习","liànxí","to practice; exercise"],["教练","jiàoliàn","coach"]]},
+{c:"经",py:"jīng",t:1,m:"to pass through",pos:"verb",f:13,k:[["纟","silk"],["工","loom/work"]],mn:"The long warp threads 纟 running through the loom — everything passes through them: 经 = to pass through, classic texts, already (已经).",w:[["已经","yǐjīng","already"],["经常","jīngcháng","often"]]},
+{c:"结",py:"jié",t:2,m:"to tie; conclude",pos:"verb",f:13,k:[["纟","silk"],["吉","lucky (jí)"]],mn:"Silk 纟 + 吉 'lucky' — tie a lucky red knot: to tie, to conclude (marriage = tying the knot, literally: 结婚!).",w:[["结婚","jiéhūn","to marry"],["结束","jiéshù","to end"]]},
+/* --- Mouth 口 --- */
+{c:"唱",py:"chàng",t:4,m:"to sing",pos:"verb",f:14,k:[["口","mouth"],["昌","flourishing (chāng)"]],mn:"Mouth 口 + 昌 (two suns — bright!) — a mouth pouring out sunshine: to sing. 昌 (chāng) gives chàng.",w:[["唱歌","chànggē","sing songs"],["合唱","héchàng","chorus"]]},
+{c:"味",py:"wèi",t:4,m:"flavor",pos:"noun",f:14,k:[["口","mouth"],["未","not yet (wèi)"]],mn:"Mouth 口 + 未 'not yet' (same sound wèi) — the tongue knows before words do: flavor. Compare 妹 (younger sister)!",w:[["味道","wèidao","taste, flavor"],["口味","kǒuwèi","taste preference"]]},
+{c:"哭",py:"kū",t:1,m:"to cry",pos:"verb",f:14,k:[["口口","two mouths"],["犬","dog (quǎn)"]],mn:"Two wailing mouths 口口 and a dog 犬 howling along — everyone crying together.",w:[["大哭","dàkū","cry loudly"],["哭了","kū le","(started) crying"]]},
+{c:"嘴",py:"zuǐ",t:3,m:"mouth (body part)",pos:"noun",f:14,k:[["口","mouth"],["此","this (cǐ)"],["角","horn"]],mn:"Mouth 口 + 此 'this' + 角 'horn' — THIS horn on a face: originally a beak, now any mouth.",w:[["嘴巴","zuǐba","mouth"],["闭嘴","bìzuǐ","shut up! (rude)"]]},
+/* --- Woman 女 --- */
+{c:"姐",py:"jiě",t:3,m:"older sister",pos:"noun",f:15,k:[["女","woman"],["且","moreover (qiě)"]],mn:"Woman 女 + 且 (a stack of things) — the sister with seniority stacked up: older sister. 且 (qiě) hints jiě.",w:[["姐姐","jiějie","older sister"],["姐妹","jiěmèi","sisters"]]},
+{c:"妹",py:"mèi",t:4,m:"younger sister",pos:"noun",f:15,k:[["女","woman"],["未","not yet (wèi)"]],mn:"Woman 女 + 未 'not yet' — the sister who is NOT YET grown: younger sister. Compare 味 (mouth = flavor).",w:[["妹妹","mèimei","younger sister"],["姐妹","jiěmèi","sisters"]]},
+{c:"始",py:"shǐ",t:3,m:"to begin",pos:"verb",f:15,k:[["女","woman"],["台","platform (tái)"]],mn:"Woman 女 + 台 — every life begins with a mother: to begin, the start.",w:[["开始","kāishǐ","to begin"],["始终","shǐzhōng","from start to finish"]]},
+{c:"姓",py:"xìng",t:4,m:"surname",pos:"noun",f:15,k:[["女","woman"],["生","born (shēng)"]],mn:"Woman 女 + 生 'born' — the oldest family names traced through mothers: your surname is what you're BORN 生 to.",w:[["贵姓","guìxìng","your surname? (polite)"],["姓名","xìngmíng","full name"]]},
+/* --- Gate 门 --- */
+{c:"间",py:"jiān",t:1,m:"room; between",pos:"noun",f:16,k:[["门","gate"],["日","sun"]],mn:"Sunlight 日 slipping through the gap in the gate 门 — the space BETWEEN; a room is a space between walls.",w:[["房间","fángjiān","room"],["时间","shíjiān","time"]]},
+{c:"闻",py:"wén",t:2,m:"to smell; news",pos:"verb",f:16,k:[["门","gate"],["耳","ear (ěr)"]],mn:"An ear 耳 pressed to the gate 门 — catching what drifts through: originally to hear (news 新闻!), now also to smell.",w:[["新闻","xīnwén","news"],["闻到","wéndào","to smell (notice a scent)"]]},
+/* --- Essentials ✦ --- */
+{c:"最",py:"zuì",t:4,m:"most, -est",pos:"adverb",f:17,k:[["曰","sun/say"],["取","to take"]],mn:"曰 + 取 'take' — seize the top spot: the MOST. Put 最 before anything to make it '-est': 最好 = best.",w:[["最好","zuì hǎo","best"],["最近","zuìjìn","recently"]]},
+{c:"更",py:"gèng",t:4,m:"even more",pos:"adverb",f:17,k:[["一","one"],["曰+乂","sun pierced through"]],mn:"A stroke piercing through 曰 — pushing past what was: even more, further. 更好 = even better.",w:[["更好","gèng hǎo","even better"],["更多","gèng duō","even more"]]},
+{c:"别",py:"bié",t:2,m:"don't; other",pos:"adverb",f:17,k:[["另","other (lìng)"],["刂","knife"]],mn:"另 'other' + 刂 'knife' — cut things apart into 'this' and 'other': other; and as a command, cut it out — DON'T!",w:[["别走","bié zǒu","don't go"],["别人","biéren","other people"]]},
+{c:"就",py:"jiù",t:4,m:"then, right away",pos:"adverb",f:17,k:[["京","capital city (jīng)"],["尤","especially (yóu)"]],mn:"京 'capital' + 尤 'especially' — heading straight for the capital, no detours: right away, precisely then.",w:[["就是","jiùshì","exactly, precisely"],["马上就来","mǎshàng jiù lái","coming right away"]]},
+{c:"才",py:"cái",t:2,m:"only then; talent",pos:"adverb",f:17,k:[["才","a sprout breaking soil"]],mn:"A tiny sprout just breaking through the soil — it has ONLY JUST appeared: only then, merely. Also: budding talent.",w:[["刚才","gāngcái","just now"],["才来","cái lái","only just arrived"]]},
+{c:"已",py:"yǐ",t:3,m:"already",pos:"adverb",f:17,k:[["已","half-closed shape"]],mn:"The mouth of this shape is HALF CLOSED — the matter is mostly finished: already. (己 wide open = self; 已 half closed = already.)",w:[["已经","yǐjīng","already"],["早已","zǎoyǐ","long since"]]},
+{c:"己",py:"jǐ",t:3,m:"oneself",pos:"pronoun",f:17,k:[["己","wide-open shape"]],mn:"The mouth of this shape is WIDE OPEN — an open book, nothing hidden: yourself. (Compare 已 'already': half closed.)",w:[["自己","zìjǐ","oneself"],["知己","zhījǐ","close friend, soulmate"]]},
+{c:"必",py:"bì",t:4,m:"must",pos:"adverb",f:17,k:[["心","heart"],["丿","a stroke through"]],mn:"A heart 心 with a stroke 丿 driven through it — sworn on your heart: you MUST.",w:[["必须","bìxū","must"],["不必","búbì","no need to"]]},
+{c:"越",py:"yuè",t:4,m:"to exceed",pos:"verb",f:17,k:[["走","to run"],["戉","axe (yuè)"]],mn:"Run 走 + 戉 'axe' (same sound yuè) — charge past the axe-guard, over the border: to exceed. 越来越 = more and more.",w:[["越来越","yuè lái yuè","more and more"],["越南","Yuènán","Vietnam ('beyond the south')"]]},
+{c:"直",py:"zhí",t:2,m:"straight",pos:"adjective",f:17,k:[["十","ten"],["目","eye"],["一","line"]],mn:"Ten 十 eyes 目 checking one line 一 — inspected by ten eyes, it had better be straight (and honest!).",w:[["一直","yìzhí","all along, keep going"],["直走","zhí zǒu","go straight"]]},
+/* ============ LEVEL 2 ============ */
+{c:"安",py:"ān",t:1,m:"peaceful, safe",pos:"adjective",f:18,k:[["宀","roof"],["女","woman"]],mn:"A woman 女 safe under a roof 宀 — peace and safety at home.",w:[["安全","ānquán","safe, safety"],["安静","ānjìng","quiet"]]},
+{c:"定",py:"dìng",t:4,m:"to fix, decide",pos:"verb",f:18,k:[["宀","roof"],["正","upright (变形)"]],mn:"Set things upright under the roof 宀 — fixed, settled, decided.",w:[["一定","yídìng","definitely"],["决定","juédìng","to decide"]]},
+{c:"完",py:"wán",t:2,m:"to finish",pos:"verb",f:18,k:[["宀","roof"],["元","first, yuan (yuán)"]],mn:"The roof 宀 goes on last: put 元 under a finished roof — done! Careful: 玩 'play' has the jade 王 side.",w:[["完成","wánchéng","to complete"],["吃完","chīwán","finish eating"]]},
+{c:"室",py:"shì",t:4,m:"room",pos:"noun",f:18,k:[["宀","roof"],["至","to arrive (zhì)"]],mn:"Under the roof 宀 where you finally arrive 至 — a room. 至 (zhì) hints shì.",w:[["教室","jiàoshì","classroom"],["办公室","bàngōngshì","office"]]},
+{c:"客",py:"kè",t:4,m:"guest",pos:"noun",f:18,k:[["宀","roof"],["各","each (gè)"]],mn:"Each 各 person under your roof 宀 — a guest. 各 (gè) hints kè.",w:[["客人","kèrén","guest"],["客气","kèqi","polite"]]},
+{c:"实",py:"shí",t:2,m:"real, solid",pos:"adjective",f:18,k:[["宀","roof"],["头","head"]],mn:"A head 头 of real goods stored under the roof 宀 — real, solid, true.",w:[["其实","qíshí","actually"],["实在","shízài","really, truly"]]},
+{c:"送",py:"sòng",t:4,m:"to send, give",pos:"verb",f:19,k:[["辶","walk"],["关","to close (guān)"]],mn:"Walk 辶 someone to the closing 关 gate — to see off, deliver, give as a gift.",w:[["送给","sònggěi","to give (as gift)"],["送到","sòngdào","deliver to"]]},
+{c:"远",py:"yuǎn",t:3,m:"far",pos:"adjective",f:19,k:[["辶","walk"],["元","yuán (sound)"]],mn:"A walk 辶 that costs many yuan 元 to complete — far away. 元 (yuán) gives yuǎn.",w:[["很远","hěn yuǎn","very far"],["远方","yuǎnfāng","faraway place"]]},
+{c:"近",py:"jìn",t:4,m:"near",pos:"adjective",f:19,k:[["辶","walk"],["斤","axe/half-kilo (jīn)"]],mn:"A walk 辶 of only half a kilo 斤 of effort — nearby. 斤 (jīn) gives jìn.",w:[["很近","hěn jìn","very close"],["最近","zuìjìn","recently"]]},
+{c:"迎",py:"yíng",t:2,m:"to welcome",pos:"verb",f:19,k:[["辶","walk"],["卬","to look up"]],mn:"Walk 辶 out and look up at who's coming — to go welcome them.",w:[["欢迎","huānyíng","welcome!"],["迎接","yíngjiē","to greet, meet"]]},
+{c:"选",py:"xuǎn",t:3,m:"to choose",pos:"verb",f:19,k:[["辶","walk"],["先","first (xiān)"]],mn:"Walk 辶 along the row and pick who goes first 先 — to choose. 先 (xiān) hints xuǎn.",w:[["选择","xuǎnzé","to choose; choice"],["选一个","xuǎn yí ge","pick one"]]},
+{c:"花",py:"huā",t:1,m:"flower; to spend",pos:"noun",f:20,k:[["艹","grass"],["化","to change (huà)"]],mn:"A plant 艹 that changes 化 into color — a flower. Money 'flowers away' too: 花钱 = spend.",w:[["花儿","huār","flower"],["花钱","huāqián","spend money"]]},
+{c:"草",py:"cǎo",t:3,m:"grass",pos:"noun",f:20,k:[["艹","grass"],["早","early (zǎo)"]],mn:"Plants 艹 that come up early 早 everywhere — grass. 早 (zǎo) hints cǎo.",w:[["草地","cǎodì","lawn, meadow"],["花草","huācǎo","plants and flowers"]]},
+{c:"药",py:"yào",t:4,m:"medicine",pos:"noun",f:20,k:[["艹","grass"],["约","agreement (yuē)"]],mn:"Herbs 艹 measured out by agreement 约 — medicine, mostly plants in the old days.",w:[["吃药","chīyào","take medicine"],["药店","yàodiàn","pharmacy"]]},
+{c:"菜",py:"cài",t:4,m:"vegetable; dish",pos:"noun",f:20,k:[["艹","grass"],["采","to pick (cǎi)"]],mn:"Plants 艹 you pick 采 — vegetables, and by extension any dish on the table. 采 (cǎi) gives cài.",w:[["菜单","càidān","menu"],["中国菜","Zhōngguó cài","Chinese food"]]},
+{c:"节",py:"jié",t:2,m:"festival; section",pos:"noun",f:20,k:[["艹","grass"],["卩","kneeling figure"]],mn:"Bamboo grows in sections 艹 — each joint marks a segment: a section of time, a festival.",w:[["春节","Chūnjié","Spring Festival"],["节日","jiérì","holiday"]]},
+{c:"脸",py:"liǎn",t:3,m:"face",pos:"noun",f:21,k:[["月","flesh"],["佥","all (qiān)"]],mn:"The flesh 月 everyone 佥 sees first — your face.",w:[["洗脸","xǐliǎn","wash your face"],["笑脸","xiàoliǎn","smiling face"]]},
+{c:"脚",py:"jiǎo",t:3,m:"foot",pos:"noun",f:21,k:[["月","flesh"],["却","however (què)"]],mn:"The flesh 月 at the very bottom, however 却 far your head is — your foot. 却 (què) hints jiǎo.",w:[["脚步","jiǎobù","footstep"],["双脚","shuāng jiǎo","both feet"]]},
+{c:"腿",py:"tuǐ",t:3,m:"leg",pos:"noun",f:21,k:[["月","flesh"],["退","to retreat (tuì)"]],mn:"The flesh 月 you retreat 退 with — your legs. 退 (tuì) gives tuǐ.",w:[["大腿","dàtuǐ","thigh"],["腿疼","tuǐ téng","leg hurts"]]},
+{c:"脑",py:"nǎo",t:3,m:"brain",pos:"noun",f:21,k:[["月","flesh"],["㐫","container top"]],mn:"The flesh 月 in the skull-container — the brain. 电脑 = 'electric brain' = computer!",w:[["电脑","diànnǎo","computer"],["脑子","nǎozi","brain, mind"]]},
+{c:"眼",py:"yǎn",t:3,m:"eye",pos:"noun",f:22,k:[["目","eye"],["艮","gèn (sound)"]],mn:"Eye 目 + 艮 — the same right side as 跟 and 银; here the eye radical tells you: eye.",w:[["眼睛","yǎnjing","eye(s)"],["眼泪","yǎnlèi","tears"]]},
+{c:"睡",py:"shuì",t:4,m:"to sleep",pos:"verb",f:22,k:[["目","eye"],["垂","to droop (chuí)"]],mn:"Eyes 目 drooping 垂 shut — to sleep. 垂 (chuí) hints shuì.",w:[["睡觉","shuìjiào","to sleep"],["睡着","shuìzháo","fall asleep"]]},
+{c:"地",py:"dì",t:4,m:"ground, place",pos:"noun",f:23,k:[["土","earth"],["也","also (yě)"]],mn:"Earth 土 + 也 'also' — everywhere is ALSO ground: the earth, a place.",w:[["地方","dìfang","place"],["地图","dìtú","map"]]},
+{c:"场",py:"chǎng",t:3,m:"open space, field",pos:"noun",f:23,k:[["土","earth"],["𠃓","rising sun"]],mn:"A flat stretch of earth 土 under the open sky — a square, field, or venue.",w:[["机场","jīchǎng","airport"],["市场","shìchǎng","market"]]},
+{c:"城",py:"chéng",t:2,m:"city; wall",pos:"noun",f:23,k:[["土","earth"],["成","to become (chéng)"]],mn:"Earth 土 walls that became 成 a settlement — a city. Same sound: chéng.",w:[["城市","chéngshì","city"],["长城","Chángchéng","the Great Wall"]]},
+{c:"块",py:"kuài",t:4,m:"piece; yuan (money)",pos:"measure word",f:23,k:[["土","earth"],["夬","guài (sound)"]],mn:"A lump of earth 土 — a piece, a chunk. Money is counted in 块 too. Careful: 快 'fast' has the heart 忄 side!",w:[["一块钱","yí kuài qián","one yuan"],["一块蛋糕","yí kuài dàngāo","a piece of cake"]]},
+{c:"玩",py:"wán",t:2,m:"to play",pos:"verb",f:24,k:[["王","jade"],["元","yuán (sound)"]],mn:"Jade 王 trinkets to fiddle with 元 — to play. Careful: 完 'finish' wears a roof 宀!",w:[["玩儿","wánr","to play, have fun"],["好玩","hǎowán","fun"]]},
+{c:"球",py:"qiú",t:2,m:"ball",pos:"noun",f:24,k:[["王","jade"],["求","to seek (qiú)"]],mn:"A jade 王 sphere everyone seeks 求 — a ball. Same sound: qiú.",w:[["打球","dǎqiú","play ball"],["足球","zúqiú","football, soccer"]]},
+{c:"班",py:"bān",t:1,m:"class; shift",pos:"noun",f:24,k:[["王王","two jades"],["刂","knife between"]],mn:"A knife 刂 splitting jade 王王 into equal groups — a class, a work shift.",w:[["上班","shàngbān","go to work"],["班级","bānjí","class (group)"]]},
+{c:"理",py:"lǐ",t:3,m:"reason; to manage",pos:"noun",f:24,k:[["王","jade"],["里","inside (lǐ)"]],mn:"The pattern inside 里 jade 王 — carvers follow it: reason, logic, to put in order. Same sound: lǐ.",w:[["道理","dàolǐ","reason, sense"],["经理","jīnglǐ","manager"]]},
+{c:"转",py:"zhuǎn",t:3,m:"to turn",pos:"verb",f:25,k:[["车","vehicle"],["专","special (zhuān)"]],mn:"A cart's 车 wheels going round — to turn, to transfer. 专 (zhuān) gives zhuǎn.",w:[["转弯","zhuǎnwān","turn a corner"],["转身","zhuǎnshēn","turn around"]]},
+{c:"轻",py:"qīng",t:1,m:"light (weight)",pos:"adjective",f:25,k:[["车","vehicle"],["𢀖","loom threads"]],mn:"A cart 车 loaded with only thread — light as silk. Compare 经: same right side.",w:[["年轻","niánqīng","young"],["轻松","qīngsōng","relaxed, easy"]]},
+{c:"饿",py:"è",t:4,m:"hungry",pos:"adjective",f:26,k:[["饣","food"],["我","I, me (wǒ)"]],mn:"Food 饣 + 我 'me' — when there's no food next to ME: hungry.",w:[["很饿","hěn è","very hungry"],["饿了","è le","(I'm) hungry now"]]},
+{c:"饱",py:"bǎo",t:3,m:"full (from eating)",pos:"adjective",f:26,k:[["饣","food"],["包","to wrap (bāo)"]],mn:"Food 饣 wrapped up 包 inside you — full. 包 (bāo) gives bǎo.",w:[["吃饱","chībǎo","eat one's fill"],["饱了","bǎo le","(I'm) full"]]},
+{c:"饺",py:"jiǎo",t:3,m:"dumpling",pos:"noun",f:26,k:[["饣","food"],["交","to cross (jiāo)"]],mn:"Food 饣 with crossed 交 pinched edges — a dumpling. 交 (jiāo) gives jiǎo.",w:[["饺子","jiǎozi","dumplings"],["水饺","shuǐjiǎo","boiled dumplings"]]},
+{c:"馆",py:"guǎn",t:3,m:"hall, venue",pos:"noun",f:26,k:[["饣","food"],["官","official (guān)"]],mn:"Where officials 官 were fed 饣 — a public hall: restaurant, museum, library all end in 馆.",w:[["饭馆","fànguǎn","restaurant"],["图书馆","túshūguǎn","library"]]},
+{c:"被",py:"bèi",t:4,m:"quilt; (passive marker)",pos:"noun",f:27,k:[["衤","clothes"],["皮","skin (pí)"]],mn:"Cloth 衤 for your skin 皮 at night — a quilt. In grammar it marks 'was done TO': 被 = by.",w:[["被子","bèizi","quilt, blanket"],["被看见","bèi kànjiàn","be seen"]]},
+{c:"刚",py:"gāng",t:1,m:"just now",pos:"adverb",f:28,k:[["冈","ridge (gāng)"],["刂","knife"]],mn:"The knife 刂 edge fresh off the ridge 冈 — just made, just now. Same sound: gāng.",w:[["刚才","gāngcái","just now"],["刚到","gāng dào","just arrived"]]},
+{c:"刻",py:"kè",t:4,m:"to carve; quarter hour",pos:"verb",f:28,k:[["亥","hài (sound)"],["刂","knife"]],mn:"A knife 刂 carving notches — ancient water clocks were carved in quarter-hours: 三点一刻 = 3:15.",w:[["一刻","yíkè","quarter of an hour"],["立刻","lìkè","immediately"]]},
+{c:"岛",py:"dǎo",t:3,m:"island",pos:"noun",f:29,k:[["鸟","bird (niǎo)"],["山","mountain"]],mn:"A mountain 山 where only birds 鸟 can land — an island. 鸟 (niǎo) hints dǎo.",w:[["海岛","hǎidǎo","island"],["青岛","Qīngdǎo","Qingdao"]]},
+{c:"岁",py:"suì",t:4,m:"years of age",pos:"measure word",f:29,k:[["山","mountain"],["夕","evening"]],mn:"Mountains 山 of evenings 夕 stacked up — your years of age.",w:[["几岁","jǐ suì","how old?"],["十岁","shí suì","ten years old"]]},
+{c:"店",py:"diàn",t:4,m:"shop",pos:"noun",f:30,k:[["广","shelter"],["占","to occupy (zhàn)"]],mn:"A shelter 广 occupying 占 the street front — a shop. 占 (zhàn) hints diàn.",w:[["商店","shāngdiàn","store"],["饭店","fàndiàn","hotel, restaurant"]]},
+{c:"床",py:"chuáng",t:2,m:"bed",pos:"noun",f:30,k:[["广","shelter"],["木","wood"]],mn:"Wood 木 under a shelter 广 — the wooden thing you sleep on: a bed.",w:[["起床","qǐchuáng","get up"],["床上","chuáng shang","on the bed"]]},
+{c:"院",py:"yuàn",t:4,m:"courtyard; institute",pos:"noun",f:31,k:[["阝","mound/place"],["完","complete (wán)"]],mn:"A walled place 阝 complete 完 in itself — a courtyard; hospitals and colleges are 院 too.",w:[["医院","yīyuàn","hospital"],["电影院","diànyǐngyuàn","cinema"]]},
+{c:"阳",py:"yáng",t:2,m:"sun; yang",pos:"noun",f:31,k:[["阝","hill"],["日","sun"]],mn:"The sunny 日 side of the hill 阝 — yang: sunlight, the bright side.",w:[["太阳","tàiyáng","the sun"],["阳光","yángguāng","sunshine"]]},
+{c:"队",py:"duì",t:4,m:"team; line",pos:"noun",f:31,k:[["阝","mound"],["人","person"]],mn:"People 人 lined up along the wall 阝 — a team, a queue.",w:[["排队","páiduì","line up"],["队友","duìyǒu","teammate"]]},
+{c:"除",py:"chú",t:2,m:"to remove; except",pos:"verb",f:31,k:[["阝","mound"],["余","surplus (yú)"]],mn:"Clear the surplus 余 dirt from the mound 阝 — to remove; 除了 = except for.",w:[["除了","chúle","except, besides"],["除夕","chúxī","New Year's Eve"]]},
+{c:"猫",py:"māo",t:1,m:"cat",pos:"noun",f:32,k:[["犭","animal"],["苗","sprout (miáo)"]],mn:"The animal 犭 that guards the sprouts 苗 from mice — a cat. 苗 (miáo) gives māo.",w:[["小猫","xiǎomāo","kitten"],["熊猫","xióngmāo","panda"]]},
+{c:"狗",py:"gǒu",t:3,m:"dog",pos:"noun",f:32,k:[["犭","animal"],["句","sentence (jù)"]],mn:"The animal 犭 that answers every sentence 句 with a bark — a dog.",w:[["小狗","xiǎogǒu","puppy"],["遛狗","liùgǒu","walk the dog"]]},
+{c:"笑",py:"xiào",t:4,m:"to laugh, smile",pos:"verb",f:33,k:[["⺮","bamboo"],["夭","bending person"]],mn:"Bamboo ⺮ bending 夭 in the wind like someone doubled over laughing — to laugh.",w:[["笑话","xiàohua","joke"],["微笑","wēixiào","smile"]]},
+{c:"笔",py:"bǐ",t:3,m:"pen, brush",pos:"noun",f:33,k:[["⺮","bamboo"],["毛","hair, fur"]],mn:"Bamboo ⺮ handle + hair 毛 tip — the classic Chinese brush: a pen.",w:[["铅笔","qiānbǐ","pencil"],["毛笔","máobǐ","writing brush"]]},
+{c:"第",py:"dì",t:4,m:"(ordinal marker)",pos:"prefix",f:33,k:[["⺮","bamboo"],["弟","younger brother (dì)"]],mn:"Bamboo ⺮ counting rods laid in order + 弟 (dì, same sound) — 第一 first, 第二 second…",w:[["第一","dì-yī","first"],["第二天","dì-èr tiān","the next day"]]},
+{c:"等",py:"děng",t:3,m:"to wait; equal",pos:"verb",f:33,k:[["⺮","bamboo"],["寺","temple (sì)"]],mn:"Waiting at the temple 寺 gate counting bamboo ⺮ rods — to wait; rods of equal length: equal.",w:[["等一下","děng yíxià","wait a moment"],["等于","děngyú","equals"]]},
+{c:"算",py:"suàn",t:4,m:"to calculate",pos:"verb",f:33,k:[["⺮","bamboo"],["目","eye"],["廾","two hands"]],mn:"Hands 廾 moving bamboo ⺮ rods while eyes 目 track the count — to calculate.",w:[["打算","dǎsuàn","to plan"],["算了","suàn le","forget it"]]},
+{c:"空",py:"kōng",t:1,m:"empty; sky",pos:"adjective",f:34,k:[["穴","cave"],["工","work (gōng)"]],mn:"A cave 穴 dug clean by work 工 — empty; the great emptiness above is the sky. 工 (gōng) gives kōng.",w:[["天空","tiānkōng","sky"],["有空","yǒu kòng","have free time (kòng!)"]]},
+{c:"穿",py:"chuān",t:1,m:"to wear; pierce",pos:"verb",f:34,k:[["穴","cave/hole"],["牙","tooth (yá)"]],mn:"A tooth 牙 biting through a hole 穴 — to pierce through; you 'pierce into' clothes: to wear.",w:[["穿衣服","chuān yīfu","put on clothes"],["穿过","chuānguò","pass through"]]},
+{c:"突",py:"tū",t:1,m:"sudden",pos:"adjective",f:34,k:[["穴","cave"],["犬","dog"]],mn:"A dog 犬 bursting out of a cave 穴 — sudden!",w:[["突然","tūrán","suddenly"],["冲突","chōngtū","conflict"]]},
+{c:"题",py:"tí",t:2,m:"topic; question",pos:"noun",f:35,k:[["是","is (shì)"],["页","head/page"]],mn:"What IS 是 on the page 页 — the topic, the exam question. 是 hints tí (shì→tí).",w:[["问题","wèntí","question, problem"],["题目","tímù","title, topic"]]},
+{c:"颜",py:"yán",t:2,m:"color; face",pos:"noun",f:35,k:[["彦","talented (yàn)"],["页","head"]],mn:"What shows on the head/face 页 — your color, complexion. 颜色 = color.",w:[["颜色","yánsè","color"],["五颜六色","wǔyán-liùsè","colorful (idiom)"]]},
+{c:"汤",py:"tāng",t:1,m:"soup",pos:"noun",f:0,k:[["氵","water"],["𠃓","rising steam"]],mn:"Water 氵 with steam rising off it — soup. Same right side as 场 (chǎng).",w:[["喝汤","hē tāng","drink soup"],["汤面","tāngmiàn","noodle soup"]]},
+{c:"油",py:"yóu",t:2,m:"oil",pos:"noun",f:0,k:[["氵","liquid"],["由","from (yóu)"]],mn:"The liquid 氵 that comes from 由 pressed seeds — oil. Same sound: yóu.",w:[["加油","jiāyóu","add fuel — go for it!"],["油条","yóutiáo","fried dough stick"]]},
+{c:"满",py:"mǎn",t:3,m:"full",pos:"adjective",f:0,k:[["氵","water"],["㒼","even, level"]],mn:"Water 氵 level with the brim — full to the top.",w:[["满意","mǎnyì","satisfied"],["满了","mǎn le","it's full"]]},
+{c:"渴",py:"kě",t:3,m:"thirsty",pos:"adjective",f:0,k:[["氵","water"],["曷","hé (sound)"]],mn:"Begging for water 氵 — thirsty. Careful: 喝 'to drink' has a mouth 口 instead of water!",w:[["口渴","kǒukě","thirsty"],["渴了","kě le","(I'm) thirsty"]]},
+{c:"认",py:"rèn",t:4,m:"to recognize",pos:"verb",f:1,k:[["讠","speech"],["人","person (rén)"]],mn:"Speech 讠 + person 人 — knowing someone well enough to call their name: to recognize. 人 (rén) gives rèn.",w:[["认识","rènshi","to know (someone)"],["认真","rènzhēn","serious, earnest"]]},
+{c:"识",py:"shí",t:2,m:"to know",pos:"verb",f:1,k:[["讠","speech"],["只","only (zhǐ)"]],mn:"Speech 讠 + 只 — if you can only say its name, at least you KNOW it: knowledge, to recognize.",w:[["认识","rènshi","to know, recognize"],["知识","zhīshi","knowledge"]]},
+{c:"让",py:"ràng",t:4,m:"to let, make",pos:"verb",f:1,k:[["讠","speech"],["上","up (shàng)"]],mn:"A word 讠 that moves people up 上 and out of the way — to let, to yield, to make someone do.",w:[["让我看","ràng wǒ kàn","let me see"],["让开","ràngkāi","make way"]]},
+{c:"记",py:"jì",t:4,m:"to record, remember",pos:"verb",f:1,k:[["讠","speech"],["己","self (jǐ)"]],mn:"Words 讠 written for your self 己 — notes: to record, to remember. 己 (jǐ) gives jì.",w:[["记住","jìzhu","remember firmly"],["日记","rìjì","diary"]]},
+{c:"思",py:"sī",t:1,m:"to think",pos:"verb",f:2,k:[["田","field"],["心","heart"]],mn:"A field 田 planted over the heart 心 — thoughts growing in rows: to think. Compare 息 (self 自 over heart = breath).",w:[["意思","yìsi","meaning"],["思考","sīkǎo","to ponder"]]},
+{c:"息",py:"xī",t:1,m:"breath; to rest",pos:"noun",f:2,k:[["自","self, nose"],["心","heart"]],mn:"Your nose 自 over your heart 心 — breath; when they slow together, you rest. Compare 思 (field over heart = think).",w:[["休息","xiūxi","to rest"],["消息","xiāoxi","news, message"]]},
+{c:"慢",py:"màn",t:4,m:"slow",pos:"adjective",f:2,k:[["忄","heart"],["曼","graceful (màn)"]],mn:"A heart 忄 taking its graceful 曼 time — slow. Same sound: màn.",w:[["慢慢","mànmàn","slowly"],["太慢","tài màn","too slow"]]},
+{c:"提",py:"tí",t:2,m:"to carry; raise",pos:"verb",f:3,k:[["扌","hand"],["是","is (shì)"]],mn:"A hand 扌 lifting what IS 是 there — to carry (a bag), to raise (a question). 是 hints tí.",w:[["提问","tíwèn","ask a question"],["提高","tígāo","to improve, raise"]]},
+{c:"指",py:"zhǐ",t:3,m:"finger; to point",pos:"noun",f:3,k:[["扌","hand"],["旨","purpose (zhǐ)"]],mn:"The hand's 扌 purpose-pointer 旨 — a finger; to point. Same sound: zhǐ.",w:[["手指","shǒuzhǐ","finger"],["指出","zhǐchū","point out"]]},
+{c:"掉",py:"diào",t:4,m:"to drop, fall",pos:"verb",f:3,k:[["扌","hand"],["卓","outstanding (zhuō)"]],mn:"It slips from your hand 扌 no matter how outstanding 卓 your grip — to drop. 吃掉 = eat UP (gone!).",w:[["掉了","diào le","dropped it"],["吃掉","chīdiào","eat up"]]},
+{c:"扫",py:"sǎo",t:3,m:"to sweep",pos:"verb",f:3,k:[["扌","hand"],["彐","broom"]],mn:"A hand 扌 holding the broom 彐 (same broom as in 雪 snow!) — to sweep. 扫码 = scan a QR code.",w:[["打扫","dǎsǎo","to clean"],["扫码","sǎomǎ","scan a QR code"]]},
+{c:"低",py:"dī",t:1,m:"low",pos:"adjective",f:4,k:[["亻","person"],["氐","foundation (dǐ)"]],mn:"A person 亻 bent down to the foundation 氐 — low. 氐 (dǐ) gives dī.",w:[["低头","dītóu","lower one's head"],["很低","hěn dī","very low"]]},
+{c:"倒",py:"dǎo",t:3,m:"to fall over",pos:"verb",f:4,k:[["亻","person"],["到","to arrive (dào)"]],mn:"A person 亻 arriving 到 at the ground — to fall over. Read dào, it means to pour or 'upside down'.",w:[["摔倒","shuāidǎo","fall down"],["倒水","dào shuǐ","pour water (dào!)"]]},
+{c:"保",py:"bǎo",t:3,m:"to protect",pos:"verb",f:4,k:[["亻","person"],["呆","dull; a babe in arms"]],mn:"A grown person 亻 shielding a wide-eyed child 呆 — to protect, to guarantee.",w:[["保护","bǎohù","to protect"],["保证","bǎozhèng","to guarantee"]]},
+{c:"健",py:"jiàn",t:4,m:"healthy, strong",pos:"adjective",f:4,k:[["亻","person"],["建","to build (jiàn)"]],mn:"A person 亻 well built 建 — healthy and strong. Same sound: jiàn.",w:[["健康","jiànkāng","health, healthy"],["健身","jiànshēn","work out"]]},
+{c:"板",py:"bǎn",t:3,m:"board, plank",pos:"noun",f:6,k:[["木","wood"],["反","to flip (fǎn)"]],mn:"Wood 木 flipped 反 flat — a board. 反 (fǎn) gives bǎn. 老板 = the boss!",w:[["黑板","hēibǎn","blackboard"],["老板","lǎobǎn","boss"]]},
+{c:"根",py:"gēn",t:1,m:"root",pos:"noun",f:6,k:[["木","tree"],["艮","gèn (sound)"]],mn:"The tree's 木 anchor below — the root. Same 艮 as 跟 'follow': roots follow the tree everywhere.",w:[["树根","shùgēn","tree root"],["根本","gēnběn","fundamental; at all"]]},
+{c:"极",py:"jí",t:2,m:"extremely; pole",pos:"adverb",f:6,k:[["木","wood"],["及","to reach (jí)"]],mn:"The ridgepole — the wood 木 a house can reach 及 at most: the extreme. 好极了 = great to the extreme!",w:[["好极了","hǎo jíle","fantastic!"],["北极","Běijí","the North Pole"]]},
+{c:"景",py:"jǐng",t:3,m:"scenery",pos:"noun",f:7,k:[["日","sun"],["京","capital (jīng)"]],mn:"Sunlight 日 over the capital 京 — a grand view: scenery. 京 (jīng) gives jǐng.",w:[["风景","fēngjǐng","scenery"],["景点","jǐngdiǎn","scenic spot"]]},
+{c:"晨",py:"chén",t:2,m:"early morning",pos:"noun",f:7,k:[["日","sun"],["辰","dragon hour (chén)"]],mn:"The sun 日 at the 辰 hour (7–9 am) — early morning. Same sound: chén.",w:[["早晨","zǎochen","early morning"],["晨跑","chénpǎo","morning run"]]},
+{c:"铁",py:"tiě",t:3,m:"iron",pos:"noun",f:10,k:[["钅","metal"],["失","to lose (shī)"]],mn:"The metal 钅 that loses 失 its shine and rusts — iron. 地铁 = underground iron = subway!",w:[["地铁","dìtiě","subway"],["高铁","gāotiě","high-speed rail"]]},
+{c:"烤",py:"kǎo",t:3,m:"to roast, bake",pos:"verb",f:11,k:[["火","fire"],["考","to test (kǎo)"]],mn:"Fire 火 testing 考 the meat — roasting. Same sound: kǎo (yes, exams 考试 feel like this too).",w:[["烤鸭","kǎoyā","roast duck"],["烧烤","shāokǎo","barbecue"]]},
+{c:"炒",py:"chǎo",t:3,m:"to stir-fry",pos:"verb",f:11,k:[["火","fire"],["少","few (shǎo)"]],mn:"Fire 火 + a little 少 oil, tossed fast — stir-fry. 少 (shǎo) gives chǎo.",w:[["炒饭","chǎofàn","fried rice"],["炒菜","chǎocài","stir-fry dishes"]]},
+{c:"烦",py:"fán",t:2,m:"annoyed",pos:"adjective",f:11,k:[["火","fire"],["页","head"]],mn:"Fire 火 inside your head 页 — annoyed, vexed. 麻烦 = trouble.",w:[["麻烦","máfan","trouble; troublesome"],["很烦","hěn fán","so annoyed"]]},
+{c:"痛",py:"tòng",t:4,m:"pain",pos:"noun",f:12,k:[["疒","sickness"],["甬","yǒng (sound)"]],mn:"Sickness 疒 + 甬 — sharper than 疼: real pain. 痛快 though = 'pain-fast' = thoroughly satisfying!",w:[["头痛","tóutòng","headache"],["痛快","tòngkuai","delighted, to the full"]]},
+{c:"线",py:"xiàn",t:4,m:"thread, line",pos:"noun",f:13,k:[["纟","silk"],["戋","small (jiān)"]],mn:"Silk 纟 drawn thin and small 戋 — a thread, a line (bus line, phone line too).",w:[["路线","lùxiàn","route"],["线上","xiànshàng","online"]]},
+{c:"组",py:"zǔ",t:3,m:"group; to form",pos:"noun",f:13,k:[["纟","silk"],["且","moreover (qiě)"]],mn:"Threads 纟 braided together 且 — a group; to organize. Same 且 as 姐 older sister.",w:[["小组","xiǎozǔ","small group"],["组织","zǔzhī","to organize"]]},
+{c:"续",py:"xù",t:4,m:"to continue",pos:"verb",f:13,k:[["纟","silk"],["卖","to sell (mài)"]],mn:"Tie new thread 纟 on and keep selling 卖 — to continue. Same 卖 as 读 (read).",w:[["继续","jìxù","to continue"],["连续","liánxù","continuous"]]},
+{c:"吹",py:"chuī",t:1,m:"to blow",pos:"verb",f:14,k:[["口","mouth"],["欠","yawning person"]],mn:"A mouth 口 + a person exhaling 欠 — to blow (wind, candles, and hot air: 吹牛 = to brag!).",w:[["吹风","chuīfēng","blow-dry; breeze"],["吹牛","chuīniú","to brag"]]},
+{c:"吵",py:"chǎo",t:3,m:"noisy; to quarrel",pos:"adjective",f:14,k:[["口","mouth"],["少","few (shǎo)"]],mn:"Mouths 口 that won't stay few 少 — noisy; to quarrel. Same sound family as 炒 stir-fry.",w:[["吵架","chǎojià","to quarrel"],["太吵","tài chǎo","too noisy"]]},
+{c:"喊",py:"hǎn",t:3,m:"to shout",pos:"verb",f:14,k:[["口","mouth"],["咸","all (xián)"]],mn:"One mouth 口 shouting to them all 咸 — to yell. Same 咸 as in 感 (feel).",w:[["喊叫","hǎnjiào","to shout"],["大喊","dàhǎn","yell loudly"]]},
+{c:"奶",py:"nǎi",t:3,m:"milk; grandma",pos:"noun",f:15,k:[["女","woman"],["乃","then (nǎi)"]],mn:"Woman 女 + 乃 (nǎi, the sound) — milk; and the family's milk-giver of old: grandma 奶奶.",w:[["牛奶","niúnǎi","milk"],["奶奶","nǎinai","grandma (dad's side)"]]},
+{c:"妻",py:"qī",t:1,m:"wife",pos:"noun",f:15,k:[["女","woman"],["十彐","hand holding broom"]],mn:"The old pictograph: a woman 女 with a hand above — the wife who ran the household.",w:[["妻子","qīzi","wife"],["夫妻","fūqī","husband and wife"]]},
+{c:"闹",py:"nào",t:4,m:"noisy; to make a fuss",pos:"adjective",f:16,k:[["门","gate"],["市","market (shì)"]],mn:"A market 市 inside your gate 门 — noise and bustle: 热闹 lively; 闹钟 the fuss-making clock.",w:[["热闹","rènao","lively, bustling"],["闹钟","nàozhōng","alarm clock"]]},
+{c:"求",py:"qiú",t:2,m:"to beg, seek",pos:"verb",f:17,k:[["求","a fur coat pictograph"]],mn:"Originally a fur coat — something everyone sought in winter: to seek, to beg for.",w:[["要求","yāoqiú","to demand; requirement"],["请求","qǐngqiú","to request"]]},
+{c:"双",py:"shuāng",t:1,m:"pair",pos:"measure word",f:17,k:[["又","hand"],["又","hand"]],mn:"Two hands 又又 side by side — a pair. Counter for shoes, chopsticks, eyes…",w:[["一双鞋","yì shuāng xié","a pair of shoes"],["双手","shuāngshǒu","both hands"]]},
+{c:"包",py:"bāo",t:1,m:"to wrap; bag",pos:"verb",f:17,k:[["勹","wrapping"],["巳","curled child"]],mn:"A wrap 勹 curled around something 巳 — to wrap; a bag; a bun (包子). You met it in 抱 hug and 跑 run!",w:[["书包","shūbāo","schoolbag"],["包子","bāozi","steamed bun"]]},
+/* ============ LEVEL 3 ============ */
+{c:"宿",py:"sù",t:4,m:"to lodge",pos:"verb",f:18,k:[["宀","roof"],["百","hundred"],["亻","person"]],mn:"A hundred 百 people 亻 under one roof 宀 — a hostel: to lodge, stay the night.",w:[["宿舍","sùshè","dormitory"],["住宿","zhùsù","lodging"]]},
+{c:"察",py:"chá",t:2,m:"to examine",pos:"verb",f:18,k:[["宀","roof"],["祭","sacrifice (jì)"]],mn:"Inspecting the sacrifice 祭 under the temple roof 宀 — to examine closely. 警察 = police.",w:[["警察","jǐngchá","police"],["观察","guānchá","to observe"]]},
+{c:"寒",py:"hán",t:2,m:"cold (formal)",pos:"adjective",f:18,k:[["宀","roof"],["冫","ice below"]],mn:"A person huddled in straw under a roof 宀 with ice 冫 below — bitter cold. 寒假 = winter vacation.",w:[["寒假","hánjià","winter vacation"],["寒冷","hánlěng","frigid"]]},
+{c:"富",py:"fù",t:4,m:"rich",pos:"adjective",f:18,k:[["宀","roof"],["畐","full jar"]],mn:"A full jar 畐 under your roof 宀 — wealth: rich.",w:[["丰富","fēngfù","abundant, rich"],["富人","fùrén","the rich"]]},
+{c:"运",py:"yùn",t:4,m:"to transport; luck",pos:"verb",f:19,k:[["辶","walk"],["云","cloud (yún)"]],mn:"Moving 辶 like clouds 云 — to transport; where things move, fortune moves: luck. Careful: 远 'far' has 元!",w:[["运动","yùndòng","sports, exercise"],["运气","yùnqi","luck"]]},
+{c:"通",py:"tōng",t:1,m:"to go through",pos:"verb",f:19,k:[["辶","walk"],["甬","yǒng (sound)"]],mn:"A road 辶 with nothing blocking it — to go through, connect. 通过 = to pass.",w:[["通过","tōngguò","to pass, via"],["交通","jiāotōng","traffic"]]},
+{c:"连",py:"lián",t:2,m:"to connect; even",pos:"verb",f:19,k:[["辶","walk"],["车","vehicle"]],mn:"Carts 车 rolling 辶 one behind another — connected in a chain; 连…也 = EVEN…",w:[["连接","liánjiē","to connect"],["连我也","lián wǒ yě","even I…"]]},
+{c:"遍",py:"biàn",t:4,m:"time (once through)",pos:"measure word",f:19,k:[["辶","walk"],["扁","flat (biǎn)"]],mn:"Walking 辶 the whole flat 扁 area — one complete pass: 再说一遍 say it once more through.",w:[["一遍","yí biàn","once through"],["遍地","biàndì","everywhere"]]},
+{c:"适",py:"shì",t:4,m:"to fit, suit",pos:"verb",f:19,k:[["辶","walk"],["舌","tongue (shé)"]],mn:"Walking 辶 somewhere your tongue 舌 feels at home — it suits you: fitting, comfortable.",w:[["合适","héshì","suitable"],["舒适","shūshì","comfortable"]]},
+{c:"递",py:"dì",t:4,m:"to pass, hand over",pos:"verb",f:19,k:[["辶","walk"],["弟","younger brother (dì)"]],mn:"Little brother 弟 runs 辶 it over — to hand-deliver. Same sound: dì. 快递 = express delivery!",w:[["快递","kuàidì","express delivery"],["递给","dìgěi","hand to"]]},
+{c:"诉",py:"sù",t:4,m:"to tell",pos:"verb",f:1,k:[["讠","speech"],["斥","to scold (chì)"]],mn:"Speech 讠 poured out, even scolding 斥 — to tell, to complain. 告诉 = to tell.",w:[["告诉","gàosu","to tell"],["诉说","sùshuō","to recount"]]},
+{c:"谈",py:"tán",t:2,m:"to discuss",pos:"verb",f:1,k:[["讠","speech"],["炎","blazing (yán)"]],mn:"Speech 讠 around twin fires 炎 — long warm conversation: to chat, discuss.",w:[["谈话","tánhuà","conversation"],["谈谈","tántan","have a chat"]]},
+{c:"议",py:"yì",t:4,m:"to discuss (formally)",pos:"verb",f:1,k:[["讠","speech"],["义","righteousness (yì)"]],mn:"Speech 讠 about what's right 义 — formal discussion. Same sound: yì. 会议 = meeting.",w:[["会议","huìyì","meeting"],["建议","jiànyì","to suggest"]]},
+{c:"证",py:"zhèng",t:4,m:"to prove; certificate",pos:"verb",f:1,k:[["讠","speech"],["正","correct (zhèng)"]],mn:"Speech 讠 declared correct 正 — proof; the paper that proves you: a certificate. Same sound: zhèng.",w:[["证明","zhèngmíng","to prove"],["签证","qiānzhèng","visa"]]},
+{c:"例",py:"lì",t:4,m:"example",pos:"noun",f:4,k:[["亻","person"],["列","to line up (liè)"]],mn:"A person 亻 pulled from the line-up 列 to show the rest — an example. 列 (liè) hints lì.",w:[["例子","lìzi","example"],["例如","lìrú","for example"]]},
+{c:"值",py:"zhí",t:2,m:"value; worth",pos:"noun",f:4,k:[["亻","person"],["直","straight (zhí)"]],mn:"A person 亻 who deals straight 直 — worth their price: value. Same sound: zhí.",w:[["值得","zhíde","worth it"],["价值","jiàzhí","value"]]},
+{c:"偶",py:"ǒu",t:3,m:"by chance; idol",pos:"adverb",f:4,k:[["亻","person"],["禺","monkey figure (yù)"]],mn:"A person-shaped 亻 puppet 禺 — an idol; puppets meet by strings: 偶尔 = once in a while.",w:[["偶尔","ǒu'ěr","occasionally"],["偶像","ǒuxiàng","idol"]]},
+{c:"拍",py:"pāi",t:1,m:"to pat; to shoot (photo)",pos:"verb",f:3,k:[["扌","hand"],["白","white (bái)"]],mn:"A hand 扌 slapping until it's white 白 — to pat, clap; the camera 'slaps' a shot: 拍照. Careful: 怕 (heart) = fear!",w:[["拍照","pāizhào","take photos"],["拍手","pāishǒu","to clap"]]},
+{c:"招",py:"zhāo",t:1,m:"to beckon, recruit",pos:"verb",f:3,k:[["扌","hand"],["召","to summon (zhào)"]],mn:"A hand 扌 summoning 召 you over — to beckon, to recruit. Same 召 as in 照.",w:[["招手","zhāoshǒu","to wave over"],["招聘","zhāopìn","to recruit"]]},
+{c:"挂",py:"guà",t:4,m:"to hang",pos:"verb",f:3,k:[["扌","hand"],["圭","jade tablet (guī)"]],mn:"A hand 扌 hanging the jade tablet 圭 on the wall — to hang (up); 挂了 also = the call hung up.",w:[["挂号","guàhào","register (at hospital)"],["挂电话","guà diànhuà","hang up"]]},
+{c:"握",py:"wò",t:4,m:"to grasp",pos:"verb",f:3,k:[["扌","hand"],["屋","house (wū)"]],mn:"A hand 扌 closing around something like a house 屋 around its family — to grasp. 握手 = shake hands.",w:[["握手","wòshǒu","shake hands"],["把握","bǎwò","to seize; certainty"]]},
+{c:"流",py:"liú",t:2,m:"to flow",pos:"verb",f:0,k:[["氵","water"],["㐬","banner streaming"]],mn:"Water 氵 streaming like a banner — to flow. 流行 = flowing everywhere: popular.",w:[["流行","liúxíng","popular, trendy"],["流水","liúshuǐ","running water"]]},
+{c:"消",py:"xiāo",t:1,m:"to vanish, cancel",pos:"verb",f:0,k:[["氵","water"],["肖","resemble (xiào)"]],mn:"Water 氵 wearing something away until it disappears — to vanish, eliminate. 消息 = news (what surfaces as things fade).",w:[["消息","xiāoxi","news"],["取消","qǔxiāo","to cancel"]]},
+{c:"漂",py:"piào",t:4,m:"pretty (漂亮)",pos:"adjective",f:0,k:[["氵","water"],["票","ticket (piào)"]],mn:"A ticket 票 floating on water 氵 — read piāo it means 'to float'; in 漂亮 (piào) it means pretty as a floating lantern.",w:[["漂亮","piàoliang","pretty"],["漂流","piāoliú","to drift (piāo!)"]]},
+{c:"澡",py:"zǎo",t:3,m:"bath",pos:"noun",f:0,k:[["氵","water"],["喿","chirping (zào)"]],mn:"Water 氵 + a tree full of chirping mouths 喿 — splashing and singing in the tub: a bath.",w:[["洗澡","xǐzǎo","take a bath/shower"],["澡堂","zǎotáng","bathhouse"]]},
+{c:"检",py:"jiǎn",t:3,m:"to inspect",pos:"verb",f:6,k:[["木","wood"],["佥","all (qiān)"]],mn:"Checking every 佥 wooden 木 crate — to inspect. Same 佥 as 脸 (face).",w:[["检查","jiǎnchá","to check"],["体检","tǐjiǎn","health checkup"]]},
+{c:"梯",py:"tī",t:1,m:"ladder, stairs",pos:"noun",f:6,k:[["木","wood"],["弟","younger brother (dì)"]],mn:"Wooden 木 steps like brothers 弟 in a row, each a bit taller — a ladder. 电梯 = elevator.",w:[["电梯","diàntī","elevator"],["楼梯","lóutī","stairs"]]},
+{c:"楚",py:"chǔ",t:3,m:"clear, distinct",pos:"adjective",f:6,k:[["林","woods"],["疋","foot below"]],mn:"Walking 疋 out of the woods 林 into the open — suddenly everything is clear: 清楚.",w:[["清楚","qīngchu","clear"],["痛楚","tòngchǔ","anguish"]]},
+{c:"呼",py:"hū",t:1,m:"to exhale, call",pos:"verb",f:14,k:[["口","mouth"],["乎","hū (sound)"]],mn:"A mouth 口 + 乎 (hū — the sound OF an exhale) — breathe out, call out. 呼吸 = breathe.",w:[["呼吸","hūxī","to breathe"],["打呼","dǎhū","to snore"]]},
+{c:"吸",py:"xī",t:1,m:"to inhale, suck",pos:"verb",f:14,k:[["口","mouth"],["及","to reach (jí)"]],mn:"A mouth 口 reaching 及 for air — to inhale, absorb. 吸引 = to attract (pull in).",w:[["呼吸","hūxī","to breathe"],["吸引","xīyǐn","to attract"]]},
+{c:"啊",py:"a",t:0,m:"ah! (particle)",pos:"particle",f:14,k:[["口","mouth"],["阿","ā (sound)"]],mn:"A mouth 口 + 阿 — the sound that needs no dictionary: ah! Softens sentences at the end.",w:[["好啊","hǎo a","sure!"],["是啊","shì a","yeah, right"]]},
+{c:"售",py:"shòu",t:4,m:"to sell (formal)",pos:"verb",f:14,k:[["隹","bird"],["口","mouth"]],mn:"A bird 隹 crying its wares from a mouth 口 — market calls: to sell. 售票处 = ticket office.",w:[["售票","shòupiào","sell tickets"],["销售","xiāoshòu","sales"]]},
+{c:"终",py:"zhōng",t:1,m:"end, finally",pos:"adverb",f:13,k:[["纟","silk"],["冬","winter (dōng)"]],mn:"The thread 纟 reaches winter 冬 — the year's end: finally, the end. 终于 = at last!",w:[["终于","zhōngyú","finally"],["最终","zuìzhōng","in the end"]]},
+{c:"绝",py:"jué",t:2,m:"absolute; cut off",pos:"adjective",f:13,k:[["纟","silk"],["色","color (sè)"]],mn:"A thread 纟 cut clean through — severed: absolute(ly). 绝对 = absolutely.",w:[["绝对","juéduì","absolutely"],["拒绝","jùjué","to refuse"]]},
+{c:"晒",py:"shài",t:4,m:"to sun-dry",pos:"verb",f:7,k:[["日","sun"],["西","west (xī)"]],mn:"The sun 日 hanging in the west 西 — hang your laundry in it: to sun, to bask (and to 'post' photos online!).",w:[["晒太阳","shài tàiyáng","sunbathe"],["晒衣服","shài yīfu","dry clothes in the sun"]]},
+{c:"替",py:"tì",t:4,m:"to replace, for",pos:"verb",f:7,k:[["夫夫","two men"],["曰","to say"]],mn:"Two men 夫夫 and one speaks 曰 for the other — to substitute: in place of.",w:[["代替","dàitì","to replace"],["替我","tì wǒ","for me, on my behalf"]]},
+{c:"熟",py:"shú",t:2,m:"ripe; familiar",pos:"adjective",f:11,k:[["孰","who/cooked"],["灬","fire"]],mn:"Cooked over fire 灬 until done — ripe, cooked; people you've 'cooked with' long enough are familiar.",w:[["熟悉","shúxī","familiar"],["成熟","chéngshú","mature"]]},
+{c:"望",py:"wàng",t:4,m:"to gaze; hope",pos:"verb",f:21,k:[["亡","lost (wáng)"],["月","moon"],["王","king"]],mn:"Gazing at the moon 月 for what's lost 亡 — to gaze into the distance: to hope. 希望 = hope.",w:[["希望","xīwàng","to hope"],["看望","kànwàng","to visit (someone)"]]},
+{c:"背",py:"bèi",t:4,m:"back; to memorize",pos:"noun",f:21,k:[["北","north (běi)"],["月","flesh"]],mn:"The flesh 月 on your north 北 side (you face south, like emperors) — your back; to carry on it; to recite 'by back' = memorize.",w:[["背包","bēibāo","backpack (bēi!)"],["背课文","bèi kèwén","memorize a text"]]},
+{c:"期",py:"qī",t:1,m:"period (of time)",pos:"noun",f:21,k:[["其","that (qí)"],["月","moon"]],mn:"That 其 moon 月 — counting moons marks time: a period, a date. 星期 = week.",w:[["星期","xīngqī","week"],["期待","qīdài","look forward to"]]},
+{c:"境",py:"jìng",t:4,m:"border; situation",pos:"noun",f:23,k:[["土","earth"],["竟","finish (jìng)"]],mn:"Where the land 土 finally ends 竟 — the border; your surroundings: 环境 environment. Same sound: jìng.",w:[["环境","huánjìng","environment"],["国境","guójìng","national border"]]},
+{c:"增",py:"zēng",t:1,m:"to increase",pos:"verb",f:23,k:[["土","earth"],["曾","once (céng)"]],mn:"Piling earth 土 on top of what was once 曾 there — to increase, add.",w:[["增加","zēngjiā","to increase"],["增长","zēngzhǎng","growth"]]},
+{c:"基",py:"jī",t:1,m:"base, foundation",pos:"noun",f:23,k:[["其","that (qí)"],["土","earth"]],mn:"That 其 packed earth 土 below the wall — the foundation. 基本 = basic.",w:[["基本","jīběn","basic"],["基础","jīchǔ","foundation"]]},
+{c:"石",py:"shí",t:2,m:"stone",pos:"noun",f:36,k:[["石","cliff + rock"]],mn:"A rock fallen from a cliff — the picture IS the meaning: stone.",w:[["石头","shítou","stone, rock"],["钻石","zuànshí","diamond"]]},
+{c:"破",py:"pò",t:4,m:"broken",pos:"adjective",f:36,k:[["石","stone"],["皮","skin (pí)"]],mn:"A stone 石 through the skin 皮 of anything — broken, torn. 皮 (pí) gives pò.",w:[["破了","pò le","it's broken/torn"],["打破","dǎpò","to smash, break (a record)"]]},
+{c:"硬",py:"yìng",t:4,m:"hard (not soft)",pos:"adjective",f:36,k:[["石","stone"],["更","even more (gèng)"]],mn:"Even more 更 like stone 石 — hard. 更 (gèng) hints yìng.",w:[["很硬","hěn yìng","very hard"],["硬件","yìngjiàn","hardware"]]},
+{c:"碗",py:"wǎn",t:3,m:"bowl",pos:"noun",f:36,k:[["石","stone"],["宛","curved (wǎn)"]],mn:"A curved 宛 stone-ware 石 vessel — a bowl. Same sound: wǎn.",w:[["一碗饭","yì wǎn fàn","a bowl of rice"],["洗碗","xǐwǎn","wash dishes"]]},
+{c:"碰",py:"pèng",t:4,m:"to bump, touch",pos:"verb",f:36,k:[["石","stone"],["并","side by side (bìng)"]],mn:"Stones 石 knocking side by side 并 — to bump into; 碰到 = run into someone.",w:[["碰到","pèngdào","bump into, encounter"],["别碰","bié pèng","don't touch!"]]},
+{c:"界",py:"jiè",t:4,m:"boundary; world",pos:"noun",f:37,k:[["田","field"],["介","between (jiè)"]],mn:"The line between 介 fields 田 — a boundary; all within the boundaries: the world 世界. Same sound: jiè.",w:[["世界","shìjiè","world"],["边界","biānjiè","border"]]},
+{c:"留",py:"liú",t:2,m:"to stay, keep",pos:"verb",f:37,k:[["田","field"],["卯 (top)","open gates"]],mn:"Stay by your field 田 — to remain, to keep; 留学 = stay abroad to study.",w:[["留学","liúxué","study abroad"],["留下","liúxià","to stay; leave behind"]]},
+{c:"加",py:"jiā",t:1,m:"to add",pos:"verb",f:38,k:[["力","strength"],["口","mouth"]],mn:"Add strength 力 to your words 口 — to add. 加油 'add oil!' = you can do it!",w:[["加油","jiāyóu","go! (cheer)"],["参加","cānjiā","to take part"]]},
+{c:"助",py:"zhù",t:4,m:"to help",pos:"verb",f:38,k:[["且","moreover (qiě)"],["力","strength"]],mn:"Moreover 且, add your strength 力 — to help. 帮助 = help.",w:[["帮助","bāngzhù","to help"],["助手","zhùshǒu","assistant"]]},
+{c:"努",py:"nǔ",t:3,m:"to exert",pos:"verb",f:38,k:[["奴","slave (nú)"],["力","strength"]],mn:"Working with the strength 力 of a slave 奴 — to strain every muscle: 努力 = work hard.",w:[["努力","nǔlì","to work hard"],["努力学习","nǔlì xuéxí","study hard"]]},
+{c:"办",py:"bàn",t:4,m:"to handle, do",pos:"verb",f:38,k:[["力","strength"],["丶丶","drops of sweat"]],mn:"Strength 力 flanked by two drops of sweat — getting things done: to handle. 怎么办? What to do?!",w:[["怎么办","zěnme bàn","what should (I) do?"],["办法","bànfǎ","method, way"]]},
+{c:"势",py:"shì",t:4,m:"momentum, tendency",pos:"noun",f:38,k:[["执","to hold"],["力","strength"]],mn:"Held 执 strength 力 ready to release — momentum, force, the way things lean.",w:[["手势","shǒushì","hand gesture"],["优势","yōushì","advantage"]]},
+{c:"取",py:"qǔ",t:3,m:"to take, fetch",pos:"verb",f:39,k:[["耳","ear"],["又","hand"]],mn:"A hand 又 taking an ear 耳 — ancient soldiers took ears as proof — grim but unforgettable: to take.",w:[["取钱","qǔqián","withdraw money"],["取消","qǔxiāo","to cancel"]]},
+{c:"受",py:"shòu",t:4,m:"to receive, endure",pos:"verb",f:39,k:[["爫","hand above"],["又","hand below"]],mn:"A hand above 爫 passing to a hand below 又 — to receive; some gifts you must simply endure.",w:[["受不了","shòubuliǎo","can't stand it"],["接受","jiēshòu","to accept"]]},
+{c:"变",py:"biàn",t:4,m:"to change",pos:"verb",f:39,k:[["亦","also"],["又","hand"]],mn:"A hand 又 turning things over — to change, transform. 变成 = turn into.",w:[["变成","biànchéng","turn into"],["改变","gǎibiàn","to change"]]},
+{c:"观",py:"guān",t:1,m:"to observe",pos:"verb",f:39,k:[["又","hand"],["见","to see"]],mn:"Shade your eyes with a hand 又 and see 见 far — to observe, view. 参观 = to visit (a place).",w:[["参观","cānguān","to visit, tour"],["观点","guāndiǎn","point of view"]]},
+{c:"觉",py:"jué",t:2,m:"to feel; wake",pos:"verb",f:40,k:[["⺍冖","covered top"],["见","to see"]],mn:"Eyes opening 见 from under the covers 冖 — to wake, to become aware: 觉得 = to feel. In 睡觉 it reads jiào!",w:[["觉得","juéde","to feel, think"],["睡觉","shuìjiào","to sleep (jiào!)"]]},
+{c:"视",py:"shì",t:4,m:"to view",pos:"verb",f:40,k:[["礻","spirit/altar"],["见","to see"]],mn:"Seeing 见 with reverence 礻 — to view, regard. 电视 = electric viewing: TV.",w:[["电视","diànshì","television"],["重视","zhòngshì","to value"]]},
+{c:"现",py:"xiàn",t:4,m:"present, now",pos:"adverb",f:40,k:[["王","jade"],["见","to see"]],mn:"Jade 王 you can see 见 right in front of you — present, appearing now: 现在.",w:[["现在","xiànzài","now"],["发现","fāxiàn","to discover"]]},
+{c:"规",py:"guī",t:1,m:"rule",pos:"noun",f:40,k:[["夫","man"],["见","to see"]],mn:"A man 夫 seeing 见 that lines are drawn true — a compass, hence: rules. 规则 = rules.",w:[["规则","guīzé","rules"],["规定","guīdìng","regulation"]]},
+{c:"费",py:"fèi",t:4,m:"fee; to spend",pos:"noun",f:41,k:[["弗","not (fú)"],["贝","money"]],mn:"Money 贝 that will NOT 弗 come back — a fee, an expense. 免费 = free (exempt from fee)!",w:[["免费","miǎnfèi","free of charge"],["学费","xuéfèi","tuition"]]},
+{c:"购",py:"gòu",t:4,m:"to purchase",pos:"verb",f:41,k:[["贝","money"],["勾","to hook (gōu)"]],mn:"Money 贝 hooking 勾 goods toward you — to purchase. 购物 = shopping. 勾 (gōu) gives gòu.",w:[["购物","gòuwù","shopping"],["网购","wǎnggòu","online shopping"]]},
+{c:"财",py:"cái",t:2,m:"wealth",pos:"noun",f:41,k:[["贝","money"],["才","talent (cái)"]],mn:"Money 贝 + 才 (cái, same sound) — talent turned to treasure: wealth. 发财 = strike it rich!",w:[["发财","fācái","get rich"],["财产","cáichǎn","property"]]},
+{c:"质",py:"zhì",t:4,m:"quality; substance",pos:"noun",f:41,k:[["斤斤","two axes"],["贝","money"]],mn:"Two axes 斤斤 testing what the money 贝 buys — the substance beneath: quality 质量.",w:[["质量","zhìliàng","quality"],["物质","wùzhì","material, substance"]]},
+{c:"责",py:"zé",t:2,m:"duty; to blame",pos:"noun",f:41,k:[["𡈼","thorn (top)"],["贝","money"]],mn:"A debt 贝 hanging over you like a thorn — your responsibility; unpaid, it becomes blame. 负责 = be responsible.",w:[["负责","fùzé","be responsible"],["责任","zérèn","responsibility"]]},
+{c:"神",py:"shén",t:2,m:"god, spirit",pos:"noun",f:42,k:[["礻","altar"],["申","to state (shēn)"]],mn:"At the altar 礻, lightning 申 states its presence — a god, spirit; also: amazing! 神了!",w:[["精神","jīngshén","spirit, vigor"],["神话","shénhuà","myth"]]},
+{c:"祝",py:"zhù",t:4,m:"to wish (well)",pos:"verb",f:42,k:[["礻","altar"],["兄","elder brother (xiōng)"]],mn:"Big brother 兄 kneeling at the altar 礻 speaking blessings — to wish: 祝你生日快乐!",w:[["祝你","zhù nǐ","wishing you…"],["庆祝","qìngzhù","to celebrate"]]},
+{c:"礼",py:"lǐ",t:3,m:"gift; courtesy",pos:"noun",f:42,k:[["礻","altar"],["乚","hook"]],mn:"An offering hooked 乚 onto the altar 礻 — ritual, courtesy, and the gift 礼物 that carries it.",w:[["礼物","lǐwù","gift"],["礼貌","lǐmào","manners"]]},
+{c:"难",py:"nán",t:2,m:"difficult",pos:"adjective",f:43,k:[["又","hand"],["隹","bird"]],mn:"Catching a bird 隹 with one bare hand 又 — difficult! 难 + verb = hard to: 难说, 难找…",w:[["困难","kùnnan","difficulty"],["难过","nánguò","sad"]]},
+{c:"集",py:"jí",t:2,m:"to gather",pos:"verb",f:43,k:[["隹","bird"],["木","tree"]],mn:"Birds 隹 gathering on a tree 木 — to collect, assemble. 集合 = assemble!",w:[["集合","jíhé","to assemble"],["收集","shōují","to collect"]]},
+{c:"准",py:"zhǔn",t:3,m:"accurate; to allow",pos:"adjective",f:43,k:[["冫","ice"],["隹","bird"]],mn:"A bird 隹 on ice 冫 landing exactly on target — accurate; 准备 = to prepare (get exactly ready).",w:[["准备","zhǔnbèi","to prepare"],["标准","biāozhǔn","standard"]]},
+{c:"层",py:"céng",t:2,m:"layer, floor",pos:"measure word",f:44,k:[["尸","body/house"],["云","cloud (yún)"]],mn:"A house 尸 stacked up to the clouds 云 — layers, floors. 几层? Which floor?",w:[["三层","sān céng","third floor / 3 layers"],["一层层","yì céng céng","layer by layer"]]},
+{c:"居",py:"jū",t:1,m:"to reside",pos:"verb",f:44,k:[["尸","body/house"],["古","ancient (gǔ)"]],mn:"A body 尸 settled since ancient 古 times — to reside. 邻居 = neighbor. 古 (gǔ) hints jū.",w:[["邻居","línjū","neighbor"],["居住","jūzhù","to reside"]]},
+{c:"展",py:"zhǎn",t:3,m:"to unfold, exhibit",pos:"verb",f:44,k:[["尸","body"],["𧝑","folded cloth"]],mn:"A body 尸 unrolling folded cloth — to spread out, exhibit: 展览 exhibition.",w:[["发展","fāzhǎn","to develop"],["展览","zhǎnlǎn","exhibition"]]},
+{c:"屋",py:"wū",t:1,m:"house, room",pos:"noun",f:44,k:[["尸","body/roof"],["至","to arrive (zhì)"]],mn:"Where the body 尸 finally arrives 至 at day's end — a house. Same 至 as 室 (room).",w:[["房屋","fángwū","house"],["屋子","wūzi","room"]]},
+{c:"站",py:"zhàn",t:4,m:"to stand; station",pos:"verb",f:45,k:[["立","stand"],["占","occupy (zhàn)"]],mn:"Standing 立 and occupying 占 your spot — to stand; where vehicles stand: a station. Same sound: zhàn.",w:[["车站","chēzhàn","station, stop"],["站起来","zhàn qǐlai","stand up"]]},
+{c:"端",py:"duān",t:1,m:"end; to carry level",pos:"noun",f:45,k:[["立","stand"],["耑","sprout tip"]],mn:"Standing 立 at the very tip 耑 — the end, the extreme; carry a bowl held level and upright: 端.",w:[["端午节","Duānwǔjié","Dragon Boat Festival"],["端菜","duān cài","serve dishes"]]},
+{c:"章",py:"zhāng",t:1,m:"chapter; seal",pos:"noun",f:45,k:[["音","sound"],["十","ten"]],mn:"Ten 十 sounds 音 complete — one chapter; carved complete: a seal. (It also stands 立 tall on top.)",w:[["文章","wénzhāng","article, essay"],["第一章","dì-yī zhāng","chapter one"]]},
+{c:"糖",py:"táng",t:2,m:"sugar, candy",pos:"noun",f:46,k:[["米","rice"],["唐","Tang dynasty (táng)"]],mn:"Rice 米 boiled down in Tang 唐 times — sugar. Same sound: táng.",w:[["糖果","tángguǒ","candy"],["白糖","báitáng","white sugar"]]},
+{c:"粉",py:"fěn",t:3,m:"powder",pos:"noun",f:46,k:[["米","rice"],["分","to divide (fēn)"]],mn:"Rice 米 divided 分 to its finest — powder. 粉丝 'thin noodles' now also means fans! 分 (fēn) gives fěn.",w:[["粉丝","fěnsī","fans; glass noodles"],["面粉","miànfěn","flour"]]},
+{c:"精",py:"jīng",t:1,m:"refined; essence",pos:"adjective",f:46,k:[["米","rice"],["青","qīng (sound)"]],mn:"Rice 米 polished to its essence — refined, excellent. The 青 family strikes again (jīng).",w:[["精彩","jīngcǎi","brilliant, wonderful"],["精神","jīngshén","spirit"]]},
+{c:"蛋",py:"dàn",t:4,m:"egg",pos:"noun",f:47,k:[["疋","foot/roll"],["虫","creature"]],mn:"What a creature 虫 leaves rolled 疋 in the nest — an egg. 笨蛋 'dumb egg' = fool!",w:[["鸡蛋","jīdàn","chicken egg"],["蛋糕","dàngāo","cake"]]},
+{c:"蛇",py:"shé",t:2,m:"snake",pos:"noun",f:47,k:[["虫","creature"],["它","it (tā)"]],mn:"The creature 虫 people just called IT 它 — a snake. (它 was originally a drawing of a snake!)",w:[["一条蛇","yì tiáo shé","a snake"],["蛇年","shénián","Year of the Snake"]]},
+{c:"鸡",py:"jī",t:1,m:"chicken",pos:"noun",f:48,k:[["又","hand"],["鸟","bird"]],mn:"The bird 鸟 you can catch by hand 又 — a chicken.",w:[["鸡肉","jīròu","chicken (meat)"],["公鸡","gōngjī","rooster"]]},
+{c:"鸭",py:"yā",t:1,m:"duck",pos:"noun",f:48,k:[["甲","first/shell (jiǎ)"],["鸟","bird"]],mn:"The number-one 甲 bird 鸟 of the pond — a duck. 北京烤鸭 — Beijing roast duck!",w:[["烤鸭","kǎoyā","roast duck"],["鸭子","yāzi","duck"]]},
+{c:"骑",py:"qí",t:2,m:"to ride",pos:"verb",f:49,k:[["马","horse"],["奇","strange (qí)"]],mn:"Sitting strangely 奇 astride a horse 马 — to ride (horses, bikes, anything you straddle). Same sound: qí.",w:[["骑车","qíchē","ride a bike"],["骑马","qímǎ","ride a horse"]]},
+{c:"验",py:"yàn",t:4,m:"to test, verify",pos:"verb",f:49,k:[["马","horse"],["佥","all (qiān)"]],mn:"Testing every 佥 horse 马 before buying — to examine, verify. 经验 = experience (all you've tested).",w:[["经验","jīngyàn","experience"],["验证","yànzhèng","to verify"]]},
+{c:"盘",py:"pán",t:2,m:"plate, tray",pos:"noun",f:50,k:[["舟","boat (zhōu)"],["皿","dish"]],mn:"A dish 皿 broad as a boat 舟 — a plate, a tray; also a game 'board': 一盘棋.",w:[["盘子","pánzi","plate"],["键盘","jiànpán","keyboard"]]},
+{c:"盒",py:"hé",t:2,m:"box",pos:"noun",f:50,k:[["合","to close (hé)"],["皿","dish"]],mn:"A dish 皿 that closes 合 shut — a box. Same sound: hé. 盒饭 = boxed meal.",w:[["盒子","hézi","box"],["饭盒","fànhé","lunchbox"]]},
+{c:"盖",py:"gài",t:4,m:"lid; to cover",pos:"noun",f:50,k:[["羊","sheep top"],["皿","dish"]],mn:"Put the sheep-wool 羊 cover on the dish 皿 — a lid; to cover, to build (roof things over).",w:[["盖子","gàizi","lid"],["盖上","gàishàng","cover it up"]]},
+{c:"而",py:"ér",t:2,m:"and yet, but",pos:"conjunction",f:17,k:[["而","a drooping beard"]],mn:"A beard flowing down — old scholars stroking beards between clauses: and, yet, but. You met it inside 需 (need).",w:[["而且","érqiě","moreover"],["而是","érshì","but rather"]]},
+{c:"于",py:"yú",t:2,m:"at, in, than",pos:"preposition",f:17,k:[["于","breath rising past a line"]],mn:"A little word marking where and when — at, in, compared to. 终于 = finally; 等于 = equals.",w:[["终于","zhōngyú","finally"],["由于","yóuyú","due to"]]},
+{c:"未",py:"wèi",t:4,m:"not yet",pos:"adverb",f:17,k:[["木","tree"],["一","short top branch"]],mn:"A tree 木 whose TOP branch is still short — not fully grown: not yet. Careful: 末 (end) has the LONG stroke on top!",w:[["未来","wèilái","the future"],["从未","cóngwèi","never (so far)"]]},
+{c:"末",py:"mò",t:4,m:"end, tip",pos:"noun",f:17,k:[["木","tree"],["一","long top stroke"]],mn:"A tree 木 with a LONG stroke marking its very tip — the end: 周末 weekend, the week's tip. Compare 未 (not yet)!",w:[["周末","zhōumò","weekend"],["月末","yuèmò","end of the month"]]},
+{c:"失",py:"shī",t:1,m:"to lose",pos:"verb",f:17,k:[["失","hand dropping something"]],mn:"A hand with something slipping past its fingers — to lose. 失败 = failure; you met 失 inside 铁 (iron).",w:[["失败","shībài","to fail; failure"],["失去","shīqù","to lose"]]},
+{c:"丢",py:"diū",t:1,m:"to lose, toss",pos:"verb",f:17,k:[["去","to go"],["丿","a slip away"]],mn:"One slip 丿 and it goes 去 — lost, tossed away: 丢了 = it's gone.",w:[["丢了","diū le","lost it"],["丢脸","diūliǎn","lose face"]]},
+{c:"即",py:"jí",t:2,m:"immediately; namely",pos:"adverb",f:17,k:[["皀","food vessel"],["卩","kneeling person"]],mn:"A person 卩 kneeling right at the food 皀 — immediately at hand: at once, precisely. 立即 = immediately.",w:[["立即","lìjí","immediately"],["即使","jíshǐ","even if"]]},
+/*MORE*/
+];
+/* extra anchor chars used only in look-alike drills */
+const SENTS={
+"河":["这条河很长。","Zhè tiáo hé hěn cháng.","This river is very long."],
+"湖":["湖边有很多人。","Húbiān yǒu hěn duō rén.","There are many people by the lake."],
+"海":["我想去看海。","Wǒ xiǎng qù kàn hǎi.","I want to go see the sea."],
+"洗":["我去洗手。","Wǒ qù xǐshǒu.","I'm going to wash my hands."],
+"游":["他游得很快。","Tā yóu de hěn kuài.","He swims very fast."],
+"泳":["你会游泳吗？","Nǐ huì yóuyǒng ma?","Can you swim?"],
+"汽":["我们坐汽车去。","Wǒmen zuò qìchē qù.","We'll go by car."],
+"深":["这里的水很深。","Zhèlǐ de shuǐ hěn shēn.","The water here is deep."],
+"话":["他说的话很有意思。","Tā shuō de huà hěn yǒu yìsi.","What he says is interesting."],
+"语":["我在学汉语。","Wǒ zài xué Hànyǔ.","I'm learning Chinese."],
+"词":["这个词是什么意思？","Zhège cí shì shénme yìsi?","What does this word mean?"],
+"课":["我今天有三节课。","Wǒ jīntiān yǒu sān jié kè.","I have three classes today."],
+"读":["他喜欢读书。","Tā xǐhuan dúshū.","He likes reading."],
+"讲":["老师讲得很清楚。","Lǎoshī jiǎng de hěn qīngchu.","The teacher explains clearly."],
+"试":["你试试这个方法。","Nǐ shìshi zhège fāngfǎ.","Try this method."],
+"想":["我很想你。","Wǒ hěn xiǎng nǐ.","I miss you a lot."],
+"忘":["别忘了带钱。","Bié wàng le dài qián.","Don't forget to bring money."],
+"念":["我很想念我的家。","Wǒ hěn xiǎngniàn wǒ de jiā.","I really miss my home."],
+"怕":["我怕黑。","Wǒ pà hēi.","I'm afraid of the dark."],
+"情":["他今天心情很好。","Tā jīntiān xīnqíng hěn hǎo.","He's in a good mood today."],
+"意":["这是什么意思？","Zhè shì shénme yìsi?","What does this mean?"],
+"感":["我感觉很累。","Wǒ gǎnjué hěn lèi.","I feel very tired."],
+"急":["别着急，慢慢来。","Bié zháojí, mànmàn lái.","Don't worry, take your time."],
+"忙":["你能帮我一个忙吗？","Nǐ néng bāng wǒ yí ge máng ma?","Can you do me a favor?"],
+"总":["他总是很忙。","Tā zǒngshì hěn máng.","He is always busy."],
+"打":["我给你打电话。","Wǒ gěi nǐ dǎ diànhuà.","I'll call you."],
+"找":["我在找我的手机。","Wǒ zài zhǎo wǒ de shǒujī.","I'm looking for my phone."],
+"把":["请把门关上。","Qǐng bǎ mén guānshàng.","Please close the door."],
+"拿":["请拿一个杯子来。","Qǐng ná yí ge bēizi lái.","Please bring a cup."],
+"接":["我去机场接你。","Wǒ qù jīchǎng jiē nǐ.","I'll pick you up at the airport."],
+"换":["我要换一点钱。","Wǒ yào huàn yìdiǎn qián.","I need to exchange some money."],
+"推":["这个门要推。","Zhège mén yào tuī.","You push this door."],
+"拉":["那个门要拉。","Nàge mén yào lā.","You pull that door."],
+"抱":["妈妈抱着孩子。","Māma bàozhe háizi.","The mother is holding the child."],
+"住":["你住在哪里？","Nǐ zhù zài nǎlǐ?","Where do you live?"],
+"位":["这个座位有人吗？","Zhège zuòwèi yǒu rén ma?","Is this seat taken?"],
+"件":["我买了一件衣服。","Wǒ mǎi le yí jiàn yīfu.","I bought a piece of clothing."],
+"便":["这里的东西很便宜。","Zhèlǐ de dōngxi hěn piányi.","Things here are cheap."],
+"停":["车停在门口。","Chē tíng zài ménkǒu.","The car is parked at the entrance."],
+"像":["她很像她妈妈。","Tā hěn xiàng tā māma.","She looks just like her mom."],
+"借":["我可以借这本书吗？","Wǒ kěyǐ jiè zhè běn shū ma?","May I borrow this book?"],
+"请":["请问，车站在哪里？","Qǐngwèn, chēzhàn zài nǎlǐ?","Excuse me, where is the station?"],
+"清":["这里的水很清。","Zhèlǐ de shuǐ hěn qīng.","The water here is clear."],
+"晴":["今天是晴天。","Jīntiān shì qíngtiān.","It's sunny today."],
+"睛":["她的眼睛很大。","Tā de yǎnjing hěn dà.","Her eyes are big."],
+"树":["门口有一棵大树。","Ménkǒu yǒu yì kē dà shù.","There's a big tree at the gate."],
+"林":["山上有很多树林。","Shān shang yǒu hěn duō shùlín.","There are many woods on the mountain."],
+"楼":["我家在五楼。","Wǒ jiā zài wǔ lóu.","My home is on the fifth floor."],
+"桥":["我们走过那座桥。","Wǒmen zǒuguò nà zuò qiáo.","We walked across that bridge."],
+"椅":["请坐在椅子上。","Qǐng zuò zài yǐzi shang.","Please sit on the chair."],
+"晚":["今天晚上你有空吗？","Jīntiān wǎnshang nǐ yǒu kòng ma?","Are you free tonight?"],
+"昨":["昨天我去看朋友了。","Zuótiān wǒ qù kàn péngyou le.","Yesterday I visited a friend."],
+"春":["春天来了，花开了。","Chūntiān lái le, huā kāi le.","Spring is here and the flowers are blooming."],
+"暖":["今天天气很暖和。","Jīntiān tiānqì hěn nuǎnhuo.","The weather is nice and warm today."],
+"雪":["昨天下了大雪。","Zuótiān xià le dà xuě.","It snowed heavily yesterday."],
+"零":["今天零下五度。","Jīntiān língxià wǔ dù.","It's five below zero today."],
+"需":["你需要帮助吗？","Nǐ xūyào bāngzhù ma?","Do you need help?"],
+"雷":["外面在打雷。","Wàimiàn zài dǎléi.","It's thundering outside."],
+"跑":["他每天早上跑步。","Tā měitiān zǎoshang pǎobù.","He runs every morning."],
+"跳":["她跳舞跳得很好。","Tā tiàowǔ tiào de hěn hǎo.","She dances very well."],
+"路":["这条路很宽。","Zhè tiáo lù hěn kuān.","This road is wide."],
+"跟":["你跟我来。","Nǐ gēn wǒ lái.","Come with me."],
+"钱":["这个多少钱？","Zhège duōshao qián?","How much is this?"],
+"银":["银行几点开门？","Yínháng jǐ diǎn kāimén?","What time does the bank open?"],
+"错":["对不起，我错了。","Duìbuqǐ, wǒ cuò le.","Sorry, I was wrong."],
+"钟":["现在是三点钟。","Xiànzài shì sān diǎn zhōng.","It's three o'clock now."],
+"灯":["请开一下灯。","Qǐng kāi yíxià dēng.","Please turn on the light."],
+"烧":["他发烧了。","Tā fāshāo le.","He has a fever."],
+"热":["今天太热了！","Jīntiān tài rè le!","It's too hot today!"],
+"照":["我们照一张相吧。","Wǒmen zhào yì zhāng xiàng ba.","Let's take a photo."],
+"病":["他生病了，没来上课。","Tā shēngbìng le, méi lái shàngkè.","He got sick and didn't come to class."],
+"疼":["我头疼。","Wǒ tóuténg.","I have a headache."],
+"瘦":["他最近瘦了很多。","Tā zuìjìn shòu le hěn duō.","He's lost a lot of weight recently."],
+"红":["她穿了一件红衣服。","Tā chuān le yí jiàn hóng yīfu.","She's wearing red clothes."],
+"绿":["我喜欢喝绿茶。","Wǒ xǐhuan hē lǜchá.","I like drinking green tea."],
+"累":["我今天很累。","Wǒ jīntiān hěn lèi.","I'm very tired today."],
+"级":["我妹妹上三年级。","Wǒ mèimei shàng sān niánjí.","My little sister is in third grade."],
+"练":["我每天练习写汉字。","Wǒ měitiān liànxí xiě Hànzì.","I practice writing characters every day."],
+"经":["我已经吃过饭了。","Wǒ yǐjīng chīguò fàn le.","I've already eaten."],
+"结":["他们下个月结婚。","Tāmen xià ge yuè jiéhūn.","They're getting married next month."],
+"唱":["她唱歌很好听。","Tā chànggē hěn hǎotīng.","She sings beautifully."],
+"味":["这个菜味道很好。","Zhège cài wèidao hěn hǎo.","This dish tastes great."],
+"哭":["孩子哭了。","Háizi kū le.","The child is crying."],
+"嘴":["她的嘴巴很小。","Tā de zuǐba hěn xiǎo.","Her mouth is small."],
+"姐":["我姐姐比我大三岁。","Wǒ jiějie bǐ wǒ dà sān suì.","My older sister is three years older than me."],
+"妹":["我妹妹很喜欢猫。","Wǒ mèimei hěn xǐhuan māo.","My little sister loves cats."],
+"始":["电影八点开始。","Diànyǐng bā diǎn kāishǐ.","The movie starts at eight."],
+"姓":["您贵姓？","Nín guìxìng?","What's your surname? (polite)"],
+"间":["这个房间很干净。","Zhège fángjiān hěn gānjìng.","This room is very clean."],
+"闻":["你看今天的新闻了吗？","Nǐ kàn jīntiān de xīnwén le ma?","Did you see today's news?"],
+"最":["这是最好的办法。","Zhè shì zuì hǎo de bànfǎ.","This is the best way."],
+"更":["今天比昨天更冷。","Jīntiān bǐ zuótiān gèng lěng.","Today is even colder than yesterday."],
+"别":["别忘了给我打电话。","Bié wàng le gěi wǒ dǎ diànhuà.","Don't forget to call me."],
+"就":["我马上就来。","Wǒ mǎshàng jiù lái.","I'll be right there."],
+"才":["他十点才起床。","Tā shí diǎn cái qǐchuáng.","He didn't get up until ten."],
+"已":["他已经走了。","Tā yǐjīng zǒu le.","He has already left."],
+"己":["自己的事情自己做。","Zìjǐ de shìqing zìjǐ zuò.","Do your own things yourself."],
+"必":["你不必担心。","Nǐ búbì dānxīn.","You don't need to worry."],
+"越":["雨越下越大。","Yǔ yuè xià yuè dà.","The rain is getting heavier and heavier."],
+"直":["一直走，然后左转。","Yìzhí zǒu, ránhòu zuǒ zhuǎn.","Go straight, then turn left."],
+"安":["这里很安静。","Zhèlǐ hěn ānjìng.","It's very quiet here."],
+"定":["时间定了吗？","Shíjiān dìng le ma?","Has the time been decided?"],
+"完":["作业写完了。","Zuòyè xiěwán le.","The homework is finished."],
+"室":["教室里有很多学生。","Jiàoshì li yǒu hěn duō xuésheng.","There are many students in the classroom."],
+"客":["家里来客人了。","Jiā li lái kèrén le.","We have guests at home."],
+"实":["其实我不喜欢咖啡。","Qíshí wǒ bù xǐhuan kāfēi.","Actually, I don't like coffee."],
+"送":["这是送给你的。","Zhè shì sònggěi nǐ de.","This is a gift for you."],
+"远":["学校离我家很远。","Xuéxiào lí wǒ jiā hěn yuǎn.","The school is far from my home."],
+"近":["超市离这里很近。","Chāoshì lí zhèlǐ hěn jìn.","The supermarket is close to here."],
+"迎":["欢迎你来我家玩。","Huānyíng nǐ lái wǒ jiā wán.","Welcome to visit my home."],
+"选":["你选一个吧。","Nǐ xuǎn yí ge ba.","You pick one."],
+"花":["公园里的花开了。","Gōngyuán li de huā kāi le.","The flowers in the park are blooming."],
+"草":["别踩草地。","Bié cǎi cǎodì.","Don't step on the grass."],
+"药":["饭后吃药。","Fàn hòu chī yào.","Take the medicine after meals."],
+"菜":["今天的菜真好吃。","Jīntiān de cài zhēn hǎochī.","Today's food is delicious."],
+"节":["春节快到了。","Chūnjié kuài dào le.","Spring Festival is coming soon."],
+"脸":["他的脸红了。","Tā de liǎn hóng le.","His face turned red."],
+"脚":["我的脚有点疼。","Wǒ de jiǎo yǒudiǎn téng.","My foot hurts a little."],
+"腿":["跑完步腿很酸。","Pǎowán bù tuǐ hěn suān.","My legs are sore after running."],
+"脑":["我的电脑坏了。","Wǒ de diànnǎo huài le.","My computer is broken."],
+"眼":["她的眼睛真好看。","Tā de yǎnjing zhēn hǎokàn.","Her eyes are really pretty."],
+"睡":["我昨天十二点才睡觉。","Wǒ zuótiān shí'èr diǎn cái shuìjiào.","I didn't sleep until twelve last night."],
+"地":["这个地方真漂亮。","Zhège dìfang zhēn piàoliang.","This place is really beautiful."],
+"场":["我们在机场等你。","Wǒmen zài jīchǎng děng nǐ.","We'll wait for you at the airport."],
+"城":["这个城市很大。","Zhège chéngshì hěn dà.","This city is very big."],
+"块":["苹果三块钱一斤。","Píngguǒ sān kuài qián yì jīn.","Apples are three yuan per half-kilo."],
+"玩":["周末我们出去玩吧。","Zhōumò wǒmen chūqù wán ba.","Let's go out and have fun this weekend."],
+"球":["他每天下午打球。","Tā měitiān xiàwǔ dǎqiú.","He plays ball every afternoon."],
+"班":["我八点上班。","Wǒ bā diǎn shàngbān.","I start work at eight."],
+"理":["你说的有道理。","Nǐ shuō de yǒu dàolǐ.","What you say makes sense."],
+"转":["在路口右转。","Zài lùkǒu yòu zhuǎn.","Turn right at the intersection."],
+"轻":["这个箱子很轻。","Zhège xiāngzi hěn qīng.","This box is very light."],
+"饿":["我饿了，吃饭吧。","Wǒ è le, chīfàn ba.","I'm hungry, let's eat."],
+"饱":["我吃饱了，谢谢。","Wǒ chībǎo le, xièxie.","I'm full, thank you."],
+"饺":["我们晚上包饺子。","Wǒmen wǎnshang bāo jiǎozi.","We're making dumplings tonight."],
+"馆":["图书馆九点开门。","Túshūguǎn jiǔ diǎn kāimén.","The library opens at nine."],
+"被":["我的伞被人拿走了。","Wǒ de sǎn bèi rén názǒu le.","My umbrella was taken by someone."],
+"刚":["他刚到家。","Tā gāng dào jiā.","He just got home."],
+"刻":["现在三点一刻。","Xiànzài sān diǎn yí kè.","It's a quarter past three."],
+"岛":["我们坐船去那个岛。","Wǒmen zuò chuán qù nàge dǎo.","We'll take a boat to that island."],
+"岁":["我儿子五岁了。","Wǒ érzi wǔ suì le.","My son is five years old."],
+"店":["这家店的东西不贵。","Zhè jiā diàn de dōngxi bú guì.","Things in this shop aren't expensive."],
+"床":["我每天七点起床。","Wǒ měitiān qī diǎn qǐchuáng.","I get up at seven every day."],
+"院":["他在医院工作。","Tā zài yīyuàn gōngzuò.","He works at a hospital."],
+"阳":["今天太阳很好。","Jīntiān tàiyáng hěn hǎo.","The sun is lovely today."],
+"队":["前面排了很长的队。","Qiánmiàn pái le hěn cháng de duì.","There's a long line ahead."],
+"除":["除了他，大家都来了。","Chúle tā, dàjiā dōu lái le.","Everyone came except him."],
+"猫":["我家有一只小猫。","Wǒ jiā yǒu yì zhī xiǎomāo.","I have a kitten at home."],
+"狗":["那只狗很可爱。","Nà zhī gǒu hěn kě'ài.","That dog is cute."],
+"笑":["他笑着说没关系。","Tā xiàozhe shuō méi guānxi.","He smiled and said it was fine."],
+"笔":["我可以借你的笔吗？","Wǒ kěyǐ jiè nǐ de bǐ ma?","May I borrow your pen?"],
+"第":["这是我第一次来中国。","Zhè shì wǒ dì-yī cì lái Zhōngguó.","This is my first time in China."],
+"等":["请等我五分钟。","Qǐng děng wǒ wǔ fēnzhōng.","Please wait five minutes for me."],
+"算":["你打算去哪儿？","Nǐ dǎsuàn qù nǎr?","Where do you plan to go?"],
+"空":["你明天有空吗？","Nǐ míngtiān yǒu kòng ma?","Are you free tomorrow?"],
+"穿":["今天冷，多穿点。","Jīntiān lěng, duō chuān diǎn.","It's cold today — wear more."],
+"突":["他突然笑了。","Tā tūrán xiào le.","He suddenly laughed."],
+"题":["这个问题很难。","Zhège wèntí hěn nán.","This question is hard."],
+"颜":["你喜欢什么颜色？","Nǐ xǐhuan shénme yánsè?","What color do you like?"],
+"汤":["先喝一碗汤吧。","Xiān hē yì wǎn tāng ba.","Have a bowl of soup first."],
+"油":["加油！你可以的！","Jiāyóu! Nǐ kěyǐ de!","Go for it! You can do it!"],
+"满":["车上人满了。","Chē shang rén mǎn le.","The bus is full."],
+"渴":["我口渴，想喝水。","Wǒ kǒukě, xiǎng hē shuǐ.","I'm thirsty and want some water."],
+"认":["很高兴认识你。","Hěn gāoxìng rènshi nǐ.","Nice to meet you."],
+"识":["我们是去年认识的。","Wǒmen shì qùnián rènshi de.","We met last year."],
+"让":["妈妈不让我玩手机。","Māma bú ràng wǒ wán shǒujī.","Mom doesn't let me play on the phone."],
+"记":["请记住我的电话。","Qǐng jìzhu wǒ de diànhuà.","Please remember my phone number."],
+"思":["这个词有两个意思。","Zhège cí yǒu liǎng ge yìsi.","This word has two meanings."],
+"息":["累了就休息一下。","Lèi le jiù xiūxi yíxià.","Rest a bit if you're tired."],
+"慢":["请说慢一点。","Qǐng shuō màn yìdiǎn.","Please speak more slowly."],
+"提":["我可以提一个问题吗？","Wǒ kěyǐ tí yí ge wèntí ma?","May I ask a question?"],
+"指":["他指着地图说。","Tā zhǐzhe dìtú shuō.","He pointed at the map and spoke."],
+"掉":["我的手机掉了。","Wǒ de shǒujī diào le.","I dropped my phone."],
+"扫":["我来打扫房间。","Wǒ lái dǎsǎo fángjiān.","I'll clean the room."],
+"低":["他低着头不说话。","Tā dīzhe tóu bù shuōhuà.","He kept his head down and said nothing."],
+"倒":["小心，别摔倒！","Xiǎoxīn, bié shuāidǎo!","Careful, don't fall!"],
+"保":["注意保护眼睛。","Zhùyì bǎohù yǎnjing.","Take care to protect your eyes."],
+"健":["祝你身体健康。","Zhù nǐ shēntǐ jiànkāng.","Wishing you good health."],
+"板":["老师在黑板上写字。","Lǎoshī zài hēibǎn shang xiě zì.","The teacher writes on the blackboard."],
+"根":["这棵树的根很深。","Zhè kē shù de gēn hěn shēn.","This tree's roots are deep."],
+"极":["这个电影好极了。","Zhège diànyǐng hǎo jíle.","This movie is fantastic."],
+"景":["山上的风景很美。","Shān shang de fēngjǐng hěn měi.","The scenery on the mountain is beautiful."],
+"晨":["我喜欢早晨的空气。","Wǒ xǐhuan zǎochen de kōngqì.","I love the morning air."],
+"铁":["我们坐地铁去吧。","Wǒmen zuò dìtiě qù ba.","Let's take the subway."],
+"烤":["我想吃北京烤鸭。","Wǒ xiǎng chī Běijīng kǎoyā.","I want to eat Beijing roast duck."],
+"炒":["来一个炒饭。","Lái yí ge chǎofàn.","One fried rice, please."],
+"烦":["这件事真麻烦。","Zhè jiàn shì zhēn máfan.","This matter is really troublesome."],
+"痛":["我牙痛得厉害。","Wǒ yá tòng de lìhai.","My tooth aches badly."],
+"线":["这条线是几路车？","Zhè tiáo xiàn shì jǐ lù chē?","Which bus line is this?"],
+"组":["我们分成三个小组。","Wǒmen fēnchéng sān ge xiǎozǔ.","We split into three groups."],
+"续":["请继续说。","Qǐng jìxù shuō.","Please continue."],
+"吹":["外面风吹得很大。","Wàimiàn fēng chuī de hěn dà.","The wind is blowing hard outside."],
+"吵":["外面太吵了。","Wàimiàn tài chǎo le.","It's too noisy outside."],
+"喊":["有人在喊你的名字。","Yǒu rén zài hǎn nǐ de míngzi.","Someone is calling your name."],
+"奶":["我每天喝牛奶。","Wǒ měitiān hē niúnǎi.","I drink milk every day."],
+"妻":["他和妻子住在北京。","Tā hé qīzi zhù zài Běijīng.","He and his wife live in Beijing."],
+"闹":["晚上的夜市很热闹。","Wǎnshang de yèshì hěn rènao.","The night market is lively."],
+"求":["这是我们的要求。","Zhè shì wǒmen de yāoqiú.","This is our requirement."],
+"双":["我买了一双新鞋。","Wǒ mǎi le yì shuāng xīn xié.","I bought a new pair of shoes."],
+"包":["我的书包里有三本书。","Wǒ de shūbāo li yǒu sān běn shū.","There are three books in my schoolbag."],
+"宿":["他住在学校宿舍。","Tā zhù zài xuéxiào sùshè.","He lives in the school dormitory."],
+"察":["警察就在前面。","Jǐngchá jiù zài qiánmiàn.","The police are right ahead."],
+"寒":["寒假你回家吗？","Hánjià nǐ huí jiā ma?","Are you going home for winter break?"],
+"富":["这里的菜很丰富。","Zhèlǐ de cài hěn fēngfù.","The dishes here are plentiful."],
+"运":["他喜欢做运动。","Tā xǐhuan zuò yùndòng.","He likes doing sports."],
+"通":["考试通过了！","Kǎoshì tōngguò le!","I passed the exam!"],
+"连":["连孩子都知道。","Lián háizi dōu zhīdào.","Even kids know that."],
+"遍":["请再说一遍。","Qǐng zài shuō yí biàn.","Please say it once more."],
+"适":["这双鞋很合适。","Zhè shuāng xié hěn héshì.","These shoes fit well."],
+"递":["你的快递到了。","Nǐ de kuàidì dào le.","Your package has arrived."],
+"诉":["请告诉我你的名字。","Qǐng gàosu wǒ nǐ de míngzi.","Please tell me your name."],
+"谈":["我们谈了很久。","Wǒmen tán le hěn jiǔ.","We talked for a long time."],
+"议":["我有一个建议。","Wǒ yǒu yí ge jiànyì.","I have a suggestion."],
+"证":["别忘了带身份证。","Bié wàng le dài shēnfènzhèng.","Don't forget your ID card."],
+"例":["请举一个例子。","Qǐng jǔ yí ge lìzi.","Please give an example."],
+"值":["这个价钱很值得。","Zhège jiàqian hěn zhíde.","It's worth the price."],
+"偶":["我偶尔去看电影。","Wǒ ǒu'ěr qù kàn diànyǐng.","I occasionally go to the movies."],
+"拍":["我们在这里拍照吧。","Wǒmen zài zhèlǐ pāizhào ba.","Let's take photos here."],
+"招":["他向我招手。","Tā xiàng wǒ zhāoshǒu.","He waved at me."],
+"挂":["墙上挂着一张照片。","Qiáng shang guàzhe yì zhāng zhàopiàn.","A photo hangs on the wall."],
+"握":["他们握了握手。","Tāmen wò le wò shǒu.","They shook hands."],
+"流":["这首歌很流行。","Zhè shǒu gē hěn liúxíng.","This song is very popular."],
+"消":["有一个好消息！","Yǒu yí ge hǎo xiāoxi!","There's good news!"],
+"漂":["这个地方真漂亮。","Zhège dìfang zhēn piàoliang.","This place is really pretty."],
+"澡":["我先去洗澡。","Wǒ xiān qù xǐzǎo.","I'll go shower first."],
+"检":["医生给他做了检查。","Yīshēng gěi tā zuò le jiǎnchá.","The doctor examined him."],
+"梯":["我们坐电梯上楼。","Wǒmen zuò diàntī shàng lóu.","We take the elevator upstairs."],
+"楚":["他说得很清楚。","Tā shuō de hěn qīngchu.","He spoke very clearly."],
+"呼":["深呼吸，别紧张。","Shēn hūxī, bié jǐnzhāng.","Take a deep breath, don't be nervous."],
+"吸":["这本书很吸引人。","Zhè běn shū hěn xīyǐn rén.","This book is very engaging."],
+"啊":["好啊，我们走吧！","Hǎo a, wǒmen zǒu ba!","Sure, let's go!"],
+"售":["售票处在那边。","Shòupiàochù zài nàbiān.","The ticket office is over there."],
+"终":["他终于来了。","Tā zhōngyú lái le.","He finally came."],
+"绝":["这绝对是个好主意。","Zhè juéduì shì ge hǎo zhǔyi.","This is absolutely a good idea."],
+"晒":["奶奶在外面晒太阳。","Nǎinai zài wàimiàn shài tàiyáng.","Grandma is sunbathing outside."],
+"替":["请替我谢谢他。","Qǐng tì wǒ xièxie tā.","Please thank him for me."],
+"熟":["我对这里很熟悉。","Wǒ duì zhèlǐ hěn shúxī.","I know this place well."],
+"望":["希望明天是晴天。","Xīwàng míngtiān shì qíngtiān.","I hope tomorrow is sunny."],
+"背":["他背着一个大书包。","Tā bēizhe yí ge dà shūbāo.","He's carrying a big backpack."],
+"期":["下星期见！","Xià xīngqī jiàn!","See you next week!"],
+"境":["这里的环境很好。","Zhèlǐ de huánjìng hěn hǎo.","The environment here is great."],
+"增":["学生人数增加了。","Xuésheng rénshù zēngjiā le.","The number of students has increased."],
+"基":["他的基础很好。","Tā de jīchǔ hěn hǎo.","His foundation is solid."],
+"石":["路边有一块大石头。","Lù biān yǒu yí kuài dà shítou.","There's a big rock by the road."],
+"破":["我的裤子破了。","Wǒ de kùzi pò le.","My pants are torn."],
+"硬":["这个面包太硬了。","Zhège miànbāo tài yìng le.","This bread is too hard."],
+"碗":["再来一碗米饭。","Zài lái yì wǎn mǐfàn.","Another bowl of rice, please."],
+"碰":["我在街上碰到了老王。","Wǒ zài jiē shang pèngdào le Lǎo Wáng.","I ran into Old Wang on the street."],
+"界":["世界真大。","Shìjiè zhēn dà.","The world is so big."],
+"留":["他去英国留学了。","Tā qù Yīngguó liúxué le.","He went to study in the UK."],
+"加":["请给我加一点水。","Qǐng gěi wǒ jiā yìdiǎn shuǐ.","Please add a little water for me."],
+"助":["谢谢你的帮助。","Xièxie nǐ de bāngzhù.","Thanks for your help."],
+"努":["他学习很努力。","Tā xuéxí hěn nǔlì.","He studies very hard."],
+"办":["这件事怎么办？","Zhè jiàn shì zěnme bàn?","What should we do about this?"],
+"势":["他做了一个手势。","Tā zuò le yí ge shǒushì.","He made a hand gesture."],
+"取":["我去银行取钱。","Wǒ qù yínháng qǔ qián.","I'm going to the bank to withdraw money."],
+"受":["这里夏天热得受不了。","Zhèlǐ xiàtiān rè de shòubuliǎo.","Summer here is unbearably hot."],
+"变":["天气变冷了。","Tiānqì biàn lěng le.","The weather has turned cold."],
+"观":["我们明天去参观博物馆。","Wǒmen míngtiān qù cānguān bówùguǎn.","We're visiting the museum tomorrow."],
+"觉":["我觉得这个主意不错。","Wǒ juéde zhège zhǔyi búcuò.","I think this idea is pretty good."],
+"视":["他每天晚上看电视。","Tā měitiān wǎnshang kàn diànshì.","He watches TV every evening."],
+"现":["现在几点了？","Xiànzài jǐ diǎn le?","What time is it now?"],
+"规":["游戏有游戏的规则。","Yóuxì yǒu yóuxì de guīzé.","A game has its rules."],
+"费":["这个博物馆免费。","Zhège bówùguǎn miǎnfèi.","This museum is free."],
+"购":["她喜欢网上购物。","Tā xǐhuan wǎngshàng gòuwù.","She likes shopping online."],
+"财":["恭喜发财！","Gōngxǐ fācái!","Wishing you prosperity! (New Year greeting)"],
+"质":["这件衣服质量很好。","Zhè jiàn yīfu zhìliàng hěn hǎo.","This clothing's quality is good."],
+"责":["这件事由我负责。","Zhè jiàn shì yóu wǒ fùzé.","I'm responsible for this matter."],
+"神":["他今天精神很好。","Tā jīntiān jīngshén hěn hǎo.","He's full of energy today."],
+"祝":["祝你生日快乐！","Zhù nǐ shēngrì kuàilè!","Happy birthday to you!"],
+"礼":["这是给你的礼物。","Zhè shì gěi nǐ de lǐwù.","This is a gift for you."],
+"难":["汉字难写吗？","Hànzì nán xiě ma?","Are characters hard to write?"],
+"集":["我们八点在门口集合。","Wǒmen bā diǎn zài ménkǒu jíhé.","We assemble at the gate at eight."],
+"准":["我准备好了。","Wǒ zhǔnbèi hǎo le.","I'm ready."],
+"层":["我住在十八层。","Wǒ zhù zài shíbā céng.","I live on the 18th floor."],
+"居":["我的邻居很友好。","Wǒ de línjū hěn yǒuhǎo.","My neighbors are friendly."],
+"展":["这个城市发展很快。","Zhège chéngshì fāzhǎn hěn kuài.","This city is developing fast."],
+"屋":["屋子里很暖和。","Wūzi li hěn nuǎnhuo.","It's warm inside the room."],
+"站":["下一站是北京站。","Xià yí zhàn shì Běijīng Zhàn.","The next stop is Beijing Station."],
+"端":["她端来了两杯茶。","Tā duān lái le liǎng bēi chá.","She brought over two cups of tea."],
+"章":["我读完了第一章。","Wǒ dúwán le dì-yī zhāng.","I finished reading chapter one."],
+"糖":["这杯咖啡要加糖吗？","Zhè bēi kāfēi yào jiā táng ma?","Do you want sugar in this coffee?"],
+"粉":["他是这个歌手的粉丝。","Tā shì zhège gēshǒu de fěnsī.","He's a fan of this singer."],
+"精":["昨天的比赛很精彩。","Zuótiān de bǐsài hěn jīngcǎi.","Yesterday's match was brilliant."],
+"蛋":["早饭我吃了两个鸡蛋。","Zǎofàn wǒ chī le liǎng ge jīdàn.","I had two eggs for breakfast."],
+"蛇":["草里有一条蛇！","Cǎo li yǒu yì tiáo shé!","There's a snake in the grass!"],
+"鸡":["今晚吃鸡肉。","Jīnwǎn chī jīròu.","We're having chicken tonight."],
+"鸭":["湖里有很多鸭子。","Hú li yǒu hěn duō yāzi.","There are many ducks on the lake."],
+"骑":["我每天骑车上班。","Wǒ měitiān qíchē shàngbān.","I bike to work every day."],
+"验":["他的工作经验很丰富。","Tā de gōngzuò jīngyàn hěn fēngfù.","He has rich work experience."],
+"盘":["桌子上有一盘水果。","Zhuōzi shang yǒu yì pán shuǐguǒ.","There's a plate of fruit on the table."],
+"盒":["这盒巧克力送给你。","Zhè hé qiǎokèlì sònggěi nǐ.","This box of chocolates is for you."],
+"盖":["把锅盖盖上。","Bǎ guōgài gàishàng.","Put the lid on the pot."],
+"而":["这个菜好吃而且便宜。","Zhège cài hǎochī érqiě piányi.","This dish is tasty and cheap."],
+"于":["他终于明白了。","Tā zhōngyú míngbai le.","He finally understood."],
+"未":["未来会更好。","Wèilái huì gèng hǎo.","The future will be better."],
+"末":["周末你做什么？","Zhōumò nǐ zuò shénme?","What do you do on weekends?"],
+"失":["别失望，再试一次。","Bié shīwàng, zài shì yí cì.","Don't be disappointed — try again."],
+"丢":["我把钥匙丢了。","Wǒ bǎ yàoshi diū le.","I lost my keys."],
+"即":["我立即就去。","Wǒ lìjí jiù qù.","I'll go at once."],
+/*S*/
+};
+const EXTRAS={
+ "我":{py:"wǒ",t:3,m:"I, me"},
+ "往":{py:"wǎng",t:3,m:"toward"},
+ "喝":{py:"hē",t:1,m:"to drink"},
+ "快":{py:"kuài",t:4,m:"fast"},
+ "进":{py:"jìn",t:4,m:"to enter"}
+};
+/* look-alike groups */
+const GROUPS=[
+ ["己","已"],
+ ["忘","忙"],
+ ["跟","银"],
+ ["请","清","晴","睛","情"],
+ ["找","我"],
+ ["住","往"],
+ ["味","妹"],
+ ["抱","跑"],
+ ["未","末"],
+ ["完","玩"],
+ ["远","运"],
+ ["渴","喝"],
+ ["拍","怕"],
+ ["块","快"],
+ ["近","进"],
+ ["息","思"]
+];
+</script>
+
+<script>
+/* ================= STATE ================= */
+const INT=[0, 5*60e3, 60*60e3, 864e5, 3*864e5, 7*864e5, 14*864e5]; // per box
+const MASTER_BOX=5;
+const LSKEY="hanzi100";
+let storageOK=true;
+let S={prog:{},nb:{},newPerDay:8,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},skipDone:{},forceUnlock:{}};
+function load(){try{const raw=localStorage.getItem(LSKEY);if(raw){const p=JSON.parse(raw);S=Object.assign(S,p);}}catch(e){storageOK=false}}
+function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){storageOK=false}}
+function dayStr(d){d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+function touchStreak(){const t=dayStr();if(S.lastDay===t)return;const y=dayStr(new Date(Date.now()-864e5));S.streak=(S.lastDay===y)?S.streak+1:1;S.lastDay=t;save();paintStreak()}
+function todayCount(){const t=dayStr();if(S.today.day!==t){S.today={day:t,n:0}}return S.today.n}
+function byChar(c){return DATA.find(d=>d.c===c)}
+function info(c){const d=byChar(c);if(d)return d;const e=EXTRAS[c];return e?{c:c,py:e.py,t:e.t,m:e.m}:null}
+
+/* ================= LEVELS ================= */
+const IDX={};DATA.forEach((d,i)=>IDX[d.c]=i);
+const LV_NEED=70;
+const PASS="zhima"; /* 芝麻开门 — open sesame! */
+function maxLevel(){return Math.ceil(DATA.length/100)}
+function lvOf(c){return Math.floor(IDX[c]/100)+1}
+function lvChars(n){return DATA.slice((n-1)*100,n*100)}
+function lvStarted(n){return lvChars(n).filter(d=>S.prog[d.c]).length}
+function lvProgress(n){return lvChars(n).filter(d=>S.prog[d.c]&&S.prog[d.c].box>=2).length}
+function unlocked(n){if(n<=1)return true;if(S.forceUnlock[n])return true;return lvProgress(n-1)>=LV_NEED}
+function forecast(){
+  const eod=new Date();eod.setHours(23,59,59,999);
+  const t1=eod.getTime(),t2=t1+864e5,t7=t1+7*864e5;let a=0,b=0,c=0;
+  for(const k in S.prog){const due=S.prog[k].due;if(due<=t1)a++;else if(due<=t2)b++;else if(due<=t7)c++}
+  return {today:a,tomorrow:b,week:c};
+}
+
+/* ================= AUDIO ================= */
+let zhVoice=null,ttsOK=false;
+function initTTS(){
+  if(!("speechSynthesis" in window)){document.getElementById("mode-audio").classList.add("hidden");return}
+  const pick=()=>{const vs=speechSynthesis.getVoices();
+    zhVoice=vs.find(v=>/^zh([-_]CN)?/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;
+    ttsOK=!!zhVoice||vs.length===0; // some webviews list voices lazily; assume ok until proven empty
+    document.getElementById("mode-audio").classList.toggle("hidden",!ttsOK);
+  };
+  pick(); speechSynthesis.onvoiceschanged=pick;
+}
+function speak(txt){
+  if(!S.audio||!("speechSynthesis" in window))return;
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);
+  u.lang="zh-CN";if(zhVoice)u.voice=zhVoice;u.rate=0.8;speechSynthesis.speak(u);}catch(e){}
+}
+
+/* ================= HELPERS ================= */
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function pyHTML(d){return '<span class="t'+d.t+'">'+esc(d.py)+"</span>"}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),1800)}
+function stateOf(c){const p=S.prog[c];if(!p)return"new";return p.box>=MASTER_BOX?"mastered":"learning"}
+function fmtDue(ts){const diff=ts-Date.now();if(diff<=0)return"now";const m=Math.round(diff/6e4);if(m<60)return m+" min";const h=Math.round(m/60);if(h<24)return h+" h";return Math.round(h/24)+" d"}
+
+/* distractors: prefer same family, unique by the field shown */
+function distract(target,pool,field,n){
+  const seen=new Set([target[field]]);const out=[];
+  const fam=shuffle(pool.filter(d=>d.f===target.f&&d.c!==target.c));
+  const rest=shuffle(pool.filter(d=>d.f!==target.f));
+  for(const d of fam.concat(rest)){if(out.length>=n)break;if(seen.has(d[field]))continue;seen.add(d[field]);out.push(d)}
+  return out;
+}
+
+/* ================= CARD RENDER ================= */
+function cardBackHTML(d,isNew){
+  const comps=d.k.map(k=>'<span class="comp"><b>'+k[0]+"</b>"+esc(k[1])+"</span>").join("");
+  const words=d.w.map(w=>'<div class="word" data-say="'+w[0]+'"><span class="wz">'+w[0]+'</span><span class="wp">'+esc(w[1])+'</span><span class="grow"></span><span>'+esc(w[2])+"</span></div>").join("");
+  const sn=SENTS[d.c];
+  return (isNew?'<div style="text-align:center"><span class="newtag">NEW</span></div>':"")+
+  '<div class="famtag">'+FAMS[d.f][0]+" "+FAMS[d.f][1]+' family · Level '+lvOf(d.c)+'</div>'+
+  '<div class="bigchar" style="font-size:min(24vw,96px)">'+d.c+' <button class="spk" data-say="'+d.c+'">🔊</button></div>'+
+  '<div class="pyline">'+pyHTML(d)+"</div>"+
+  '<div class="meaning">'+esc(d.m)+(d.pos?'<span class="pos">'+esc(d.pos)+"</span>":"")+"</div>"+
+  '<div class="comps">'+comps+"</div>"+
+  '<div class="mn">💡 '+esc(d.mn)+"</div>"+
+  '<div class="words">'+words+"</div>"+
+  (sn?'<div class="sent" data-say="'+sn[0]+'"><div class="sz">'+sn[0]+'</div><div class="sp">'+esc(sn[1])+'</div><div class="se">'+esc(sn[2])+"</div></div>":"");
+}
+
+/* ================= LEARN ================= */
+let cur=null,curIsNew=false,revealed=false,stayCard=false,UNDO=null;
+let SES={learned:[],rev:0,missed:new Set()};
+function dueList(){const now=Date.now();return Object.keys(S.prog).filter(c=>S.prog[c].due<=now).sort((a,b)=>S.prog[a].due-S.prog[b].due)}
+function newList(){const out=[];for(let n=1;n<=maxLevel();n++){if(!unlocked(n))break;lvChars(n).forEach(d=>{if(!S.prog[d.c])out.push(d.c)})}return out}
+function paintLearnStatus(){
+  const due=dueList().length,nl=newList().length,tc=todayCount();
+  document.getElementById("learn-status").innerHTML=
+   "<span>Due: <b>"+due+"</b></span><span>New today: <b>"+tc+"/"+S.newPerDay+"</b></span><span>Unseen: <b>"+nl+"</b></span>"+
+   (UNDO?' <button class="undo-chip" id="b-undo">↩ undo '+UNDO.c+"</button>":"");
+  const u=document.getElementById("b-undo");if(u)u.onclick=doUndo;
+}
+function snapshot(c,wasNew){UNDO={c:c,wasNew:wasNew,prog:S.prog[c]?JSON.parse(JSON.stringify(S.prog[c])):null,nb:S.nb[c]?JSON.parse(JSON.stringify(S.nb[c])):null,todayN:S.today.n,tot:{rev:S.tot.rev,ok:S.tot.ok}}}
+function doUndo(){
+  if(!UNDO)return;const u=UNDO;
+  if(u.prog)S.prog[u.c]=u.prog;else delete S.prog[u.c];
+  if(u.nb)S.nb[u.c]=u.nb;else delete S.nb[u.c];
+  S.today.n=u.todayN;S.tot.rev=u.tot.rev;S.tot.ok=u.tot.ok;
+  if(u.wasNew)SES.learned=SES.learned.filter(x=>x!==u.c);else{SES.rev=Math.max(0,SES.rev-1);SES.missed.delete(u.c)}
+  UNDO=null;save();nextCard();toast("Undone — "+u.c+" is back");
+}
+/* ---------- notebook ---------- */
+function nbAdd(c){
+  const e=S.nb[c];
+  if(e){e.n++;e.ts=Date.now();toast(c+" is in your notebook ("+e.n+"×) 📓")}
+  else{S.nb[c]={ts:Date.now(),note:"",n:1};toast(c+" added to notebook 📓")}
+  save();
+}
+/* ---------- swipe engine ---------- */
+let SWIPED=false,drag=null;
+function swipeFeedback(el,dx){
+  const k=el.querySelector(".sw-know"),n=el.querySelector(".sw-nb");
+  if(k)k.style.opacity=dx<0?Math.min(1,-dx/90):0;
+  if(n)n.style.opacity=dx>0?Math.min(1,dx/90):0;
+}
+function fly(el,dir,cb){
+  el.style.transition="transform .22s ease-in, opacity .22s";
+  el.style.transform="translateX("+(dir*window.innerWidth)+"px) rotate("+(dir*14)+"deg)";
+  el.style.opacity="0.35";
+  setTimeout(cb,200);
+}
+function bindSwipe(el,onLeft,onRight){
+  el.addEventListener("pointerdown",e=>{
+    drag={x0:e.clientX,y0:e.clientY,dx:0,on:false};
+    if(el.setPointerCapture)try{el.setPointerCapture(e.pointerId)}catch(x){}
+  });
+  el.addEventListener("pointermove",e=>{
+    if(!drag)return;
+    const dx=e.clientX-drag.x0,dy=e.clientY-drag.y0;
+    if(!drag.on){
+      if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.2){drag.on=true;SWIPED=true}
+      else if(Math.abs(dy)>16){drag=null;return}
+      else return;
+    }
+    drag.dx=dx;
+    el.style.transform="translateX("+dx+"px) rotate("+(dx/24)+"deg)";
+    swipeFeedback(el,dx);
+  });
+  const end=()=>{
+    if(!drag)return;
+    const dx=drag.dx;drag=null;
+    setTimeout(()=>SWIPED=false,300);
+    if(dx<=-80)fly(el,-1,onLeft);
+    else if(dx>=80)fly(el,1,onRight);
+    else{el.style.transition="transform .18s";el.style.transform="";swipeFeedback(el,0);setTimeout(()=>el.style.transition="",200)}
+  };
+  el.addEventListener("pointerup",end);
+  el.addEventListener("pointercancel",end);
+}
+function paintBanner(){
+  const el=document.getElementById("learn-banner");
+  const nl=newList();
+  if(!nl.length){el.innerHTML="";return}
+  const n=lvOf(nl[0]);
+  if(S.skipDone[n]){el.innerHTML="";return}
+  el.innerHTML='<div class="banner">📋 Starting <b>Level '+n+'</b>. Already know some of these characters? Skip them ahead so you only study the new ones.'+
+   '<div><button class="btn sm" id="b-skip" style="margin-top:8px">Mark known characters</button> <button class="btn sm line" id="b-skipno" style="margin-top:8px">They\'re all new to me</button></div></div>';
+  document.getElementById("b-skip").onclick=()=>openSkipTest(n);
+  document.getElementById("b-skipno").onclick=()=>{S.skipDone[n]=1;save();nextCard();};
+}
+function openSkipTest(n){
+  const chars=lvChars(n).map(d=>d.c);
+  const sel=new Set(chars.filter(c=>S.prog[c]&&S.prog[c].known));
+  document.getElementById("modal-body").innerHTML=
+   '<h2 style="margin-top:0">Level '+n+' — tap what you already know</h2>'+
+   '<p class="muted">Tap every character you can already read (sound + meaning). They\'ll be scheduled for a far-future review instead of taught from scratch.</p>'+
+   '<div class="skgrid">'+chars.map(c=>'<button class="skc'+(sel.has(c)?" on":"")+'" data-c="'+c+'">'+c+"</button>").join("")+"</div>"+
+   '<div class="ansrow"><button class="btn line" id="sk-cancel">Cancel</button><button class="btn" id="sk-save">Save (<span id="sk-n">'+sel.size+"</span>)</button></div>";
+  document.getElementById("modal").classList.add("on");
+  document.querySelectorAll(".skc").forEach(b=>b.onclick=()=>{
+    const c=b.dataset.c;sel.has(c)?sel.delete(c):sel.add(c);
+    b.classList.toggle("on");document.getElementById("sk-n").textContent=sel.size;
+  });
+  document.getElementById("sk-cancel").onclick=closeModal;
+  document.getElementById("sk-save").onclick=()=>{
+    sel.forEach(c=>{const p=S.prog[c];if(!p||p.box<6)S.prog[c]={box:6,due:Date.now()+INT[6],seen:1,ok:1,ng:0,known:1}});
+    chars.forEach(c=>{const p=S.prog[c];if(p&&p.known&&!sel.has(c))delete S.prog[c]});
+    S.skipDone[n]=1;save();closeModal();nextCard();toast(sel.size+" marked as already known");
+  };
+}
+function nextCard(){
+  stayCard=false;
+  paintLearnStatus();paintBanner();
+  const due=dueList();
+  if(due.length){cur=byChar(due[0]);curIsNew=false;revealed=false;paintCard();return}
+  const nl=newList();
+  if(nl.length&&todayCount()<S.newPerDay){cur=byChar(nl[0]);curIsNew=true;revealed=true;paintCard();return}
+  /* pull recently-missed cards (due within 2 min) back immediately instead of dead-ending */
+  const soon=Object.keys(S.prog).filter(c=>S.prog[c].due<=Date.now()+12e4).sort((a,b)=>S.prog[a].due-S.prog[b].due)[0];
+  if(soon){cur=byChar(soon);curIsNew=false;revealed=false;paintCard();return}
+  cur=null;paintDone(nl.length)
+}
+const SWTAGS='<div class="sw-tag sw-know">✓ Know it</div><div class="sw-tag sw-nb">📓 Notebook</div>';
+function paintCard(){
+  const a=document.getElementById("learn-area");
+  if(curIsNew){
+    a.innerHTML='<div class="hintline">New character! Swipe ← if you already know it · swipe → to learn it (goes in your notebook)</div>'+
+      '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,true)+"</div>"+
+      '<div class="ansrow"><button class="btn line" id="b-know">← Already know it</button><button class="btn" id="b-learn">Learn it → 📓</button></div>';
+    const el=document.getElementById("c-card");
+    bindSwipe(el,gradeNewKnown,gradeNew);
+    document.getElementById("b-know").onclick=gradeNewKnown;
+    document.getElementById("b-learn").onclick=gradeNew;
+    speak(cur.c);
+  }else if(!revealed){
+    a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → I don\'t (adds to notebook) · tap to flip</div>'+
+      '<div class="card swipeable" id="c-card">'+SWTAGS+'<div class="bigchar">'+cur.c+'</div><div class="taphint">tap card to reveal</div></div>';
+    const el=document.getElementById("c-card");
+    el.onclick=()=>{if(SWIPED)return;revealed=true;paintCard();};
+    bindSwipe(el,()=>grade(true),()=>{nbAdd(cur.c);grade(false,true)});
+  }else if(stayCard){
+    a.innerHTML='<div class="hintline">📓 In your notebook — study it, then continue</div>'+
+      '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,false)+"</div>"+
+      '<div class="ansrow"><button class="btn" id="b-next">Next →</button></div>';
+    const el=document.getElementById("c-card");
+    bindSwipe(el,nextCard,nextCard);
+    document.getElementById("b-next").onclick=nextCard;
+    speak(cur.c);
+  }else{
+    a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → I don\'t (adds to notebook)</div>'+
+      '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,false)+"</div>"+
+      '<div class="ansrow"><button class="btn ok" id="b-good">← I know it</button><button class="btn bad" id="b-again">Don\'t know →</button></div>';
+    const el=document.getElementById("c-card");
+    bindSwipe(el,()=>grade(true),()=>{nbAdd(cur.c);grade(false)});
+    document.getElementById("b-good").onclick=()=>grade(true);
+    document.getElementById("b-again").onclick=()=>{nbAdd(cur.c);grade(false)};
+    speak(cur.c);
+  }
+}
+function gradeNewKnown(){
+  snapshot(cur.c,true);
+  S.prog[cur.c]={box:6,due:Date.now()+INT[6],seen:1,ok:1,ng:0,known:1};
+  touchStreak();save();nextCard();
+}
+function gradeNew(){
+  snapshot(cur.c,true);
+  todayCount();S.today.n++;
+  S.prog[cur.c]={box:1,due:Date.now()+INT[1],seen:1,ok:0,ng:0};
+  SES.learned.push(cur.c);
+  nbAdd(cur.c);
+  touchStreak();save();nextCard();
+}
+function grade(good,stay){
+  snapshot(cur.c,false);
+  const p=S.prog[cur.c];p.seen++;S.tot.rev++;
+  if(good){p.ok++;S.tot.ok++;p.box=Math.min(6,p.box+1)}else{p.ng++;p.box=Math.max(1,p.box-2)}
+  p.due=Date.now()+(good?INT[p.box]:6e4);
+  SES.rev++;if(!good)SES.missed.add(cur.c);
+  touchStreak();save();
+  if(stay){stayCard=true;revealed=true;paintCard();paintLearnStatus()}
+  else nextCard();
+}
+function paintDone(newLeft){
+  const f=forecast();
+  const nexts=Object.keys(S.prog).map(c=>S.prog[c].due).filter(d=>d>Date.now()).sort((a,b)=>a-b)[0];
+  let h='<div class="card done"><div class="big">🎉</div><b>All caught up!</b>'+
+   '<p class="muted">Later today: '+f.today+" · tomorrow: "+f.tomorrow+" · next 7 days: "+f.week+"</p>"+
+   (nexts?'<p class="muted">Next review in '+fmtDue(nexts)+".</p>":"");
+  if(SES.learned.length||SES.rev){
+    h+='<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px"><b>This session</b>';
+    if(SES.learned.length)h+='<p class="muted" style="margin:6px 0 2px">Learned '+SES.learned.length+' new:</p><div class="sumlist">'+SES.learned.map(c=>'<span class="zi2">'+c+"</span>").join("")+"</div>";
+    if(SES.rev)h+='<p class="muted" style="margin:6px 0 2px">Reviewed '+SES.rev+" card"+(SES.rev>1?"s":"")+"</p>";
+    if(SES.missed.size)h+='<p class="muted" style="margin:6px 0 2px">Tricky ones:</p><div class="sumlist">'+[...SES.missed].map(c=>'<span class="zi2">'+c+"</span>").join("")+"</div>"+
+      '<div><button class="btn line" id="b-redrill" style="margin-top:6px">Re-drill these now</button></div>';
+    h+="</div>";
+  }
+  if(newLeft>0)h+='<p style="margin-top:12px"><button class="btn line" id="b-more">+ Learn 5 extra new characters</button></p>';
+  h+='<p class="muted" style="margin-top:10px">Or try a Quiz or Browse 👇</p></div>';
+  document.getElementById("learn-area").innerHTML=h;
+  const m=document.getElementById("b-more");
+  if(m)m.onclick=()=>{todayCount();S.today.n=Math.max(0,S.today.n-5);save();nextCard();};
+  const r=document.getElementById("b-redrill");
+  if(r)r.onclick=()=>{SES.missed.forEach(c=>{if(S.prog[c])S.prog[c].due=Date.now()});SES.missed.clear();save();nextCard();};
+}
+
+/* ================= QUIZ ================= */
+const QLEN=10;
+let Q=null;
+function seenChars(){return Object.keys(S.prog)}
+function basePool(){let p=seenChars().map(byChar).filter(Boolean);if(p.length<8)p=DATA.slice(0,20);return p}
+function buildCharMode(mode){
+  const pool=basePool();
+  return shuffle(pool).slice(0,QLEN).map(t=>{
+    const field=mode==="c2p"?"py":(mode==="c2m"?"m":"c");
+    const ds=distract(t,DATA,field,3);
+    let p,fmt,cls="opt";
+    if(mode==="c2m"){p='<div class="qprompt"><div class="bigchar">'+t.c+"</div></div>";fmt=d=>esc(d.m)}
+    else if(mode==="c2p"){p='<div class="qprompt"><div class="bigchar">'+t.c+"</div></div>";fmt=d=>'<span class="t'+d.t+'">'+esc(d.py)+"</span>"}
+    else if(mode==="m2c"){p='<div class="qprompt">“'+esc(t.m)+'”</div>';fmt=d=>d.c;cls="opt zi"}
+    else{p='<div class="qprompt"><button class="spk" style="width:64px;height:64px;font-size:26px" data-say="'+t.c+'">🔊</button><div class="muted" style="font-size:13px;margin-top:6px">tap to replay</div></div>';fmt=d=>d.c;cls="opt zi"}
+    return {p:p,opts:shuffle([{h:fmt(t),ok:true}].concat(ds.map(d=>({h:fmt(d),ok:false})))),
+      expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),say:(mode==="a2c"?t.c:null),cls:cls,c:t.c};
+  });
+}
+function wordsPool(){
+  const out=[],seen=new Set();
+  basePool().forEach(d=>d.w.forEach(w=>{if(!seen.has(w[0])){seen.add(w[0]);out.push({wd:w[0],py:w[1],m:w[2],c:d.c})}}));
+  return out;
+}
+function buildW2M(){
+  const pool=shuffle(wordsPool());
+  if(pool.length<6)return [];
+  return pool.slice(0,QLEN).map(t=>{
+    const seen=new Set([t.m]);const ds=[];
+    for(const o of shuffle(pool)){if(ds.length>=3)break;if(seen.has(o.m))continue;seen.add(o.m);ds.push(o)}
+    if(ds.length<3)return null;
+    return {p:'<div class="qprompt"><div style="font-size:44px">'+t.wd+"</div></div>",
+      opts:shuffle([{h:esc(t.m),ok:true}].concat(ds.map(d=>({h:esc(d.m),ok:false})))),
+      expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt",c:t.c};
+  }).filter(Boolean);
+}
+const TONEMAP={"ā":1,"ē":1,"ī":1,"ō":1,"ū":1,"ǖ":1,"á":2,"é":2,"í":2,"ó":2,"ú":2,"ǘ":2,"ǎ":3,"ě":3,"ǐ":3,"ǒ":3,"ǔ":3,"ǚ":3,"à":4,"è":4,"ì":4,"ò":4,"ù":4,"ǜ":4};
+function tonesOf(w){const t=[];for(const ch of w.py)if(TONEMAP[ch])t.push(TONEMAP[ch]);while(t.length<w.wd.length)t.push(0);return t.slice(0,w.wd.length)}
+function patLabel(p){return p.map(x=>x===0?"neutral":x).join(" – ")}
+function buildTone(){
+  const pool=shuffle(wordsPool().filter(w=>/^[一-鿿]{2}$/.test(w.wd)&&!/儿$/.test(w.wd)));
+  if(pool.length<5)return [];
+  return pool.slice(0,QLEN).map(t=>{
+    const cor=tonesOf(t);
+    const opts=[{h:patLabel(cor),ok:true}];const seen=new Set([cor.join()]);
+    let guard=0;
+    while(opts.length<4&&guard++<80){
+      const p=cor.map(x=>(x===0&&Math.random()<0.5)?0:Math.floor(Math.random()*4)+1);
+      if(!seen.has(p.join())){seen.add(p.join());opts.push({h:patLabel(p),ok:false})}
+    }
+    if(opts.length<4)return null;
+    return {p:'<div class="qprompt"><div style="font-size:50px">'+t.wd+'</div><div class="muted" style="font-size:13px;margin-top:4px">which tone pattern?</div></div>',
+      opts:shuffle(opts),expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt tonebtn",c:t.c};
+  }).filter(Boolean);
+}
+function compPool(){
+  const map={};
+  basePool().forEach(d=>d.k.forEach(k=>{
+    const g=k[0];
+    if(g.length>2||/[+ ]/.test(g)||/\(sound\)/.test(k[1]))return;
+    if(!map[g])map[g]=k[1].replace(/\s*\(.*?\)\s*/g,"");
+  }));
+  return Object.keys(map).map(g=>({g:g,m:map[g]}));
+}
+function compChars(g){return DATA.filter(d=>d.k.some(k=>k[0]===g)).slice(0,6).map(d=>d.c).join(" ")}
+function buildComp(){
+  const pool=shuffle(compPool());
+  if(pool.length<6)return [];
+  return pool.slice(0,QLEN).map((t,i)=>{
+    const others=shuffle(pool.filter(x=>x.g!==t.g&&x.m!==t.m)).slice(0,3);
+    if(others.length<3)return null;
+    let p,opts,cls;
+    if(i%2===0){
+      p='<div class="qprompt"><div class="bigchar" style="font-size:min(26vw,100px)">'+t.g+'</div><div class="muted" style="font-size:13px">what does this component mean?</div></div>';
+      opts=shuffle([{h:esc(t.m),ok:true}].concat(others.map(o=>({h:esc(o.m),ok:false}))));cls="opt";
+    }else{
+      p='<div class="qprompt">Which component means<br>“<b>'+esc(t.m)+'</b>”?</div>';
+      opts=shuffle([{h:t.g,ok:true}].concat(others.map(o=>({h:o.g,ok:false}))));cls="opt zi";
+    }
+    return {p:p,opts:opts,expl:t.g+" — "+esc(t.m)+" · appears in: "+compChars(t.g),cls:cls};
+  }).filter(Boolean);
+}
+function startQuiz(mode){
+  let qs;
+  if(mode==="w2m")qs=buildW2M();else if(mode==="tone")qs=buildTone();else if(mode==="comp")qs=buildComp();else qs=buildCharMode(mode);
+  if(!qs||qs.length<4){toast("Study a few more characters first!");return}
+  Q={mode:mode,qs:qs,i:0,score:0};
+  document.getElementById("quiz-home").classList.add("hidden");
+  document.getElementById("quiz-play").classList.remove("hidden");
+  paintQ();
+}
+function paintQ(){
+  const q=Q.qs[Q.i];
+  document.getElementById("quiz-play").innerHTML=
+   '<div class="qbar"><span>'+(Q.i+1)+" / "+Q.qs.length+'</span><button class="btn sm line" id="q-quit">quit</button></div>'+
+   q.p+'<div class="opts">'+q.opts.map((o,i)=>'<button class="'+(q.cls||"opt")+'" data-i="'+i+'">'+o.h+"</button>").join("")+"</div>"+
+   '<div class="expl" id="q-expl"></div>';
+  document.getElementById("q-quit").onclick=endQuiz;
+  if(q.say)speak(q.say);
+  document.querySelectorAll("#quiz-play .opt").forEach(b=>b.onclick=()=>answerQ(+b.dataset.i));
+}
+function answerQ(i){
+  const q=Q.qs[Q.i],right=q.opts[i].ok;
+  document.querySelectorAll("#quiz-play .opt").forEach((b,j)=>{
+    b.disabled=true;
+    if(q.opts[j].ok)b.classList.add("right");else if(j===i)b.classList.add("wrong");
+  });
+  document.getElementById("q-expl").innerHTML=q.expl||"";
+  if(right){Q.score++}else if(q.c&&S.prog[q.c]){S.prog[q.c].due=Date.now();S.prog[q.c].ng++}
+  S.tot.rev++;if(right)S.tot.ok++;
+  touchStreak();save();
+  setTimeout(()=>{Q.i++;Q.i>=Q.qs.length?endQuiz(true):paintQ()},right?900:1900);
+}
+function endQuiz(showScore){
+  if(showScore===true){
+    document.getElementById("quiz-play").innerHTML=
+    '<div class="card done"><div class="big">'+(Q.score>=8?"🏆":Q.score>=5?"👍":"💪")+'</div><b>'+Q.score+" / "+Q.qs.length+'</b><p class="muted">'+
+    (Q.score>=8?"Excellent!":Q.score>=5?"Solid — the misses are back in your review queue.":"Tough round — those characters will come back in Learn.")+
+    '</p><button class="btn" id="q-again">Another round</button> <button class="btn line" id="q-back">Done</button></div>';
+    document.getElementById("q-again").onclick=()=>startQuiz(Q.mode);
+    document.getElementById("q-back").onclick=endQuiz;
+    return;
+  }
+  Q=null;
+  document.getElementById("quiz-play").classList.add("hidden");
+  document.getElementById("quiz-home").classList.remove("hidden");
+}
+
+/* ================= PAIRS ================= */
+let P=null;
+function paintPairsHome(){
+  document.getElementById("pairs-list").innerHTML=GROUPS.map(g=>
+    '<div style="padding:6px 0;font-size:15px"><span style="font-size:22px;letter-spacing:6px">'+g.join("")+'</span></div>').join("");
+}
+function startPairs(){
+  const qs=[];
+  const gs=shuffle(GROUPS);
+  while(qs.length<12){
+    for(const g of gs){
+      if(qs.length>=12)break;
+      const target=g[Math.floor(Math.random()*g.length)];
+      qs.push({g:g,t:target});
+    }
+  }
+  P={qs:shuffle(qs).slice(0,12),i:0,score:0};
+  document.getElementById("pairs-home").classList.add("hidden");
+  document.getElementById("pairs-play").classList.remove("hidden");
+  paintP();
+}
+function paintP(){
+  const q=P.qs[P.i],ti=info(q.t);
+  document.getElementById("pairs-play").innerHTML=
+   '<div class="qbar"><span>'+(P.i+1)+" / "+P.qs.length+'</span><button class="btn sm line" id="p-quit">quit</button></div>'+
+   '<div class="qprompt">Which one means<br>“<b>'+esc(ti.m)+'</b>”?</div>'+
+   '<div class="opts" style="grid-template-columns:repeat('+Math.min(q.g.length,3)+',1fr)">'+
+     shuffle(q.g).map(c=>'<button class="opt zi" data-c="'+c+'">'+c+"</button>").join("")+"</div>"+
+   '<div class="expl" id="p-expl"></div>';
+  document.getElementById("p-quit").onclick=endPairs;
+  document.querySelectorAll("#pairs-play .opt").forEach(b=>b.onclick=()=>answerP(b.dataset.c));
+}
+function answerP(c){
+  const q=P.qs[P.i],right=c===q.t;
+  document.querySelectorAll("#pairs-play .opt").forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.c===q.t)b.classList.add("right");else if(b.dataset.c===c)b.classList.add("wrong");
+  });
+  document.getElementById("p-expl").innerHTML=q.g.map(x=>{const d=info(x);return x+" "+pyHTML(d)+" "+esc(d.m)}).join(" · ");
+  if(right)P.score++;else{const p=S.prog[q.t];if(p){p.due=Date.now();p.ng++}}
+  touchStreak();save();
+  setTimeout(()=>{P.i++;P.i>=P.qs.length?endPairs(true):paintP()},right?1100:2100);
+}
+function endPairs(showScore){
+  if(showScore===true){
+    document.getElementById("pairs-play").innerHTML=
+    '<div class="card done"><div class="big">'+(P.score>=10?"🦅":"👀")+'</div><b>'+P.score+" / "+P.qs.length+'</b><p class="muted">Sharp eyes!</p>'+
+    '<button class="btn" id="p-again">Another round</button> <button class="btn line" id="p-back">Done</button></div>';
+    document.getElementById("p-again").onclick=startPairs;
+    document.getElementById("p-back").onclick=endPairs;
+    return;
+  }
+  P=null;
+  document.getElementById("pairs-play").classList.add("hidden");
+  document.getElementById("pairs-home").classList.remove("hidden");
+}
+
+/* ================= BROWSE ================= */
+const NORM={"ā":"a","á":"a","ǎ":"a","à":"a","ē":"e","é":"e","ě":"e","è":"e","ī":"i","í":"i","ǐ":"i","ì":"i","ō":"o","ó":"o","ǒ":"o","ò":"o","ū":"u","ú":"u","ǔ":"u","ù":"u","ǖ":"v","ǘ":"v","ǚ":"v","ǜ":"v","ü":"v"};
+function norm(s){return s.toLowerCase().split("").map(c=>NORM[c]||c).join("")}
+function chipHTML(d){return '<button class="chip '+stateOf(d.c)+'" data-c="'+d.c+'">'+d.c+'<span class="dot"></span></button>'}
+function paintBrowse(){
+  const el=document.getElementById("browse-area");
+  el.innerHTML='<input class="search" id="b-q" placeholder="🔍 Search character, pinyin, or meaning…" autocomplete="off"><div id="b-res"></div>';
+  const q=document.getElementById("b-q");
+  q.oninput=()=>renderBrowse(q.value.trim());
+  renderBrowse("");
+}
+function renderBrowse(query){
+  const box=document.getElementById("b-res");let h="";
+  if(query){
+    const nq=norm(query);
+    const hits=DATA.filter(d=>d.c===query||norm(d.py).includes(nq)||d.m.toLowerCase().includes(nq)||
+      d.w.some(w=>w[0].includes(query)||norm(w[1]).includes(nq)||w[2].toLowerCase().includes(nq)));
+    h=hits.length?('<p class="muted">'+hits.length+" result"+(hits.length>1?"s":"")+'</p><div class="grid">'+hits.map(chipHTML).join("")+"</div>")
+      :'<p class="muted">No matches. Try pinyin without tone marks (e.g. “qing”) or an English word.</p>';
+  }else{
+    for(let n=1;n<=maxLevel();n++){
+      if(!unlocked(n)){
+        h+='<div class="lock">🔒 <b>Level '+n+"</b><br>Unlocks when "+LV_NEED+" of Level "+(n-1)+" characters are underway (now: "+lvProgress(n-1)+")"+
+           '<br><span style="font-size:13px">To unlock now, ask Paul for the passcode!</span>'+
+           '<div style="margin-top:8px"><input class="search" style="max-width:160px;display:inline-block;margin:0;padding:8px 12px" placeholder="passcode" id="pw'+n+'" autocomplete="off"> '+
+           '<button class="btn sm line b-unlock" data-lv="'+n+'">Unlock</button></div></div>';
+        continue;
+      }
+      const chars=lvChars(n);
+      const done=chars.filter(d=>stateOf(d.c)==="mastered").length;
+      h+='<div class="lvhead">Level '+n+' <span class="muted">'+lvStarted(n)+" started · "+done+" mastered</span></div>";
+      FAMS.forEach((f,fi)=>{
+        const list=chars.filter(d=>d.f===fi);
+        if(!list.length)return;
+        h+='<div class="famhead"><h3><span class="zi">'+f[0]+"</span>"+f[1]+'</h3><span class="muted">'+list.filter(d=>stateOf(d.c)==="mastered").length+"/"+list.length+"</span></div>"+
+           '<p class="famnote">'+esc(f[2])+"</p>"+
+           '<div class="grid">'+list.map(chipHTML).join("")+"</div>";
+      });
+    }
+    h+='<div class="lock" style="border-style:dotted">✨ More levels to come…</div>';
+  }
+  box.innerHTML=h;
+  box.querySelectorAll(".chip").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
+  box.querySelectorAll(".b-unlock").forEach(b=>b.onclick=()=>{
+    const n=+b.dataset.lv;
+    const inp=document.getElementById("pw"+n);
+    const guess=(inp&&inp.value||"").trim().toLowerCase();
+    if(guess===PASS){S.forceUnlock[n]=1;save();renderBrowse("");toast("加油! Level "+n+" unlocked 🎉")}
+    else toast(guess?"Hmm, that's not it — ask Paul!":"Type the passcode first");
+  });
+}
+function openModal(c){
+  const d=byChar(c),p=S.prog[c],nb=S.nb[c];
+  const stats=p?('<p class="muted" style="text-align:center">seen '+p.seen+"× · correct "+p.ok+" · missed "+p.ng+" · next review: "+fmtDue(p.due)+"</p>"):'<p class="muted" style="text-align:center">not started yet</p>';
+  const nbUI=nb
+   ?('<p class="muted" style="margin:10px 0 4px">📓 In notebook'+(nb.n>1?" · added "+nb.n+"×":"")+'</p>'+
+     '<textarea id="nb-note" placeholder="Your notes — memory tricks, reminders, anything…">'+esc(nb.note||"")+"</textarea>"+
+     '<div class="row" style="margin-top:8px"><button class="btn sm" id="nb-save">Save note</button><button class="btn sm line" id="nb-del">Remove from notebook</button></div>')
+   :('<div style="margin-top:10px;text-align:center"><button class="btn sm line" id="nb-addbtn">📓 Add to notebook</button></div>');
+  document.getElementById("modal-body").innerHTML=cardBackHTML(d,false)+stats+nbUI+
+   '<div class="ansrow"><button class="btn line" id="m-review">Review now</button><button class="btn" id="m-close">Close</button></div>';
+  document.getElementById("modal").classList.add("on");
+  document.getElementById("m-close").onclick=closeModal;
+  document.getElementById("m-review").onclick=()=>{
+    if(!S.prog[c])S.prog[c]={box:1,due:Date.now(),seen:0,ok:0,ng:0};else S.prog[c].due=Date.now();
+    save();closeModal();switchView("learn");toast(c+" added to review queue");
+  };
+  const sv=document.getElementById("nb-save");
+  if(sv)sv.onclick=()=>{S.nb[c].note=document.getElementById("nb-note").value.trim();save();toast("Note saved ✓")};
+  const del=document.getElementById("nb-del");
+  if(del)del.onclick=()=>{delete S.nb[c];save();toast(c+" removed from notebook");openModal(c)};
+  const add=document.getElementById("nb-addbtn");
+  if(add)add.onclick=()=>{nbAdd(c);openModal(c)};
+}
+function closeModal(){document.getElementById("modal").classList.remove("on")}
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+
+/* ================= STATS ================= */
+function paintStats(){
+  const chars=Object.keys(S.prog);
+  const mastered=chars.filter(c=>S.prog[c].box>=MASTER_BOX).length;
+  const learning=chars.length-mastered;
+  const acc=S.tot.rev?Math.round(100*S.tot.ok/S.tot.rev):0;
+  const weak=chars.filter(c=>S.prog[c].ng>0).sort((a,b)=>S.prog[b].ng-S.prog[a].ng).slice(0,6);
+  const nbk=Object.keys(S.nb).sort((a,b)=>S.nb[b].ts-S.nb[a].ts);
+  const f=forecast();
+  let lvhtml="";
+  for(let n=1;n<=maxLevel();n++){
+    const lc=lvChars(n),started=lvStarted(n),mast=lc.filter(d=>stateOf(d.c)==="mastered").length;
+    lvhtml+='<div class="setrow"><span>Level '+n+(unlocked(n)?"":" 🔒")+'<br><span class="muted" style="font-size:12.5px">'+started+"/"+lc.length+" started · "+mast+" mastered</span></span>"+
+     (unlocked(n)?'<button class="btn sm line sk-btn" data-lv="'+n+'">Skip-test</button>':"")+"</div>";
+  }
+  document.getElementById("stats-area").innerHTML=
+  '<h2>Progress</h2><div class="statgrid">'+
+   '<div class="stat"><b style="color:var(--ok)">'+mastered+'</b><span>mastered</span></div>'+
+   '<div class="stat"><b style="color:var(--amber)">'+learning+'</b><span>learning</span></div>'+
+   '<div class="stat"><b>'+(DATA.length-chars.length)+'</b><span>to go</span></div></div>'+
+  '<div class="card"><div class="row"><span class="grow">🔥 Day streak</span><b>'+S.streak+'</b></div>'+
+   '<div class="row" style="margin-top:8px"><span class="grow">Total answers</span><b>'+S.tot.rev+'</b></div>'+
+   '<div class="row" style="margin-top:8px"><span class="grow">Accuracy</span><b>'+acc+'%</b></div>'+
+   '<div class="row" style="margin-top:8px"><span class="grow">Due tomorrow</span><b>'+f.tomorrow+'</b></div>'+
+   '<div class="row" style="margin-top:8px"><span class="grow">Due in next 7 days</span><b>'+f.week+'</b></div></div>'+
+  '<h2>Levels</h2><div class="card">'+lvhtml+'</div>'+
+  (weak.length?('<h2>Needs attention</h2><div class="grid">'+weak.map(c=>'<button class="chip '+stateOf(c)+'" data-c="'+c+'">'+c+'<span class="dot"></span></button>').join("")+"</div>"):"")+
+  '<h2>📓 Notebook ('+nbk.length+')</h2>'+
+  (nbk.length
+   ?('<div class="card" style="padding:8px 16px">'+nbk.map(c=>{
+      const d=byChar(c),e=S.nb[c];
+      return '<div class="nb-row" data-c="'+c+'"><span class="nb-zi">'+c+'</span><div class="nb-mid"><div>'+pyHTML(d)+" · "+esc(d.m)+"</div>"+(e.note?'<div class="nb-note">'+esc(e.note)+"</div>":"")+"</div>"+(e.n>1?'<span class="muted">'+e.n+"×</span>":"")+"</div>";
+     }).join("")+"</div>")
+   :'<div class="card"><p class="muted" style="margin:0">Empty so far — in Learn, swipe right on anything you don\'t know and it lands here. Tap an entry to add your own notes.</p></div>')+
+  '<h2>Settings</h2><div class="card">'+
+   '<div class="setrow"><span>New characters per day</span><select id="s-new"><option>5</option><option>8</option><option>12</option><option>20</option></select></div>'+
+   '<div class="setrow"><span>Audio (pronunciation)</span><select id="s-audio"><option value="1">on</option><option value="0">off</option></select></div>'+
+   (storageOK?"":'<p class="muted">⚠️ This browser is blocking saved progress (private mode?). Use Export below to keep a backup.</p>')+
+  '</div>'+
+  '<h2>Your data</h2><div class="card">'+
+   '<p class="muted" style="margin-top:0">Progress is saved in this browser. Export a backup before switching phones or browsers.</p>'+
+   '<div class="row"><button class="btn sm line" id="s-exp">📤 Export</button><button class="btn sm line" id="s-imp">📥 Import</button><span class="grow"></span><button class="btn sm bad" id="s-reset">Reset all</button></div>'+
+   '<div id="s-io"></div></div>';
+  const sn=document.getElementById("s-new");sn.value=String(S.newPerDay);
+  sn.onchange=()=>{S.newPerDay=+sn.value;save();paintLearnStatus()};
+  const sa=document.getElementById("s-audio");sa.value=S.audio?"1":"0";
+  sa.onchange=()=>{S.audio=sa.value==="1";save()};
+  document.getElementById("stats-area").querySelectorAll(".chip").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
+  document.getElementById("stats-area").querySelectorAll(".sk-btn").forEach(b=>b.onclick=()=>openSkipTest(+b.dataset.lv));
+  document.getElementById("stats-area").querySelectorAll(".nb-row").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
+  document.getElementById("s-exp").onclick=()=>{
+    const data=JSON.stringify(S);
+    document.getElementById("s-io").innerHTML='<p class="muted">Copy this text and save it anywhere (e.g. a note):</p><textarea id="s-txt" readonly></textarea>';
+    const ta=document.getElementById("s-txt");ta.value=data;ta.focus();ta.select();
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(data).then(()=>toast("Copied to clipboard")).catch(()=>{});
+  };
+  document.getElementById("s-imp").onclick=()=>{
+    document.getElementById("s-io").innerHTML='<p class="muted">Paste your backup text here:</p><textarea id="s-txt"></textarea><button class="btn sm" id="s-doimp" style="margin-top:8px">Load backup</button>';
+    document.getElementById("s-doimp").onclick=()=>{
+      try{const p=JSON.parse(document.getElementById("s-txt").value);if(!p.prog)throw 0;S=Object.assign(S,p);save();toast("Backup loaded!");paintStats();paintLearnStatus()}
+      catch(e){toast("Hmm, that text doesn't look like a backup")}
+    };
+  };
+  document.getElementById("s-reset").onclick=()=>{
+    if(confirm("Erase ALL progress? This cannot be undone.")){S={prog:{},nb:{},newPerDay:8,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},skipDone:{},forceUnlock:{}};UNDO=null;SES={learned:[],rev:0,missed:new Set()};save();paintStats();paintStreak();nextCard()}
+  };
+}
+
+/* ================= NAV ================= */
+function switchView(v){
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+  document.getElementById("view-"+v).classList.add("on");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+  if(v==="learn")nextCard();
+  if(v==="browse")paintBrowse();
+  if(v==="stats")paintStats();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>startQuiz(b.dataset.mode));
+function paintStreak(){document.getElementById("streak").textContent=S.streak>0?("🔥 "+S.streak+" day"+(S.streak>1?"s":"")):""}
+/* speaker buttons everywhere (event delegation) */
+document.body.addEventListener("click",e=>{
+  if(SWIPED)return;
+  const el=e.target.closest("[data-say]");
+  if(el)speak(el.dataset.say);
+});
+
+/* ================= BOOT ================= */
+load();initTTS();paintStreak();nextCard();
+/* offline support when hosted (no effect when opened as a local file) */
+if("serviceWorker" in navigator&&location.protocol==="https:"){try{navigator.serviceWorker.register("./sw.js")}catch(e){}}
+</script>
+</body>
+</html>
