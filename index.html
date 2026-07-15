@@ -952,7 +952,7 @@ function info(c){const d=byChar(c);if(d)return d;const e=EXTRAS[c];return e?{c:c
 const IDX={};DATA.forEach((d,i)=>IDX[d.c]=i);
 const LV_NEED=100;
 const PASS={2:"jiayou",3:"lihai"}; /* level unlock codes: 加油 / 厉害 */
-const GATE="kaimen"; /* 开门 — app entry magic word */
+const GATE="liya"; /* 丽雅 — app entry magic word */
 function maxLevel(){return Math.ceil(DATA.length/100)}
 function lvOf(c){return Math.floor(IDX[c]/100)+1}
 function lvChars(n){return DATA.slice((n-1)*100,n*100)}
