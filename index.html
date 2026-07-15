@@ -76,7 +76,6 @@ h2{font-size:16px;margin:18px 4px 6px}
 .word .wp{color:var(--ink2)}
 .ansrow{display:flex;gap:12px;margin-top:14px}
 .ansrow .btn{flex:1}
-.taphint{text-align:center;color:var(--ink2);font-size:13px;margin-top:14px}
 .famtag{text-align:center;font-size:13px;color:var(--ink2);margin-bottom:2px}
 /* ---------- quiz ---------- */
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -117,7 +116,7 @@ textarea{width:100%;height:90px}
 #gate .inner{max-width:340px;width:100%;text-align:center}
 #gate .bigzi{font-size:64px;margin-bottom:8px;color:var(--acc)}
 .toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);
-  padding:10px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none;white-space:nowrap}
+  padding:10px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none;max-width:86vw;width:max-content;text-align:center;line-height:1.35}
 .toast.on{opacity:1}
 .done{ text-align:center;padding:26px 10px}
 .done .big{font-size:44px;margin-bottom:8px}
@@ -919,13 +918,28 @@ const GROUPS=[
 
 <script>
 /* ================= STATE ================= */
-const INT=[0, 5*60e3, 60*60e3, 864e5, 3*864e5, 7*864e5, 14*864e5]; // per box
-const MASTER_BOX=5;
 const LSKEY="hanzi100";
 let storageOK=true;
-let S={prog:{},nb:{},newPerDay:3,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},forceUnlock:{}};
-function load(){try{const raw=localStorage.getItem(LSKEY);if(raw){const p=JSON.parse(raw);S=Object.assign(S,p);}}catch(e){storageOK=false}
-  if(![3,5,10].includes(S.newPerDay))S.newPerDay=3;}
+function DEFAULTS(){return {nb:{},known:{},notes:{},newPerDay:3,audio:true,streak:0,lastDay:"",today:{day:"",n:0},forceUnlock:{}}}
+function migrate(){
+  if(![3,5,10].includes(S.newPerDay))S.newPerDay=3;
+  if(!S.notes)S.notes={};
+  if(!S.known)S.known={};
+  for(const c in S.nb){const e=S.nb[c];if(!e)continue;if(e.note){if(!S.notes[c])S.notes[c]=e.note;delete e.note}delete e.n}
+  /* legacy SRS saves: box>=5 or known flag → 🟢, everything else started → 🟡 */
+  if(S.prog){
+    for(const c in S.prog){
+      const p=S.prog[c];
+      if(S.nb[c])continue;
+      if(p&&(p.known||p.box>=5))S.known[c]=1;
+      else S.nb[c]={ts:Date.now()};
+    }
+    delete S.prog;
+  }
+}
+let S=DEFAULTS();
+function load(){try{const raw=localStorage.getItem(LSKEY);if(raw){S=Object.assign(DEFAULTS(),JSON.parse(raw));}}catch(e){storageOK=false}
+  migrate();}
 function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){storageOK=false}}
 function dayStr(d){d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
 function touchStreak(){const t=dayStr();if(S.lastDay===t)return;const y=dayStr(new Date(Date.now()-864e5));S.streak=(S.lastDay===y)?S.streak+1:1;S.lastDay=t;save();paintStreak()}
@@ -936,21 +950,15 @@ function info(c){const d=byChar(c);if(d)return d;const e=EXTRAS[c];return e?{c:c
 
 /* ================= LEVELS ================= */
 const IDX={};DATA.forEach((d,i)=>IDX[d.c]=i);
-const LV_NEED=70;
+const LV_NEED=100;
 const PASS={2:"jiayou",3:"lihai"}; /* level unlock codes: 加油 / 厉害 */
 const GATE="kaimen"; /* 开门 — app entry magic word */
 function maxLevel(){return Math.ceil(DATA.length/100)}
 function lvOf(c){return Math.floor(IDX[c]/100)+1}
 function lvChars(n){return DATA.slice((n-1)*100,n*100)}
-function lvStarted(n){return lvChars(n).filter(d=>S.prog[d.c]).length}
-function lvProgress(n){return lvChars(n).filter(d=>S.prog[d.c]&&S.prog[d.c].box>=2).length}
+function lvStarted(n){return lvChars(n).filter(d=>stateOf(d.c)!=="new").length}
+function lvProgress(n){return lvChars(n).filter(d=>stateOf(d.c)!=="new").length}
 function unlocked(n){if(n<=1)return true;if(S.forceUnlock[n])return true;return lvProgress(n-1)>=LV_NEED}
-function forecast(){
-  const eod=new Date();eod.setHours(23,59,59,999);
-  const t1=eod.getTime(),t2=t1+864e5,t7=t1+7*864e5;let a=0,b=0,c=0;
-  for(const k in S.prog){const due=S.prog[k].due;if(due<=t1)a++;else if(due<=t2)b++;else if(due<=t7)c++}
-  return {today:a,tomorrow:b,week:c};
-}
 
 /* ================= AUDIO ================= */
 let zhVoice=null,ttsOK=false;
@@ -977,26 +985,15 @@ function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t
 /* status model — the dot IS the notebook: 🟡 in notebook, 🟢 known, ⚪ new */
 function stateOf(c){
   if(S.nb[c])return"learning";
-  const p=S.prog[c];
-  if(p&&(p.box>=MASTER_BOX||p.known))return"mastered";
-  if(p)return"learning";
+  if(S.known[c])return"mastered";
   return"new";
 }
 function setStatus(c,st){
-  if(st==="new"){delete S.prog[c];delete S.nb[c]}
-  else if(st==="nb"){
-    if(!S.nb[c])S.nb[c]={ts:Date.now(),note:"",n:1};
-    const p=S.prog[c];
-    if(!p)S.prog[c]={box:1,due:Date.now(),seen:0,ok:0,ng:0};
-    else{delete p.known;if(p.box>=MASTER_BOX){p.box=1;p.due=Date.now()}}
-  }else{
-    const p=S.prog[c]||{};
-    delete S.nb[c];
-    S.prog[c]={box:6,due:Date.now()+INT[6],seen:p.seen||1,ok:p.ok||1,ng:p.ng||0,known:1};
-  }
+  if(st==="new"){delete S.known[c];delete S.nb[c];delete S.notes[c]}
+  else if(st==="nb"){if(!S.nb[c])S.nb[c]={ts:Date.now()};delete S.known[c]}
+  else{delete S.nb[c];S.known[c]=1}
   save();
 }
-function fmtDue(ts){const diff=ts-Date.now();if(diff<=0)return"now";const m=Math.round(diff/6e4);if(m<60)return m+" min";const h=Math.round(m/60);if(h<24)return h+" h";return Math.round(h/24)+" d"}
 
 /* distractors: prefer same family, unique by the field shown */
 function distract(target,pool,field,n){
@@ -1024,31 +1021,29 @@ function cardBackHTML(d,isNew){
 }
 
 /* ================= LEARN ================= */
-let cur=null,curIsNew=false,UNDO=null;
-let SES={learned:[],rev:0,missed:new Set()};
-function dueList(){const now=Date.now();return Object.keys(S.prog).filter(c=>S.prog[c].due<=now).sort((a,b)=>S.prog[a].due-S.prog[b].due)}
-function newList(){const out=[];for(let n=1;n<=maxLevel();n++){if(!unlocked(n))break;lvChars(n).forEach(d=>{if(!S.prog[d.c])out.push(d.c)})}return out}
+let cur=null,UNDO=null;
+let SES={learned:[]};
+function newList(){const out=[];for(let n=1;n<=maxLevel();n++){if(!unlocked(n))break;lvChars(n).forEach(d=>{if(stateOf(d.c)==="new")out.push(d.c)})}return out}
 function paintLearnStatus(){
-  const due=dueList().length,nl=newList().length,tc=todayCount();
+  const nl=newList().length,tc=todayCount();
   document.getElementById("learn-status").innerHTML=
    "<span>New today: <b>"+tc+"/"+quotaMax()+"</b></span><span>Unseen: <b>"+nl+"</b></span>"+
    (UNDO?' <button class="undo-chip" id="b-undo">↩ undo '+UNDO.c+"</button>":"");
   const u=document.getElementById("b-undo");if(u)u.onclick=doUndo;
 }
-function snapshot(c,wasNew){UNDO={c:c,wasNew:wasNew,prog:S.prog[c]?JSON.parse(JSON.stringify(S.prog[c])):null,nb:S.nb[c]?JSON.parse(JSON.stringify(S.nb[c])):null,todayN:S.today.n,tot:{rev:S.tot.rev,ok:S.tot.ok}}}
+function snapshot(c){UNDO={c:c,nb:S.nb[c]?JSON.parse(JSON.stringify(S.nb[c])):null,known:S.known[c]?1:0,todayN:S.today.n}}
 function doUndo(){
   if(!UNDO)return;const u=UNDO;
-  if(u.prog)S.prog[u.c]=u.prog;else delete S.prog[u.c];
   if(u.nb)S.nb[u.c]=u.nb;else delete S.nb[u.c];
-  S.today.n=u.todayN;S.tot.rev=u.tot.rev;S.tot.ok=u.tot.ok;
-  if(u.wasNew)SES.learned=SES.learned.filter(x=>x!==u.c);else{SES.rev=Math.max(0,SES.rev-1);SES.missed.delete(u.c)}
+  if(u.known)S.known[u.c]=1;else delete S.known[u.c];
+  S.today.n=u.todayN;
+  SES.learned=SES.learned.filter(x=>x!==u.c);
   UNDO=null;save();nextCard();toast("Undone — "+u.c+" is back");
 }
 /* ---------- notebook ---------- */
 function nbAdd(c){
-  const e=S.nb[c];
-  if(e){e.n++;e.ts=Date.now();toast(c+" is in your notebook ("+e.n+"×) 📓")}
-  else{S.nb[c]={ts:Date.now(),note:"",n:1};toast(c+" added to notebook 📓")}
+  if(!S.nb[c])S.nb[c]={ts:Date.now()};
+  toast(c+" added to notebook 📓");
   save();
 }
 /* ---------- swipe engine ---------- */
@@ -1098,57 +1093,32 @@ function bindSwipe(el,onLeft,onRight){
 }
 function nextCard(){
   paintLearnStatus();
-  const due=dueList();
-  if(due.length){cur=byChar(due[0]);curIsNew=false;paintCard();return}
   const nl=newList();
-  if(nl.length&&todayCount()<quotaMax()){cur=byChar(nl[0]);curIsNew=true;paintCard();return}
-  /* pull recently-missed cards (due within 2 min) back immediately instead of dead-ending */
-  const soon=Object.keys(S.prog).filter(c=>S.prog[c].due<=Date.now()+12e4).sort((a,b)=>S.prog[a].due-S.prog[b].due)[0];
-  if(soon){cur=byChar(soon);curIsNew=false;paintCard();return}
+  if(nl.length&&todayCount()<quotaMax()){cur=byChar(nl[0]);paintCard();return}
   cur=null;paintDone(nl.length)
 }
 const SWTAGS='<div class="sw-tag sw-know">✓ Know it</div><div class="sw-tag sw-nb">📓 Notebook</div>';
 function paintCard(){
   const a=document.getElementById("learn-area");
-  if(curIsNew){
-    a.innerHTML='<div class="hintline">New character! Swipe ← if you already know it · swipe → to add to notebook & learn</div>'+
-      '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,true)+"</div>"+
-      '<div class="ansrow"><button class="btn line" id="b-know">← Already know it</button><button class="btn" id="b-learn">Add to notebook →</button></div>';
-    const el=document.getElementById("c-card");
-    bindSwipe(el,gradeNewKnown,gradeNew);
-    document.getElementById("b-know").onclick=gradeNewKnown;
-    document.getElementById("b-learn").onclick=gradeNew;
-    speak(cur.c);
-  }else{
-    a.innerHTML='<div class="hintline">Swipe ← I know it · swipe → add to notebook</div>'+
-      '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,false)+"</div>"+
-      '<div class="ansrow"><button class="btn ok" id="b-good">← I know it</button><button class="btn bad" id="b-again">Add to notebook →</button></div>';
-    const el=document.getElementById("c-card");
-    bindSwipe(el,()=>grade(true),()=>{nbAdd(cur.c);grade(false)});
-    document.getElementById("b-good").onclick=()=>grade(true);
-    document.getElementById("b-again").onclick=()=>{nbAdd(cur.c);grade(false)};
-    speak(cur.c);
-  }
+  a.innerHTML='<div class="hintline">Swipe ← if you already know it · swipe → to add to notebook & study</div>'+
+    '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,false)+"</div>"+
+    '<div class="ansrow"><button class="btn line" id="b-know">← Already know it</button><button class="btn" id="b-learn">Add to notebook →</button></div>';
+  const el=document.getElementById("c-card");
+  bindSwipe(el,gradeNewKnown,gradeNew);
+  document.getElementById("b-know").onclick=gradeNewKnown;
+  document.getElementById("b-learn").onclick=gradeNew;
+  speak(cur.c);
 }
 function gradeNewKnown(){
-  snapshot(cur.c,true);
-  S.prog[cur.c]={box:6,due:Date.now()+INT[6],seen:1,ok:1,ng:0,known:1};
+  snapshot(cur.c);
+  S.known[cur.c]=1;
   touchStreak();save();nextCard();
 }
 function gradeNew(){
-  snapshot(cur.c,true);
+  snapshot(cur.c);
   todayCount();S.today.n++;
-  S.prog[cur.c]={box:1,due:Date.now()+INT[1],seen:1,ok:0,ng:0};
   SES.learned.push(cur.c);
   nbAdd(cur.c);
-  touchStreak();save();nextCard();
-}
-function grade(good){
-  snapshot(cur.c,false);
-  const p=S.prog[cur.c];p.seen++;S.tot.rev++;
-  if(good){p.ok++;S.tot.ok++;p.box=Math.min(6,p.box+1)}else{p.ng++;p.box=Math.max(1,p.box-2)}
-  p.due=Date.now()+(good?INT[p.box]:6e5); /* miss → back in 10 min (no instant loop) */
-  SES.rev++;if(!good)SES.missed.add(cur.c);
   touchStreak();save();nextCard();
 }
 function paintDone(newLeft){
@@ -1175,11 +1145,24 @@ function shareStats(){
 }
 /* WeChat's iOS share extension only accepts images/links (not text) — so the card is a PNG */
 function drawShareCard(){
-  const W=1000,H=1250;
+  const st=shareStats(),togo=DATA.length-st.known-st.nb;
+  /* wrap today's characters into rows of 7, max 3 rows, then "+N" */
+  let rows=[];
+  if(st.today>0&&SES.learned.length){
+    const chars=SES.learned.slice();
+    const PER=7,MAXR=3;
+    for(let i=0;i<chars.length&&rows.length<MAXR;i+=PER)rows.push(chars.slice(i,i+PER));
+    let shown=rows.reduce((a,r)=>a+r.length,0);
+    if(shown<chars.length){
+      const last=rows[rows.length-1];
+      if(last.length>=PER){last.pop();shown--}
+      last.push("+"+(chars.length-shown));
+    }
+  }
+  const W=1000,H=1250+Math.max(0,rows.length-1)*116;
   const cv=document.createElement("canvas");cv.width=W;cv.height=H;
   const g=cv.getContext?cv.getContext("2d"):null;
   if(!g)return null;
-  const st=shareStats(),togo=DATA.length-st.known-st.nb;
   const ZH="'PingFang SC','Hiragino Sans GB','Heiti SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif";
   const UI="'Helvetica Neue',Helvetica,Arial,"+ZH;
   const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,"#c4653c");gr.addColorStop(1,"#9d4522");
@@ -1196,9 +1179,10 @@ function drawShareCard(){
   if(S.streak>0){g.fillText(S.streak+"-day streak 🔥",W/2,y);y+=96}
   if(st.today>0){
     g.fillText(st.today+" new today ✨",W/2,y);y+=96;
-    if(SES.learned.length){
-      g.font="600 84px "+ZH;
-      g.fillText(SES.learned.slice(0,8).join("  "),W/2,y+18);y+=150;
+    if(rows.length){
+      g.font="600 76px "+ZH;
+      rows.forEach(r=>{g.fillText(r.join(" "),W/2,y+18);y+=116});
+      y+=34;
       g.font="600 52px "+UI;
     }
   }else{g.fillText("All reviews done ✓",W/2,y);y+=96}
@@ -1276,7 +1260,7 @@ function shareTextFlow(){
 /* ================= QUIZ ================= */
 const QLEN=10;
 let Q=null,QSCOPE=null;
-function seenChars(){return Object.keys(S.prog)}
+function startedChars(){return Object.keys(S.nb).concat(Object.keys(S.known))}
 /* scopes follow the status model — never-seen ⚪ chars are never quizzed:
    all = 🟡+🟢 (everything started) · learned = 🟢 known · notebook = 🟡 */
 function paintScope(){
@@ -1291,7 +1275,7 @@ function basePool(){
   if(QSCOPE===null)QSCOPE="all";
   if(QSCOPE==="notebook")return Object.keys(S.nb).map(byChar).filter(Boolean);
   if(QSCOPE==="learned")return DATA.filter(d=>stateOf(d.c)==="mastered");
-  return seenChars().map(byChar).filter(Boolean);
+  return startedChars().map(byChar).filter(Boolean);
 }
 function buildCharMode(mode){
   const pool=basePool();
@@ -1379,7 +1363,7 @@ function buildComp(){
 function startQuiz(mode){
   let qs;
   if(mode==="w2m")qs=buildW2M();else if(mode==="tone")qs=buildTone();else if(mode==="comp")qs=buildComp();else qs=buildCharMode(mode);
-  if(!qs||qs.length<2){toast("Not enough characters in this scope yet — switch scope or study more!");return}
+  if(!qs||qs.length<2){toast("Not enough characters here yet — try another scope!");return}
   Q={mode:mode,qs:qs,i:0,score:0};
   document.getElementById("quiz-home").classList.add("hidden");
   document.getElementById("quiz-play").classList.remove("hidden");
@@ -1425,8 +1409,7 @@ function answerQ(i){
    '<div style="margin-top:10px"><button class="btn sm line" id="q-next">Next →</button></div>';
   if(q.c)bindQStatus(q.c);
   document.getElementById("q-next").onclick=qAdvance;
-  if(right){Q.score++}else if(q.c&&S.prog[q.c]){S.prog[q.c].due=Date.now();S.prog[q.c].ng++}
-  S.tot.rev++;if(right)S.tot.ok++;
+  if(right)Q.score++;
   touchStreak();save();
   Q.timer=(right&&!q.c)?setTimeout(qAdvance,1300):null; /* status-row questions always wait for Next */
 }
@@ -1485,7 +1468,7 @@ function answerP(c){
     if(b.dataset.c===q.t)b.classList.add("right");else if(b.dataset.c===c)b.classList.add("wrong");
   });
   document.getElementById("p-expl").innerHTML=q.g.map(x=>{const d=info(x);return x+" "+pyHTML(d)+" "+esc(d.m)}).join(" · ");
-  if(right)P.score++;else{const p=S.prog[q.t];if(p){p.due=Date.now();p.ng++}}
+  if(right)P.score++;
   touchStreak();save();
   setTimeout(()=>{P.i++;P.i>=P.qs.length?endPairs(true):paintP()},right?1100:2100);
 }
@@ -1555,30 +1538,29 @@ function renderBrowse(query){
   });
 }
 function openModal(c){
-  const d=byChar(c),p=S.prog[c],nb=S.nb[c],st=stateOf(c);
-  const stats=p?('<p class="muted" style="text-align:center">seen '+p.seen+"× · correct "+p.ok+" · missed "+p.ng+" · next review: "+fmtDue(p.due)+"</p>"):'<p class="muted" style="text-align:center">not started yet</p>';
+  const d=byChar(c),st=stateOf(c);
   const cur2st={new:"new",learning:"nb",mastered:"known"};
   const stRow='<div class="statusrow">'+[["new","⚪ New"],["nb","🟡 Notebook"],["known","🟢 Known"]].map(x=>
     '<button class="stbtn'+(cur2st[st]===x[0]?" on":"")+'" data-st="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
-  const noteUI=nb
-   ?('<textarea id="nb-note" placeholder="Your notes — memory tricks, reminders, anything…">'+esc(nb.note||"")+"</textarea>"+
+  const noteUI=(st!=="new")
+   ?('<textarea id="nb-note" placeholder="Your notes — memory tricks, reminders, anything…">'+esc(S.notes[c]||"")+"</textarea>"+
      '<div class="row" style="margin-top:8px"><button class="btn sm" id="nb-save">Save note</button></div>')
    :"";
-  document.getElementById("modal-body").innerHTML=cardBackHTML(d,false)+stats+stRow+noteUI+
-   '<div class="ansrow"><button class="btn line" id="m-review">Review now</button><button class="btn" id="m-close">Close</button></div>';
+  document.getElementById("modal-body").innerHTML=cardBackHTML(d,false)+stRow+noteUI+
+   '<div class="ansrow"><button class="btn" id="m-close">Close</button></div>';
   document.getElementById("modal").classList.add("on");
   document.getElementById("m-close").onclick=closeModal;
-  document.getElementById("m-review").onclick=()=>{
-    if(!S.prog[c])S.prog[c]={box:1,due:Date.now(),seen:0,ok:0,ng:0};else S.prog[c].due=Date.now();
-    save();closeModal();switchView("learn");toast(c+" added to review queue");
-  };
   document.querySelectorAll("#modal-body .stbtn").forEach(b=>b.onclick=()=>{
     if(cur2st[stateOf(c)]===b.dataset.st)return;
     setStatus(c,b.dataset.st);refreshUnder();openModal(c);
     toast(c+(b.dataset.st==="new"?" reset to new ⚪":b.dataset.st==="nb"?" added to notebook 🟡":" marked as known 🟢"));
   });
   const sv=document.getElementById("nb-save");
-  if(sv)sv.onclick=()=>{S.nb[c].note=document.getElementById("nb-note").value.trim();save();refreshUnder();toast("Note saved ✓")};
+  if(sv)sv.onclick=()=>{
+    const v=document.getElementById("nb-note").value.trim();
+    if(v)S.notes[c]=v;else delete S.notes[c];
+    save();refreshUnder();toast("Note saved ✓");
+  };
 }
 /* repaint whichever view sits under the modal so lists & dots stay fresh */
 function refreshUnder(){
@@ -1613,8 +1595,8 @@ function paintStats(){
   '<h2>My lists</h2><div class="card" style="padding:0;overflow:hidden">'+
    '<button class="listtoggle" id="t-nb">📓 Notebook ('+nbk.length+')<span>'+(NB_OPEN?"▾":"▸")+"</span></button>"+
    (NB_OPEN?('<div style="padding:0 16px 12px">'+(nbk.length?nbk.map(c=>{
-      const d=byChar(c),e=S.nb[c];
-      return '<div class="nb-row" data-c="'+c+'"><span class="nb-zi">'+c+'</span><div class="nb-mid"><div>'+pyHTML(d)+" · "+esc(d.m)+"</div>"+(e.note?'<div class="nb-note">'+esc(e.note)+"</div>":"")+"</div>"+(e.n>1?'<span class="muted">'+e.n+"×</span>":"")+"</div>";
+      const d=byChar(c);
+      return '<div class="nb-row" data-c="'+c+'"><span class="nb-zi">'+c+'</span><div class="nb-mid"><div>'+pyHTML(d)+" · "+esc(d.m)+"</div>"+(S.notes[c]?'<div class="nb-note">'+esc(S.notes[c])+"</div>":"")+"</div></div>";
      }).join(""):'<p class="muted" style="margin:6px 0">Empty so far — swipe right in Learn on anything you don\'t know.</p>')+"</div>"):"")+
    '<div style="border-top:1px solid var(--line)"></div>'+
    '<button class="listtoggle" id="t-kn">🟢 Known ('+knownList.length+')<span>'+(KN_OPEN?"▾":"▸")+"</span></button>"+
@@ -1646,12 +1628,17 @@ function paintStats(){
   document.getElementById("s-imp").onclick=()=>{
     document.getElementById("s-io").innerHTML='<p class="muted">Paste your backup text here:</p><textarea id="s-txt"></textarea><button class="btn sm" id="s-doimp" style="margin-top:8px">Load backup</button>';
     document.getElementById("s-doimp").onclick=()=>{
-      try{const p=JSON.parse(document.getElementById("s-txt").value);if(!p.prog)throw 0;S=Object.assign(S,p);save();toast("Backup loaded!");paintStats();paintLearnStatus()}
-      catch(e){toast("Hmm, that text doesn't look like a backup")}
+      try{
+        const p=JSON.parse(document.getElementById("s-txt").value);if(!p.nb&&!p.prog)throw 0;
+        if(!confirm("Load this backup? Your CURRENT progress on this device will be replaced by it."))return;
+        S=Object.assign(DEFAULTS(),p);migrate();
+        UNDO=null;SES={learned:[]};
+        save();toast("Backup loaded!");paintStats();paintLearnStatus();
+      }catch(e){toast("Hmm, that text doesn't look like a backup")}
     };
   };
   document.getElementById("s-reset").onclick=()=>{
-    if(confirm("Erase ALL progress? This cannot be undone.")){S={prog:{},nb:{},newPerDay:3,audio:true,streak:0,lastDay:"",today:{day:"",n:0},tot:{rev:0,ok:0},forceUnlock:{}};UNDO=null;SES={learned:[],rev:0,missed:new Set()};save();paintStats();paintStreak();nextCard()}
+    if(confirm("Erase ALL progress? This cannot be undone.")){S=DEFAULTS();UNDO=null;SES={learned:[]};save();paintStats();paintStreak();nextCard()}
   };
 }
 
