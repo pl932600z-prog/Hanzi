@@ -34,7 +34,16 @@ header h1{font-size:18px;margin:0;letter-spacing:.3px}
 header h1 span{color:var(--acc)}
 .tagline{font-size:12px;color:var(--ink2);margin-top:1px}
 .pos{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--ink2);vertical-align:2px;margin-left:6px;white-space:nowrap}
-#streak{font-size:14px;color:var(--ink2)}
+#nb-btn{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:6px}
+#nb-btn b{font-size:13.5px;color:var(--acc)}
+#nbsheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:40}
+#nbsheet.on{display:flex}
+#nbsheet .sheet{background:var(--card);border-radius:20px 20px 0 0;max-width:560px;width:100%;height:88vh;overflow-y:auto;padding:16px 18px calc(20px + env(safe-area-inset-bottom))}
+.nb-pills{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 4px;align-items:center}
+.nb-plab{font-size:12px;color:var(--ink2);margin-right:2px}
+.nb-pill{border:1px solid var(--line);background:none;color:var(--ink2);border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer}
+.nb-pill.on{background:var(--acc-soft);color:var(--acc);border-color:var(--acc)}
+.nb-ghead{font-size:13px;font-weight:800;color:var(--ink2);margin:14px 0 0}
 main{max-width:560px;margin:0 auto;padding:8px 14px}
 .view{display:none}
 .view.on{display:block}
@@ -161,7 +170,7 @@ textarea{width:100%;height:90px}
     <h1>Han<span>zi</span></h1>
     <div class="tagline">For Leah - happy learning! 💛</div>
   </div>
-  <div id="streak"></div>
+  <button id="nb-btn" title="My notebook">📓 <b id="nb-count">0</b></button>
 </header>
 <main>
   <!-- LEARN -->
@@ -202,6 +211,7 @@ textarea{width:100%;height:90px}
   <button data-view="browse"><span class="zi">览</span>Browse</button>
   <button data-view="stats"><span class="zi">我</span>Me</button>
 </nav>
+<div id="nbsheet"><div class="sheet" id="nbsheet-body"></div></div>
 <div id="modal"><div class="sheet" id="modal-body"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -259,7 +269,10 @@ const FAMS=[
  ["虫","Insect","A crawling creature — bugs, snakes, and small animals."],
  ["鸟","Bird (full)","A perched bird with a claw — bird species."],
  ["马","Horse","A galloping horse — horses and riding."],
- ["皿","Dish","A shallow bowl on a stand — containers."]
+ ["皿","Dish","A shallow bowl on a stand — containers."],
+ ["厂","Cliff","A cliff overhang — halls, sheds, and spaces built against a wall."],
+ ["攵","Action hand","A hand holding a stick — tapping, prodding, making things happen."],
+ ["酉","Wine jar","A jar of fermenting brew — alcohol, vinegar, and sauces."]
 ];
 const DATA=[
 /* --- Water 氵 --- */
@@ -582,6 +595,410 @@ const DATA=[
 {c:"失",py:"shī",t:1,m:"to lose",pos:"verb",f:17,k:[["失","hand dropping something"]],mn:"A hand with something slipping past its fingers — to lose. 失败 = failure; you met 失 inside 铁 (iron).",w:[["失败","shībài","to fail; failure"],["失去","shīqù","to lose"]]},
 {c:"丢",py:"diū",t:1,m:"to lose, toss",pos:"verb",f:17,k:[["去","to go"],["丿","a slip away"]],mn:"One slip 丿 and it goes 去 — lost, tossed away: 丢了 = it's gone.",w:[["丢了","diū le","lost it"],["丢脸","diūliǎn","lose face"]]},
 {c:"即",py:"jí",t:2,m:"immediately; namely",pos:"adverb",f:17,k:[["皀","food vessel"],["卩","kneeling person"]],mn:"A person 卩 kneeling right at the food 皀 — immediately at hand: at once, precisely. 立即 = immediately.",w:[["立即","lìjí","immediately"],["即使","jíshǐ","even if"]]},
+/* --- LEVEL 4: Street China — signs, transit, money, getting around --- */
+{c:"东",py:"dōng",t:1,m:"east",pos:"noun",f:17,k:[["东","the sun rising behind a tree"]],mn:"The old form was the sun tangled in a tree at dawn — the east, where the day starts.",w:[["东西","dōngxi","thing, stuff"],["东门","dōngmén","east gate"]]},
+{c:"西",py:"xī",t:1,m:"west",pos:"noun",f:17,k:[["西","a bird settling into its nest"]],mn:"A bird settling into its nest at sundown — the west, where the sun goes home.",w:[["西边","xībiān","west side"],["西瓜","xīguā","watermelon"]]},
+{c:"南",py:"nán",t:2,m:"south",pos:"noun",f:17,k:[["南","a bell hung facing the sun"]],mn:"An old bell hung facing the sunny side — the south. 南京 = 'southern capital'.",w:[["南方","nánfāng","the south"],["南京","Nánjīng","Nanjing"]]},
+{c:"北",py:"běi",t:3,m:"north",pos:"noun",f:17,k:[["北","two people back to back"]],mn:"Two people sitting back to back — your BACK faces north when you face the winter sun. 北京 = 'northern capital'.",w:[["北京","Běijīng","Beijing"],["北方","běifāng","the north"]]},
+{c:"左",py:"zuǒ",t:3,m:"left",pos:"noun",f:17,k:[["𠂇","a hand"],["工","work tool"]],mn:"A hand holding the work tool 工 — the helper hand for most people: the left.",w:[["左边","zuǒbiān","left side"],["左转","zuǒzhuǎn","turn left"]]},
+{c:"右",py:"yòu",t:4,m:"right",pos:"noun",f:14,k:[["𠂇","a hand"],["口","mouth"]],mn:"The hand you eat with — hand 𠂇 plus mouth 口: the right.",w:[["右边","yòubiān","right side"],["右转","yòuzhuǎn","turn right"]]},
+{c:"前",py:"qián",t:2,m:"front; before",pos:"noun",f:28,k:[["丷","forward steps"],["月","boat-shape"],["刂","knife"]],mn:"A boat cutting forward through the water — ahead, in front, before.",w:[["前面","qiánmiàn","in front"],["以前","yǐqián","before, in the past"]]},
+{c:"后",py:"hòu",t:4,m:"back; after",pos:"noun",f:14,k:[["𠂋","a person"],["口","mouth"]],mn:"Someone calling out behind you — the back, afterwards. 后天 = the day AFTER tomorrow.",w:[["后面","hòumiàn","behind"],["以后","yǐhòu","later, after"]]},
+{c:"边",py:"biān",t:1,m:"side, edge",pos:"noun",f:19,k:[["辶","walk"],["力","strength"]],mn:"Walking 辶 with effort 力 all the way out to the edge — a side, a border.",w:[["旁边","pángbiān","next to"],["路边","lùbiān","roadside"]]},
+{c:"里",py:"lǐ",t:3,m:"inside; in",pos:"noun",f:37,k:[["田","field"],["土","earth"]],mn:"Field 田 over earth 土 — the village INSIDE the farmland. 哪里 = where, 这里 = here.",w:[["这里","zhèlǐ","here"],["里面","lǐmiàn","inside"]]},
+{c:"面",py:"miàn",t:4,m:"side, face; noodles",pos:"noun",f:17,k:[["面","a face with one big eye"]],mn:"A face with one big eye — a surface or side. On menus it means noodles (flour food)!",w:[["对面","duìmiàn","across from"],["面条","miàntiáo","noodles"]]},
+{c:"外",py:"wài",t:4,m:"outside; foreign",pos:"noun",f:17,k:[["夕","evening"],["卜","oracle crack"]],mn:"Fortune-telling 卜 done in the evening 夕 — OUTSIDE the normal time. 外卖 = takeout, 老外 = foreigner!",w:[["外卖","wàimài","takeout, delivery food"],["外国","wàiguó","foreign country"]]},
+{c:"方",py:"fāng",t:1,m:"direction; square",pos:"noun",f:17,k:[["方","a square banner"]],mn:"A square banner pointing the way — direction, place, method.",w:[["地方","dìfang","place"],["方向","fāngxiàng","direction"]]},
+{c:"出",py:"chū",t:1,m:"to go out, exit",pos:"verb",f:29,k:[["山","mountain (doubled)"]],mn:"A foot stepping out of a cave, drawn like stacked mountains 山 — to go OUT. 出口 = exit.",w:[["出口","chūkǒu","exit"],["出发","chūfā","to set off"]]},
+{c:"入",py:"rù",t:4,m:"to enter",pos:"verb",f:17,k:[["入","an arrowhead going in"]],mn:"Like 人 but leaning INTO the doorway — to enter. 入口 = entrance. Don't mix them up on doors!",w:[["入口","rùkǒu","entrance"],["收入","shōurù","income"]]},
+{c:"进",py:"jìn",t:4,m:"to enter, go in",pos:"verb",f:19,k:[["辶","walk"],["井","well (jǐng)"]],mn:"Walk 辶 toward the village well 井 — going in. 请进! = come in!",w:[["进站","jìnzhàn","enter the station"],["进来","jìnlái","come in"]]},
+{c:"开",py:"kāi",t:1,m:"to open; to start; to drive",pos:"verb",f:17,k:[["开","two hands lifting a bar"]],mn:"Two hands lifting the bar off a gate — to open. Also to start (开始) and to drive (开车).",w:[["开门","kāimén","open (for business)"],["打开","dǎkāi","to open up"]]},
+{c:"关",py:"guān",t:1,m:"to close, shut",pos:"verb",f:17,k:[["丷","bolt"],["天","bar across the door"]],mn:"A bolt dropped across the door bar — to close. 关门 = closed; 没关系 = 'no connection' → no problem!",w:[["关门","guānmén","to close"],["关系","guānxi","relationship"]]},
+{c:"退",py:"tuì",t:4,m:"to go back; refund",pos:"verb",f:19,k:[["辶","walk"],["艮","stubborn stop"]],mn:"Walking 辶 backwards from a firm stop 艮 — to retreat, return, REFUND. 退款 = money back.",w:[["退款","tuìkuǎn","refund"],["退票","tuìpiào","return a ticket"]]},
+{c:"到",py:"dào",t:4,m:"to arrive; to, until",pos:"verb",f:28,k:[["至","to reach"],["刂","knife"]],mn:"An arrow hitting the ground 至 plus a sharp edge 刂 — landing exactly there: to arrive.",w:[["到了","dào le","(we've) arrived"],["迟到","chídào","to be late"]]},
+{c:"达",py:"dá",t:2,m:"to reach",pos:"verb",f:19,k:[["辶","walk"],["大","big"]],mn:"Walk 辶 a big 大 distance and finally get there — to reach. 到达 = arrivals (airport board!).",w:[["到达","dàodá","to arrive (arrivals)"],["发达","fādá","developed"]]},
+{c:"发",py:"fā",t:1,m:"to send out; to depart",pos:"verb",f:39,k:[["发","a hand releasing an arrow"]],mn:"A hand letting an arrow fly — to send out, launch, depart. 出发 = departures.",w:[["出发","chūfā","to depart"],["发票","fāpiào","receipt (official)"]]},
+{c:"过",py:"guò",t:4,m:"to cross, pass",pos:"verb",f:19,k:[["辶","walk"],["寸","inch"]],mn:"Walking 辶 past, inch by inch 寸 — to cross, to pass. Also 'have done before': 吃过 = have eaten.",w:[["过马路","guò mǎlù","cross the road"],["经过","jīngguò","to pass by"]]},
+{c:"车",py:"chē",t:1,m:"vehicle, car",pos:"noun",f:25,k:[["车","a cart seen from above"]],mn:"A cart from above — one axle, two wheels. The family glyph itself: 火车 train, 汽车 car.",w:[["火车","huǒchē","train"],["停车场","tíngchēchǎng","parking lot"]]},
+{c:"乘",py:"chéng",t:2,m:"to ride, take (transport)",pos:"verb",f:17,k:[["乘","a person up a tree"]],mn:"A person climbing up into a tree — climbing ABOARD: to ride. 换乘 = transfer lines.",w:[["换乘","huànchéng","transfer (metro)"],["乘客","chéngkè","passenger"]]},
+{c:"坐",py:"zuò",t:4,m:"to sit; to take (transport)",pos:"verb",f:23,k:[["人","person (two of them)"],["土","earth"]],mn:"Two people sitting on the ground 土 — to sit; to ride: 坐地铁 = take the metro.",w:[["请坐","qǐng zuò","please sit"],["坐下","zuòxià","sit down"]]},
+{c:"号",py:"hào",t:4,m:"number; date",pos:"noun",f:14,k:[["口","mouth"],["丂","a cry curling up"]],mn:"A mouth 口 calling out your number — number, size, date. 几号? = what number/date?",w:[["号码","hàomǎ","number"],["几号","jǐ hào","what date / number?"]]},
+{c:"票",py:"piào",t:4,m:"ticket",pos:"noun",f:42,k:[["西","cover on top"],["示","altar"]],mn:"Spirit-money burned at the altar 示 — paper with value: a ticket. 车票, 门票, 发票.",w:[["车票","chēpiào","travel ticket"],["门票","ménpiào","admission ticket"]]},
+{c:"机",py:"jī",t:1,m:"machine",pos:"noun",f:6,k:[["木","tree"],["几","small table (jī — the sound!)"]],mn:"A wooden 木 contraption on a little stand 几 — a machine. 手机 hand-machine = phone!",w:[["手机","shǒujī","mobile phone"],["飞机","fēijī","airplane"]]},
+{c:"飞",py:"fēi",t:1,m:"to fly",pos:"verb",f:17,k:[["飞","a wing catching the wind"]],mn:"One wing up, catching the wind — to fly. 飞机 = flying machine.",w:[["飞机","fēijī","airplane"],["起飞","qǐfēi","to take off"]]},
+{c:"公",py:"gōng",t:1,m:"public",pos:"adjective",f:17,k:[["八","to divide"],["厶","private"]],mn:"Dividing 八 what was private 厶 — making it PUBLIC: 公交 public transit, 公园 public garden.",w:[["公交车","gōngjiāochē","public bus"],["公里","gōnglǐ","kilometer"]]},
+{c:"交",py:"jiāo",t:1,m:"to hand over; to cross",pos:"verb",f:17,k:[["交","a person with crossed legs"]],mn:"A person with crossed legs — things CROSSING over: hand over, exchange, traffic (交通).",w:[["交通","jiāotōng","traffic"],["交钱","jiāo qián","pay money"]]},
+{c:"租",py:"zū",t:1,m:"to rent",pos:"verb",f:17,k:[["禾","grain"],["且","stacked up"]],mn:"Paying the landlord in stacked 且 grain 禾 — rent. 出租车 = 'car for rent-out' = taxi!",w:[["出租车","chūzūchē","taxi"],["租房","zūfáng","rent a place"]]},
+{c:"自",py:"zì",t:4,m:"self",pos:"pronoun",f:17,k:[["自","a nose"]],mn:"A nose! Chinese speakers point at their nose for 'me' — self. 自动 self-moving = automatic.",w:[["自己","zìjǐ","oneself"],["自动","zìdòng","automatic"]]},
+{c:"行",py:"xíng",t:2,m:"to go; OK; (háng) bank",pos:"verb",f:17,k:[["行","a crossroads"]],mn:"A crossroads — where things GO. 行! = OK, works! Read háng in 银行 (bank) — a 'row' of shops.",w:[["银行","yínháng","bank"],["自行车","zìxíngchē","bicycle"]]},
+{c:"高",py:"gāo",t:1,m:"tall, high",pos:"adjective",f:17,k:[["高","a tall watchtower"]],mn:"A watchtower over the city gate — tall, high. 高铁 = high-speed rail.",w:[["高铁","gāotiě","high-speed train"],["高兴","gāoxìng","happy"]]},
+{c:"动",py:"dòng",t:4,m:"to move",pos:"verb",f:38,k:[["云","cloud (yún)"],["力","strength"]],mn:"Strength 力 pushing the clouds 云 — to move. 自动 = automatic, 运动 = sports.",w:[["自动","zìdòng","automatic"],["运动","yùndòng","sports, exercise"]]},
+{c:"电",py:"diàn",t:4,m:"electricity",pos:"noun",f:17,k:[["电","lightning striking a field"]],mn:"Lightning striking down through a field — electricity. 电梯 electric ladder = elevator, 电话 electric speech = phone.",w:[["电梯","diàntī","elevator"],["电话","diànhuà","telephone"]]},
+{c:"台",py:"tái",t:2,m:"platform",pos:"noun",f:14,k:[["厶","private corner"],["口","mouth"]],mn:"A raised spot where one voice 口 addresses everyone — a platform. 站台 = metro platform, 前台 = front desk.",w:[["站台","zhàntái","platform"],["前台","qiántái","front desk"]]},
+{c:"登",py:"dēng",t:1,m:"to board; to climb",pos:"verb",f:17,k:[["癶","two feet climbing"],["豆","a tall dish"]],mn:"Two feet 癶 stepping up onto a pedestal 豆 — to climb aboard. 登机 = boarding.",w:[["登机","dēngjī","board a plane"],["登录","dēnglù","log in"]]},
+{c:"元",py:"yuán",t:2,m:"yuan (¥)",pos:"measure word",f:17,k:[["二","two"],["儿","legs"]],mn:"A person with a big head — the FIRST, the origin — and the unit on every price tag: ¥.",w:[["十元","shí yuán","ten yuan"],["美元","měiyuán","US dollar"]]},
+{c:"价",py:"jià",t:4,m:"price",pos:"noun",f:4,k:[["亻","person"],["介","between (jiè)"]],mn:"The number a person 亻 puts between 介 buyer and seller — the price.",w:[["价格","jiàgé","price"],["半价","bànjià","half price"]]},
+{c:"格",py:"gé",t:2,m:"standard; grid",pos:"noun",f:6,k:[["木","tree"],["各","each (gè)"]],mn:"Wooden 木 slats, each 各 in its slot — a grid, a standard. 价格 = the price 'slot'.",w:[["价格","jiàgé","price"],["合格","hégé","up to standard"]]},
+{c:"付",py:"fù",t:4,m:"to pay",pos:"verb",f:4,k:[["亻","person"],["寸","inch (a hand)"]],mn:"A person 亻 pressing coins into a hand 寸 — to pay. 支付 = payment.",w:[["付款","fùkuǎn","to pay"],["支付","zhīfù","to pay (digitally)"]]},
+{c:"支",py:"zhī",t:1,m:"to pay out; branch",pos:"verb",f:39,k:[["十","branch"],["又","right hand"]],mn:"A hand 又 holding out a branch 十 — extending, paying OUT. 支付宝 = Alipay, the 'pay-treasure'!",w:[["支付宝","Zhīfùbǎo","Alipay"],["支持","zhīchí","to support"]]},
+{c:"收",py:"shōu",t:1,m:"to receive, collect",pos:"verb",f:52,k:[["丩","tangled threads"],["攵","action hand"]],mn:"A hand 攵 gathering tangled threads 丩 — to collect, receive. 收银台 = cashier.",w:[["收费","shōufèi","to charge a fee"],["收银台","shōuyíntái","cashier, checkout"]]},
+{c:"卖",py:"mài",t:4,m:"to sell",pos:"verb",f:17,k:[["十","out the top"],["买","to buy (mǎi)"]],mn:"买 'buy' with a 十 sticking OUT on top — goods going out: to sell. 外卖 = takeout.",w:[["外卖","wàimài","takeout"],["卖完","màiwán","sold out"]]},
+{c:"单",py:"dān",t:1,m:"list, bill; single",pos:"noun",f:17,k:[["单","a forked hunting net"]],mn:"An old hunting net — one pole, one net: SINGLE; and the sheet it's written on: a list. 菜单 = menu, 买单 = the bill!",w:[["菜单","càidān","menu"],["买单","mǎidān","the bill, please"]]},
+{c:"免",py:"miǎn",t:3,m:"to be exempt from",pos:"verb",f:17,k:[["免","a rabbit slipping the trap"]],mn:"A rabbit (兔 minus its tail-dot!) slipping out of the trap — exempt, spared. 免费 = free!",w:[["免费","miǎnfèi","free of charge"],["免税","miǎnshuì","duty-free"]]},
+{c:"折",py:"zhé",t:2,m:"discount; to fold",pos:"noun",f:3,k:[["扌","hand"],["斤","axe"]],mn:"A hand 扌 with an axe 斤 chopping the price — a discount. 8折 = you pay 80%!",w:[["打折","dǎzhé","on discount"],["八折","bāzhé","20% off"]]},
+{c:"市",py:"shì",t:4,m:"market; city",pos:"noun",f:17,k:[["亠","pole on top"],["巾","cloth banner"]],mn:"A cloth banner 巾 raised on a pole — market day! 超市 supermarket, 市中心 city center.",w:[["超市","chāoshì","supermarket"],["城市","chéngshì","city"]]},
+{c:"超",py:"chāo",t:1,m:"super-; to exceed",pos:"prefix",f:9,k:[["走","runner"],["召","to summon (zhào)"]],mn:"A runner 走 summoned 召 to overtake everyone — to exceed: SUPER. 超市 = super-market.",w:[["超市","chāoshì","supermarket"],["超人","chāorén","Superman"]]},
+{c:"款",py:"kuǎn",t:3,m:"sum of money",pos:"noun",f:17,k:[["士","scholar"],["示","altar"],["欠","to owe"]],mn:"What the scholar owes 欠 at the altar — a sum of money. 付款 pay, 取款 withdraw, 退款 refund.",w:[["付款","fùkuǎn","to pay"],["取款","qǔkuǎn","withdraw cash"]]},
+{c:"禁",py:"jìn",t:4,m:"to forbid",pos:"verb",f:42,k:[["林","forest"],["示","altar"]],mn:"A sacred grove 林 around the altar 示 — keep out! To forbid. 禁止 starts half the signs in China.",w:[["禁止","jìnzhǐ","forbidden"],["禁烟","jìnyān","no smoking"]]},
+{c:"止",py:"zhǐ",t:3,m:"to stop",pos:"verb",f:9,k:[["止","a footprint"]],mn:"A footprint planted firmly — STOP. The original foot; it hides inside 步 and 走.",w:[["禁止","jìnzhǐ","forbidden"],["停止","tíngzhǐ","to stop"]]},
+{c:"危",py:"wēi",t:1,m:"danger",pos:"adjective",f:51,k:[["⺈","person on the edge"],["厂","cliff"],["㔾","person crouching below"]],mn:"Someone on the cliff 厂 edge with another crouched below — DANGER.",w:[["危险","wēixiǎn","dangerous"],["危机","wēijī","crisis"]]},
+{c:"险",py:"xiǎn",t:3,m:"risk; dangerous",pos:"adjective",f:31,k:[["阝","hill (on the left)"],["佥","all together (qiān)"]],mn:"Everyone 佥 edging along the steep hill 阝 — risky. 危险 = danger!",w:[["危险","wēixiǎn","dangerous"],["保险","bǎoxiǎn","insurance"]]},
+{c:"注",py:"zhù",t:4,m:"to pour into; to note",pos:"verb",f:0,k:[["氵","water"],["主","master (zhǔ)"]],mn:"Pouring water 氵 exactly where the master 主 points — focused attention. 注意! = careful!",w:[["注意","zhùyì","pay attention!"],["注册","zhùcè","to register"]]},
+{c:"全",py:"quán",t:2,m:"whole, complete",pos:"adjective",f:24,k:[["人","cover"],["王","jade king"]],mn:"A flawless piece of jade 王 kept under cover 人 — whole, complete. 安全 = safety.",w:[["安全","ānquán","safety, safe"],["全部","quánbù","all of it"]]},
+{c:"勿",py:"wù",t:4,m:"do not (formal)",pos:"adverb",f:17,k:[["勿","a flag waving people off"]],mn:"A flag waved to warn people off — do NOT. 请勿… = 'please do not…' on every polite sign.",w:[["请勿","qǐng wù","please do not"],["请勿吸烟","qǐng wù xīyān","no smoking, please"]]},
+{c:"警",py:"jǐng",t:3,m:"police; to warn",pos:"noun",f:1,k:[["敬","respect (jìng)"],["言","words"]],mn:"Respectful 敬 but firm words 言 — a warning; the people who give them: 警察, the police.",w:[["警察","jǐngchá","police"],["报警","bàojǐng","call the police"]]},
+{c:"紧",py:"jǐn",t:3,m:"tight; urgent",pos:"adjective",f:13,k:[["臤","a firm hand"],["糸","silk thread"]],mn:"A firm hand pulling the silk thread 糸 taut — tight, urgent. 紧急出口 = emergency exit.",w:[["紧急","jǐnjí","urgent, emergency"],["紧张","jǐnzhāng","nervous"]]},
+{c:"防",py:"fáng",t:2,m:"to prevent, guard against",pos:"verb",f:31,k:[["阝","hill (on the left)"],["方","direction (fāng — the sound!)"]],mn:"A wall on the hill 阝 facing the direction 方 of attack — to guard against. 消防 = firefighting.",w:[["消防","xiāofáng","fire services"],["防水","fángshuǐ","waterproof"]]},
+{c:"工",py:"gōng",t:1,m:"work",pos:"noun",f:17,k:[["工","a carpenter's square"]],mn:"A carpenter's square — WORK. 施工 = construction ahead, 人工 = staffed counter / man-made.",w:[["工作","gōngzuò","work, job"],["施工","shīgōng","construction (in progress)"]]},
+{c:"用",py:"yòng",t:4,m:"to use",pos:"verb",f:17,k:[["用","a bucket put to use"]],mn:"An old bucket — as long as it works, USE it. 不用 = no need!, 使用 = to use (formal).",w:[["不用","búyòng","no need"],["使用","shǐyòng","to use"]]},
+{c:"厕",py:"cè",t:4,m:"toilet",pos:"noun",f:51,k:[["厂","cliff shelter"],["则","rule (zé)"]],mn:"The little shed 厂 you visit by rule 则 — the toilet. 男厕 / 女厕 on the doors!",w:[["厕所","cèsuǒ","toilet"],["公厕","gōngcè","public toilet"]]},
+{c:"所",py:"suǒ",t:3,m:"place",pos:"noun",f:17,k:[["户","door"],["斤","axe"]],mn:"The door 户 where the axe 斤 hangs — a place, a building. 厕所, 派出所 (police post).",w:[["厕所","cèsuǒ","toilet"],["所以","suǒyǐ","therefore, so"]]},
+{c:"男",py:"nán",t:2,m:"male, man",pos:"noun",f:37,k:[["田","field"],["力","strength"]],mn:"Strength 力 in the field 田 — the classic 'man'. On the bathroom door: 男.",w:[["男人","nánrén","man"],["男厕","náncè","men's toilet"]]},
+{c:"女",py:"nǚ",t:3,m:"female, woman",pos:"noun",f:15,k:[["女","a kneeling figure"]],mn:"The family radical you know from 妈好她 — standing alone on the other bathroom door: 女.",w:[["女人","nǚrén","woman"],["女厕","nǚcè","women's toilet"]]},
+{c:"医",py:"yī",t:1,m:"medical; doctor",pos:"noun",f:17,k:[["匚","an open box"],["矢","arrow"]],mn:"Pulling the arrow 矢 out into the doctor's box 匚 — medicine. 医院 = hospital.",w:[["医院","yīyuàn","hospital"],["医生","yīshēng","doctor"]]},
+{c:"园",py:"yuán",t:2,m:"garden",pos:"noun",f:17,k:[["囗","a wall around"],["元","yuan (yuán — the sound!)"]],mn:"A wall 囗 with 元 saying its name inside — a garden. 公园 = park.",w:[["公园","gōngyuán","park"],["花园","huāyuán","garden"]]},
+{c:"街",py:"jiē",t:1,m:"street",pos:"noun",f:23,k:[["行","crossroads"],["圭","stacked earth (guī)"]],mn:"A crossroads 行 with packed-earth 圭 lanes between — a street. 步行街 = pedestrian street.",w:[["大街","dàjiē","main street"],["逛街","guàngjiē","go around the shops"]]},
+{c:"道",py:"dào",t:4,m:"road, way",pos:"noun",f:19,k:[["辶","walk"],["首","head"]],mn:"Your head 首 choosing where to walk 辶 — the way, the road. 知道 = to KNOW the way.",w:[["知道","zhīdào","to know"],["街道","jiēdào","street"]]},
+{c:"酒",py:"jiǔ",t:3,m:"alcohol",pos:"noun",f:53,k:[["氵","water"],["酉","wine jar"]],mn:"Liquid 氵 from the wine jar 酉 — alcohol. Careful: 酒店 'alcohol shop' usually means HOTEL!",w:[["酒店","jiǔdiàn","hotel"],["啤酒","píjiǔ","beer"]]},
+{c:"卫",py:"wèi",t:4,m:"to guard; hygiene",pos:"noun",f:17,k:[["卫","a guard at his post"]],mn:"A sentry at his post — to guard. 卫生 'guarding life' = hygiene → 卫生间 = bathroom.",w:[["卫生间","wèishēngjiān","bathroom"],["卫生","wèishēng","hygiene"]]},
+{c:"生",py:"shēng",t:1,m:"life; to be born; raw",pos:"noun",f:17,k:[["生","a sprout from the soil"]],mn:"A sprout pushing out of the soil — life, birth, RAW. 学生 student, 医生 doctor, 生日 birthday.",w:[["学生","xuésheng","student"],["先生","xiānsheng","Mr., sir"]]},
+{c:"餐",py:"cān",t:1,m:"meal",pos:"noun",f:26,k:[["歺","picked-clean bones"],["又","hand"],["食","food"]],mn:"A hand 又 with food 食 down to the bones — a MEAL. 餐厅 dining hall, 早餐 breakfast.",w:[["餐厅","cāntīng","restaurant"],["早餐","zǎocān","breakfast"]]},
+{c:"厅",py:"tīng",t:1,m:"hall",pos:"noun",f:51,k:[["厂","cliff shelter"],["丁","nail (dīng)"]],mn:"A big open shelter 厂 pinned down with a nail 丁 — a hall. 餐厅, 大厅, 候车厅.",w:[["餐厅","cāntīng","restaurant"],["大厅","dàtīng","lobby, main hall"]]},
+{c:"点",py:"diǎn",t:3,m:"o'clock; dot; to order (food)",pos:"noun",f:11,k:[["占","to occupy (zhàn)"],["灬","fire dots"]],mn:"Little flame dots 灬 marking spots — a dot, a point in time (三点 = 3 o'clock), and pointing at dishes: 点菜!",w:[["三点","sān diǎn","three o'clock"],["点菜","diǎncài","to order food"]]},
+{c:"分",py:"fēn",t:1,m:"minute; cent; to divide",pos:"noun",f:28,k:[["八","to split"],["刀","knife"]],mn:"A knife 刀 splitting 八 things apart — to divide; the small pieces of an hour (minutes) or a yuan (cents).",w:[["分钟","fēnzhōng","minute"],["十分","shífēn","totally (ten-tenths!)"]]},
+{c:"半",py:"bàn",t:4,m:"half",pos:"numeral",f:17,k:[["丷","split marks"],["十","cut through the middle"]],mn:"A line cut straight through the middle — half. 三点半 = 3:30, 半价 = half price!",w:[["一半","yíbàn","half"],["半价","bànjià","half price"]]},
+{c:"时",py:"shí",t:2,m:"time; hour",pos:"noun",f:7,k:[["日","sun"],["寸","inch"]],mn:"The sun 日 measured inch by inch 寸 — time. 营业时间 = opening hours (the sign to check!).",w:[["时间","shíjiān","time"],["小时","xiǎoshí","hour"]]},
+{c:"候",py:"hòu",t:4,m:"to wait; time",pos:"verb",f:4,k:[["亻","person"],["侯","nobleman (hóu)"]],mn:"People 亻 waiting on the nobleman 侯 — to wait. 时候 = time, 候车室 = waiting room.",w:[["时候","shíhou","time, moment"],["等候","děnghòu","to wait (formal)"]]},
+{c:"早",py:"zǎo",t:3,m:"early; morning",pos:"adjective",f:7,k:[["日","sun"],["十","above the pole"]],mn:"The sun 日 just up over the flagpole 十 — early morning. 早! on its own = morning!",w:[["早上","zǎoshang","morning"],["早饭","zǎofàn","breakfast"]]},
+{c:"午",py:"wǔ",t:3,m:"noon",pos:"noun",f:17,k:[["午","a pestle standing straight up"]],mn:"A pestle standing straight up — like the sun at NOON. 上午 / 中午 / 下午.",w:[["中午","zhōngwǔ","noon"],["下午","xiàwǔ","afternoon"]]},
+{c:"周",py:"zhōu",t:1,m:"week; around",pos:"noun",f:14,k:[["冂","a frame"],["土","earth"],["口","mouth"]],mn:"A field frame with every plot filled — a full circle: a WEEK. 周一 Monday … 周日 Sunday.",w:[["周末","zhōumò","weekend"],["周一","zhōuyī","Monday"]]},
+{c:"几",py:"jǐ",t:3,m:"how many; several",pos:"pronoun",f:17,k:[["几","a small folding table"]],mn:"A little folding table — numbers small enough to count on it: how many? 几点? 几号线? 几位?",w:[["几点","jǐ diǎn","what time?"],["几个","jǐ ge","how many?"]]},
+{c:"新",py:"xīn",t:1,m:"new",pos:"adjective",f:6,k:[["亲","hazel tree"],["斤","axe"]],mn:"An axe 斤 cutting fresh wood from the tree 亲 — brand NEW. 新开 = newly opened.",w:[["新年","xīnnián","New Year"],["最新","zuìxīn","the newest"]]},
+{c:"每",py:"měi",t:3,m:"every, each",pos:"pronoun",f:15,k:[["人","leaning over"],["母","mother"]],mn:"A mother 母 checking on the family one by one — EVERY single one. 每天 = every day.",w:[["每天","měitiān","every day"],["每个","měi ge","each one"]]},
+{c:"座",py:"zuò",t:4,m:"seat",pos:"noun",f:30,k:[["广","shelter"],["坐","to sit (zuò)"]],mn:"Sitting 坐 under a roof 广 — a SEAT. 让座 = give up your seat (the priority-seat sign).",w:[["座位","zuòwèi","seat"],["让座","ràngzuò","give up one's seat"]]},
+{c:"共",py:"gòng",t:4,m:"shared; altogether",pos:"adverb",f:17,k:[["共","many hands lifting together"]],mn:"Many hands lifting one thing together — shared. 一共 = altogether: 一共多少钱?",w:[["一共","yígòng","altogether"],["公共","gōnggòng","public, communal"]]},
+{c:"服",py:"fú",t:2,m:"to serve; clothes",pos:"verb",f:21,k:[["月","flesh (body)"],["𠬝","a hand pressing"]],mn:"A hand fitting cloth to the body 月 — clothes, and attending to someone: to serve. 服务!",w:[["服务","fúwù","service"],["衣服","yīfu","clothes"]]},
+{c:"务",py:"wù",t:4,m:"affairs, business",pos:"noun",f:38,k:[["夂","striding legs"],["力","strength"]],mn:"Legs 夂 and muscle 力 getting things done — affairs, duties. 服务区 = highway service area.",w:[["服务","fúwù","service"],["服务员","fúwùyuán","waiter, server"]]},
+{c:"营",py:"yíng",t:2,m:"to operate, run",pos:"verb",f:20,k:[["艹","grass roofs"],["吕","linked rooms"]],mn:"A camp of linked huts 吕 under grass roofs 艹 — running an operation. 营业中 = OPEN!",w:[["营业","yíngyè","open / in business"],["营业中","yíngyè zhōng","open now"]]},
+{c:"业",py:"yè",t:4,m:"business; trade",pos:"noun",f:17,k:[["业","a rack of hanging bells"]],mn:"An old instrument rack, everything in its place — a trade, a business. 营业时间 = opening hours.",w:[["营业","yíngyè","in business"],["毕业","bìyè","to graduate"]]},
+{c:"休",py:"xiū",t:1,m:"to rest",pos:"verb",f:4,k:[["亻","person"],["木","tree"]],mn:"A person 亻 leaning against a tree 木 — resting. 休息中 = 'on break' (shop door sign).",w:[["休息","xiūxi","to rest"],["午休","wǔxiū","lunch break"]]},
+{c:"走",py:"zǒu",t:3,m:"to walk; to leave",pos:"verb",f:9,k:[["走","a runner mid-stride"]],mn:"A person mid-stride, arms pumping — to walk, to go. 怎么走? = how do I get there? 慢走! = take care!",w:[["走路","zǒulù","to walk"],["怎么走","zěnme zǒu","how do I get there?"]]},
+{c:"对",py:"duì",t:4,m:"correct; opposite; toward",pos:"adjective",f:39,k:[["又","hand"],["寸","inch"]],mn:"A hand 又 measuring to the inch 寸 — exactly right: correct. 对! = right! 对面 = across from.",w:[["对不起","duìbuqǐ","sorry!"],["对面","duìmiàn","across from"]]},
+{c:"没",py:"méi",t:2,m:"not have; (did) not",pos:"adverb",f:0,k:[["氵","water"],["殳","hand with a tool"]],mn:"A hand reaching into the water 氵 and coming up empty — NOT have. 没有 = don't have; 没关系 = no problem.",w:[["没有","méiyǒu","to not have"],["没关系","méi guānxi","no problem"]]},
+{c:"怎",py:"zěn",t:3,m:"how",pos:"pronoun",f:2,k:[["乍","suddenly (zhà)"],["心","heart"]],mn:"Your heart 心 caught off guard 乍 — HOW?! 怎么走? how do I get there? 怎么办? what now?",w:[["怎么","zěnme","how"],["怎么样","zěnmeyàng","how about it?"]]},
+/* --- LEVEL 5: Digital China — phones, apps, WeChat, shopping online --- */
+{c:"网",py:"wǎng",t:3,m:"net; internet",pos:"noun",f:17,k:[["网","a net with crossed cords"]],mn:"A net with its cords crossed — fishing net, and now THE net: 上网 = go online.",w:[["上网","shàngwǎng","go online"],["网络","wǎngluò","network, internet"]]},
+{c:"络",py:"luò",t:4,m:"web, network",pos:"noun",f:13,k:[["纟","silk"],["各","each (gè)"]],mn:"Silk threads 纟 tying each 各 point to every other — a web. 网络 = the network.",w:[["网络","wǎngluò","internet"],["联络","liánluò","to contact"]]},
+{c:"码",py:"mǎ",t:3,m:"code; number",pos:"noun",f:36,k:[["石","stone"],["马","horse (mǎ — the sound!)"]],mn:"Stones 石 once used for counting — digits, codes. 扫码 scan the QR code, 密码 password, 号码 number.",w:[["扫码","sǎomǎ","scan a QR code"],["密码","mìmǎ","password"]]},
+{c:"密",py:"mì",t:4,m:"secret; dense",pos:"adjective",f:18,k:[["宀","roof"],["必","must (bì)"],["山","mountain"]],mn:"What must 必 stay under the roof 宀, hidden in the mountains 山 — secret. 密码 = password.",w:[["密码","mìmǎ","password"],["秘密","mìmì","a secret"]]},
+{c:"录",py:"lù",t:4,m:"to record",pos:"verb",f:17,k:[["录","carved grooves"]],mn:"Grooves carved to keep a record — to record. 登录 log in, 录音 voice memo.",w:[["登录","dēnglù","to log in"],["录音","lùyīn","voice recording"]]},
+{c:"信",py:"xìn",t:4,m:"letter; to trust",pos:"noun",f:4,k:[["亻","person"],["言","words"]],mn:"A person 亻 standing by their words 言 — trust; a message you can trust: a letter. 微信 = WeChat!",w:[["微信","Wēixìn","WeChat"],["短信","duǎnxìn","text message"]]},
+{c:"微",py:"wēi",t:1,m:"tiny, micro-",pos:"adjective",f:17,k:[["彳","small steps"],["山","hill"],["攵","action hand"]],mn:"Small steps 彳 over a small hill — tiny, micro. 微信 = 'micro-letters' = WeChat.",w:[["微信","Wēixìn","WeChat"],["微辣","wēilà","mildly spicy"]]},
+{c:"确",py:"què",t:4,m:"certain, sure",pos:"adjective",f:36,k:[["石","stone"],["角","horn (jiǎo)"]],mn:"Solid as stone 石, sharp as horn 角 — certain. 确认 = the CONFIRM button.",w:[["确认","quèrèn","to confirm"],["正确","zhèngquè","correct"]]},
+{c:"删",py:"shān",t:1,m:"to delete",pos:"verb",f:28,k:[["册","a bound book"],["刂","knife"]],mn:"A knife 刂 scraping words off the bamboo book 册 — to DELETE.",w:[["删除","shānchú","to delete"],["删掉","shāndiào","delete it"]]},
+{c:"设",py:"shè",t:4,m:"to set up",pos:"verb",f:1,k:[["讠","speech"],["殳","hand with a tool"]],mn:"Giving orders 讠 while the hands build 殳 — to set up. 设置 = Settings.",w:[["设置","shèzhì","settings"],["设计","shèjì","design"]]},
+{c:"置",py:"zhì",t:4,m:"to place, put",pos:"verb",f:17,k:[["罒","a net on top"],["直","straight (zhí)"]],mn:"Caught in the net 罒 and set down straight 直 — to place. 设置 = Settings; 位置 = location.",w:[["设置","shèzhì","settings"],["位置","wèizhì","location, position"]]},
+{c:"装",py:"zhuāng",t:1,m:"to install; to dress up",pos:"verb",f:27,k:[["壮","strong (zhuàng)"],["衣","clothes"]],mn:"Dressing something in strong 壮 new clothes 衣 — to outfit: install an app, pack a bag.",w:[["安装","ānzhuāng","to install"],["装修","zhuāngxiū","to renovate"]]},
+{c:"载",py:"zài",t:4,m:"to load; to carry",pos:"verb",f:25,k:[["土","earth piled up"],["车","cart"],["戈","spear"]],mn:"A war cart 车 loaded with gear — to carry, to load. 下载 = download ('load down').",w:[["下载","xiàzài","to download"],["载客","zàikè","carry passengers"]]},
+{c:"传",py:"chuán",t:2,m:"to pass on, transmit",pos:"verb",f:4,k:[["亻","person"],["专","focused (zhuān)"]],mn:"Person to person 亻, hand to hand — to pass on. 上传 = upload.",w:[["上传","shàngchuán","to upload"],["传给","chuán gěi","pass to"]]},
+{c:"输",py:"shū",t:1,m:"to transport; to lose (a game)",pos:"verb",f:25,k:[["车","cart"],["俞","hollowed boat (yú)"]],mn:"Carts 车 and boats 俞 moving goods — to transport (输入 = input). Slang twist: to LOSE a game!",w:[["输入","shūrù","to input, type in"],["输了","shū le","lost (the game)"]]},
+{c:"击",py:"jī",t:1,m:"to hit, strike",pos:"verb",f:17,k:[["击","a hand striking down"]],mn:"A hand striking down — to hit. 点击 = click/tap ('dot-strike').",w:[["点击","diǎnjī","to click, tap"],["攻击","gōngjī","to attack"]]},
+{c:"屏",py:"píng",t:2,m:"screen",pos:"noun",f:44,k:[["尸","reclining body"],["并","side by side (bìng)"]],mn:"A standing panel you rest 尸 behind — a screen. 屏幕 = the screen; 截屏 = screenshot.",w:[["屏幕","píngmù","screen"],["截屏","jiépíng","screenshot"]]},
+{c:"频",py:"pín",t:2,m:"frequency",pos:"noun",f:35,k:[["步","steps (bù)"],["页","head/page"]],mn:"Steps 步 repeating page after page 页 — frequency. 视频 = video, 频道 = channel.",w:[["视频","shìpín","video"],["频道","píndào","channel"]]},
+{c:"播",py:"bō",t:1,m:"to broadcast; to sow",pos:"verb",f:3,k:[["扌","hand"],["番","turns of the field (fān)"]],mn:"A hand 扌 scattering seed across the field 番 — to sow, to BROADCAST. 直播 = livestream!",w:[["直播","zhíbō","livestream"],["播放","bōfàng","to play (media)"]]},
+{c:"放",py:"fàng",t:4,m:"to put; to release; to play",pos:"verb",f:52,k:[["方","direction (fāng — the sound!)"],["攵","action hand"]],mn:"A hand 攵 letting go in some direction 方 — to release, put down, PLAY media. 放假 = holiday (released from work)!",w:[["播放","bōfàng","to play (media)"],["放心","fàngxīn","don't worry"]]},
+{c:"图",py:"tú",t:2,m:"picture, map",pos:"noun",f:17,k:[["囗","frame"],["冬","winter scene inside"]],mn:"A framed 囗 scene — a picture, a map. 地图 = map, 图片 = image.",w:[["地图","dìtú","map"],["图片","túpiàn","picture, image"]]},
+{c:"片",py:"piàn",t:4,m:"slice; photo, clip",pos:"noun",f:17,k:[["片","half a split tree"]],mn:"A tree split in half — a thin slice: a card, a photo, a film clip. 照片 = photo.",w:[["照片","zhàopiàn","photo"],["名片","míngpiàn","business card"]]},
+{c:"声",py:"shēng",t:1,m:"sound, voice",pos:"noun",f:17,k:[["声","a hanging chime"]],mn:"A stone chime hanging from its frame — SOUND. 声音 = voice, 大声 = loud.",w:[["声音","shēngyīn","sound, voice"],["大声","dàshēng","loud"]]},
+{c:"音",py:"yīn",t:1,m:"sound, tone",pos:"noun",f:45,k:[["立","to stand"],["日","sun (a tongue in a mouth!)"]],mn:"Originally a tongue standing 立 in a mouth — a musical sound. 拼音 = pinyin, 音乐 = music.",w:[["拼音","pīnyīn","pinyin"],["音乐","yīnyuè","music"]]},
+{c:"乐",py:"lè",t:4,m:"happy; (yuè) music",pos:"adjective",f:17,k:[["乐","strings on a wooden frame"]],mn:"An instrument — strings on wood. Music (yuè) makes you happy (lè)! 可乐 = cola, the 'drinkable happiness'.",w:[["快乐","kuàilè","happy"],["可乐","kělè","cola"]]},
+{c:"戏",py:"xì",t:4,m:"play, show; game",pos:"noun",f:39,k:[["又","hand"],["戈","spear"]],mn:"A hand 又 waving a prop spear 戈 on stage — a show, a play. 游戏 = game!",w:[["游戏","yóuxì","game"],["京戏","jīngxì","Beijing opera"]]},
+{c:"充",py:"chōng",t:1,m:"to fill, charge",pos:"verb",f:17,k:[["亠","lid"],["儿","legs"]],mn:"Filling a jar to the lid 亠 — to fill up. 充电 = charge the battery (and recharge yourself!).",w:[["充电","chōngdiàn","to charge (battery)"],["充值","chōngzhí","to top up"]]},
+{c:"账",py:"zhàng",t:4,m:"account",pos:"noun",f:41,k:[["贝","money shell"],["长","long (cháng)"]],mn:"A LONG 长 list of money 贝 in and out — an account. 账号 = account number/ID.",w:[["账号","zhànghào","account, user ID"],["账单","zhàngdān","the bill"]]},
+{c:"卡",py:"kǎ",t:3,m:"card",pos:"noun",f:17,k:[["上","up"],["下","down"]],mn:"Stuck between UP 上 and DOWN 下 — a card jammed in the slot! 银行卡 = bank card; also 'laggy' (卡了)!",w:[["银行卡","yínhángkǎ","bank card"],["卡了","kǎ le","it froze / it's lagging"]]},
+{c:"群",py:"qún",t:2,m:"group, herd",pos:"noun",f:17,k:[["君","lord (jūn)"],["羊","sheep"]],mn:"A lord 君 with his flock of sheep 羊 — a herd: the WeChat GROUP. 群聊 = group chat.",w:[["微信群","Wēixìn qún","WeChat group"],["群聊","qúnliáo","group chat"]]},
+{c:"聊",py:"liáo",t:2,m:"to chat",pos:"verb",f:17,k:[["耳","ear"],["卯","paired doors (mǎo)"]],mn:"Ears 耳 at the open door 卯 — idle talk: to chat. 聊天 = chatting ('chat about the sky').",w:[["聊天","liáotiān","to chat"],["群聊","qúnliáo","group chat"]]},
+{c:"评",py:"píng",t:2,m:"to comment, review",pos:"verb",f:1,k:[["讠","speech"],["平","level (píng — the sound!)"]],mn:"Level-headed 平 words 讠 — a fair review. 好评 = 5-star review, 评论 = comments section.",w:[["评论","pínglùn","comment(s)"],["好评","hǎopíng","good review"]]},
+{c:"论",py:"lùn",t:4,m:"to discuss; theory",pos:"verb",f:1,k:[["讠","speech"],["仑","ordered bundle (lún)"]],mn:"Ordered 仑 speech 讠 — reasoned discussion. 评论区 = the comments — where order goes to die!",w:[["评论","pínglùn","to comment"],["讨论","tǎolùn","to discuss"]]},
+{c:"赞",py:"zàn",t:4,m:"to like, praise",pos:"verb",f:41,k:[["先","first (two of them!)"],["贝","money shell"]],mn:"Two nobles 先先 offering treasure 贝 in praise — to LIKE. 点赞 = tap the thumbs-up!",w:[["点赞","diǎnzàn","to 'like'"],["赞!","zàn","awesome!"]]},
+{c:"丝",py:"sī",t:1,m:"silk; thread",pos:"noun",f:13,k:[["丝","two skeins of silk"]],mn:"Two twisted skeins of silk — thread. 粉丝 'powder threads' = rice noodles AND fans (from English 'fans')!",w:[["粉丝","fěnsī","fans; glass noodles"],["丝绸","sīchóu","silk"]]},
+{c:"搜",py:"sōu",t:1,m:"to search",pos:"verb",f:3,k:[["扌","hand"],["叟","old man with a torch (sǒu)"]],mn:"A hand 扌 holding a torch, hunting room by room — to SEARCH. 搜一搜 = search it up.",w:[["搜索","sōusuǒ","to search"],["搜一搜","sōu yi sōu","look it up"]]},
+{c:"页",py:"yè",t:4,m:"page",pos:"noun",f:35,k:[["页","a head on a body"]],mn:"Originally a head — now a PAGE. The family glyph itself: 网页 = web page, 主页 = homepage.",w:[["网页","wǎngyè","web page"],["主页","zhǔyè","homepage"]]},
+{c:"链",py:"liàn",t:4,m:"chain; link",pos:"noun",f:10,k:[["钅","metal"],["连","to connect (lián)"]],mn:"Metal 钅 rings connected 连 — a chain: the LINK you tap. 链接 = hyperlink.",w:[["链接","liànjiē","link (URL)"],["项链","xiàngliàn","necklace"]]},
+{c:"复",py:"fù",t:4,m:"to repeat; to reply",pos:"verb",f:17,k:[["复","walking the same road back"]],mn:"Walking the same road back again — to repeat, to reply. 回复 = reply, 复制 = copy.",w:[["回复","huífù","to reply"],["复习","fùxí","to review (study)"]]},
+{c:"制",py:"zhì",t:4,m:"to make, manufacture",pos:"verb",f:28,k:[["牛-ish","raw material"],["刂","knife"]],mn:"Cutting 刂 raw material to shape — to make. 复制 = copy ('make again'), 中国制造 = made in China.",w:[["复制","fùzhì","to copy"],["制作","zhìzuò","to make, produce"]]},
+{c:"重",py:"zhòng",t:4,m:"heavy; (chóng) again",pos:"adjective",f:17,k:[["重","a person carrying a heavy sack"]],mn:"A figure bent under a heavy sack — heavy (zhòng); done over again (chóng): 重要 important, 重新 anew.",w:[["重要","zhòngyào","important"],["重新","chóngxīn","again, anew"]]},
+{c:"存",py:"cún",t:2,m:"to save, store",pos:"verb",f:17,k:[["才","sprout (cái)"],["子","child"]],mn:"A seedling 才 and a child 子 — kept safe for later: to SAVE. 保存 = save the file!",w:[["保存","bǎocún","to save (a file)"],["存钱","cúnqián","save money"]]},
+{c:"文",py:"wén",t:2,m:"writing; language",pos:"noun",f:17,k:[["文","a tattooed figure"]],mn:"A figure marked with patterns — writing, culture. 中文 = Chinese, 文件 = document/file.",w:[["中文","Zhōngwén","Chinese (language)"],["文件","wénjiàn","file, document"]]},
+{c:"字",py:"zì",t:4,m:"character, word",pos:"noun",f:18,k:[["宀","roof"],["子","child"]],mn:"A child 子 raised under the roof 宀 — characters are 'born and raised': 汉字! 名字 = name.",w:[["汉字","Hànzì","Chinese character"],["名字","míngzi","name"]]},
+{c:"名",py:"míng",t:2,m:"name",pos:"noun",f:14,k:[["夕","evening"],["口","mouth"]],mn:"In the evening dark 夕 you call out 口 to be recognized — your NAME. 签名 = signature.",w:[["名字","míngzi","name"],["有名","yǒumíng","famous"]]},
+{c:"平",py:"píng",t:2,m:"flat, level",pos:"adjective",f:17,k:[["平","scales in balance"]],mn:"A balance scale sitting level — flat, even, fair. 平台 = platform, 水平 = level (skill).",w:[["平台","píngtái","platform (app)"],["平安","píng'ān","safe and sound"]]},
+{c:"系",py:"xì",t:4,m:"system; to tie",pos:"noun",f:13,k:[["丿","a hand from above"],["糸","silk skein"]],mn:"A hand holding threads 糸 together — ties, connections. 联系 = contact, 系统 = system.",w:[["联系","liánxì","to contact"],["系统","xìtǒng","system"]]},
+{c:"统",py:"tǒng",t:3,m:"to unite; system",pos:"verb",f:13,k:[["纟","silk"],["充","to fill (chōng)"]],mn:"Threads 纟 gathered into one full 充 cord — united. 系统 = the system (update again?!).",w:[["系统","xìtǒng","system"],["传统","chuántǒng","tradition"]]},
+{c:"版",py:"bǎn",t:3,m:"edition, version",pos:"noun",f:17,k:[["片","slice"],["反","flipped (fǎn)"]],mn:"A wooden printing board 片, carved flipped 反 — an edition. 版本 = version (of the app).",w:[["版本","bǎnběn","version"],["新版","xīnbǎn","new version"]]},
+{c:"本",py:"běn",t:3,m:"root; notebook; (measure for books)",pos:"noun",f:6,k:[["木","tree"],["一","root mark"]],mn:"A tree 木 with a stroke marking its ROOT — origin. 日本 = 'sun's root' = Japan, 一本书 = one book.",w:[["版本","bǎnběn","version"],["笔记本","bǐjìběn","notebook, laptop"]]},
+{c:"能",py:"néng",t:2,m:"can, to be able",pos:"verb",f:21,k:[["厶","head"],["月","body"],["匕","claws (two!)"]],mn:"Originally a BEAR — head, body, claws. Strong as a bear = CAN, able. 不能 = can't.",w:[["不能","bù néng","cannot"],["可能","kěnéng","maybe, possible"]]},
+{c:"应",py:"yīng",t:1,m:"should; (yìng) to respond",pos:"verb",f:30,k:[["广","shelter"],["点点","people inside"]],mn:"Everyone under the shelter 广 answers when called — to respond (yìng); what one SHOULD do (yīng). 应用 = app!",w:[["应该","yīnggāi","should"],["应用","yìngyòng","app, application"]]},
+{c:"软",py:"ruǎn",t:3,m:"soft",pos:"adjective",f:25,k:[["车","cart"],["欠","to yawn/lack (qiàn)"]],mn:"A cart 车 with a sagging 欠 load — SOFT. 软件 = software ('soft-ware', literally!).",w:[["软件","ruǎnjiàn","software, app"],["软座","ruǎnzuò","soft seat (train)"]]},
+{c:"改",py:"gǎi",t:3,m:"to change, correct",pos:"verb",f:52,k:[["己","self (jǐ)"],["攵","action hand"]],mn:"A hand 攵 straightening the self 己 — to change, to fix. 改密码 = change your password.",w:[["修改","xiūgǎi","to edit, modify"],["改天","gǎitiān","another day"]]},
+{c:"短",py:"duǎn",t:3,m:"short",pos:"adjective",f:17,k:[["矢","arrow"],["豆","bean dish"]],mn:"Measured against an arrow 矢 and a dish 豆 — things that come up SHORT. 短信 = SMS.",w:[["短信","duǎnxìn","text message"],["长短","chángduǎn","length"]]},
+{c:"长",py:"cháng",t:2,m:"long; (zhǎng) to grow",pos:"adjective",f:17,k:[["长","long flowing hair"]],mn:"A figure with long flowing hair — LONG (cháng); hair grows: to grow (zhǎng). 长按 = long-press!",w:[["长按","chángàn","long-press"],["长城","Chángchéng","the Great Wall"]]},
+{c:"按",py:"àn",t:4,m:"to press",pos:"verb",f:3,k:[["扌","hand"],["安","peace (ān — the sound!)"]],mn:"A hand 扌 pressing down gently 安 — to press. 按钮 = button, 长按 = press and hold.",w:[["长按","chángàn","long-press"],["按时","ànshí","on time"]]},
+{c:"邮",py:"yóu",t:2,m:"mail",pos:"noun",f:31,k:[["由","source (yóu — the sound!)"],["⻏","city"]],mn:"From its source 由 to your city ⻏ — the mail. 邮箱 = mailbox → email inbox.",w:[["邮箱","yóuxiāng","email; mailbox"],["邮局","yóujú","post office"]]},
+{c:"箱",py:"xiāng",t:1,m:"box, chest",pos:"noun",f:33,k:[["竹","bamboo"],["相","mutual (xiāng — the sound!)"]],mn:"A woven bamboo 竹 chest — a box. 邮箱 mailbox, 冰箱 icebox = fridge, 行李箱 = suitcase.",w:[["邮箱","yóuxiāng","inbox, mailbox"],["冰箱","bīngxiāng","fridge"]]},
+{c:"知",py:"zhī",t:1,m:"to know",pos:"verb",f:14,k:[["矢","arrow"],["口","mouth"]],mn:"An answer that flies from the mouth 口 fast as an arrow 矢 — to KNOW. 知道! 通知 = notification.",w:[["知道","zhīdào","to know"],["通知","tōngzhī","notification"]]},
+{c:"问",py:"wèn",t:4,m:"to ask",pos:"verb",f:16,k:[["门","gate"],["口","mouth"]],mn:"A mouth 口 at the gate 门 — to ASK. 请问… = excuse me, may I ask…? 问题 = question/problem.",w:[["请问","qǐngwèn","excuse me…"],["问题","wèntí","question, problem"]]},
+{c:"回",py:"huí",t:2,m:"to return; to reply",pos:"verb",f:14,k:[["回","a spiral going back in"]],mn:"A spiral circling back to its center — to RETURN. 回家 go home, 回复 reply, 回来 come back.",w:[["回家","huí jiā","go home"],["回复","huífù","to reply"]]},
+{c:"答",py:"dá",t:2,m:"to answer",pos:"verb",f:33,k:[["竹","bamboo"],["合","to fit together (hé)"]],mn:"Bamboo 竹 slips that fit 合 the question — an ANSWER. 回答 = to answer.",w:[["回答","huídá","to answer"],["答案","dá'àn","the answer"]]},
+{c:"器",py:"qì",t:4,m:"device, utensil",pos:"noun",f:14,k:[["口","mouths (four!)"],["犬","dog"]],mn:"Four vessels 口 guarded by a dog 犬 — utensils, devices. 充电器 = charger, 机器 = machine.",w:[["充电器","chōngdiànqì","charger"],["机器","jīqì","machine"]]},
+{c:"品",py:"pǐn",t:3,m:"product; grade",pos:"noun",f:14,k:[["口","mouths (three!)"]],mn:"Three mouths tasting and judging — quality, goods. 商品 = product, 甜品 = dessert!",w:[["商品","shāngpǐn","product, goods"],["甜品","tiánpǐn","dessert"]]},
+{c:"产",py:"chǎn",t:3,m:"to produce",pos:"verb",f:45,k:[["立","standing"],["厂","cliff/factory"]],mn:"Standing 立 at the factory 厂 — to produce. 产品 = product, 国产 = made in China.",w:[["产品","chǎnpǐn","product"],["国产","guóchǎn","domestically made"]]},
+{c:"牌",py:"pái",t:2,m:"sign board; brand",pos:"noun",f:17,k:[["片","board"],["卑","low (bēi)"]],mn:"A board 片 hung low 卑 where all can read it — a signboard, a BRAND. 路牌 = street sign.",w:[["品牌","pǐnpái","brand"],["路牌","lùpái","street sign"]]},
+{c:"广",py:"guǎng",t:3,m:"wide, vast",pos:"adjective",f:30,k:[["广","a wide open shelter"]],mn:"The wide-open shelter itself — vast. 广告 = advertisement ('wide-telling'), 广场 = plaza.",w:[["广告","guǎnggào","advertisement"],["广场","guǎngchǎng","plaza, square"]]},
+{c:"告",py:"gào",t:4,m:"to tell, announce",pos:"verb",f:14,k:[["牛","ox"],["口","mouth"]],mn:"An ox 牛 led before the crowd while the mouth 口 announces — to TELL. 广告 ad, 告诉 tell.",w:[["广告","guǎnggào","ad"],["告诉","gàosu","to tell"]]},
+{c:"订",py:"dìng",t:4,m:"to book, order",pos:"verb",f:1,k:[["讠","speech"],["丁","nail (dīng — the sound!)"]],mn:"Nailing 丁 it down with your word 讠 — to book. 订单 = your order, 预订 = reserve.",w:[["订单","dìngdān","order (e-commerce)"],["预订","yùdìng","to reserve"]]},
+{c:"预",py:"yù",t:4,m:"in advance",pos:"adverb",f:35,k:[["予","to give (yǔ)"],["页","head/page"]],mn:"Giving 予 it thought before the page 页 arrives — in ADVANCE. 预报 forecast, 预约 appointment.",w:[["预约","yùyuē","to book an appointment"],["天气预报","tiānqì yùbào","weather forecast"]]},
+{c:"约",py:"yuē",t:1,m:"to arrange, agree on",pos:"verb",f:13,k:[["纟","silk"],["勺","spoon (sháo)"]],mn:"Tying a thread 纟 around a spoon 勺 as a promise — an agreement, a date. 预约 = appointment.",w:[["预约","yùyuē","appointment"],["约会","yuēhuì","a date"]]},
+{c:"址",py:"zhǐ",t:3,m:"address, site",pos:"noun",f:23,k:[["土","earth"],["止","foot stopping (zhǐ — the sound!)"]],mn:"The ground 土 where your feet stop 止 — an ADDRESS. 地址 = address, 网址 = URL.",w:[["地址","dìzhǐ","address"],["网址","wǎngzhǐ","web address"]]},
+{c:"配",py:"pèi",t:4,m:"to match; to deliver",pos:"verb",f:53,k:[["酉","wine jar"],["己","self"]],mn:"Matching the wine 酉 to the guest 己 — to pair, to allot. 配送 = delivery, 配料 = ingredients.",w:[["配送","pèisòng","delivery (logistics)"],["配料","pèiliào","ingredients"]]},
+{c:"快",py:"kuài",t:4,m:"fast; soon",pos:"adjective",f:2,k:[["忄","heart"],["夬","decisive cut (guài)"]],mn:"A heart 忄 that decides in one cut 夬 — FAST. 快递 = express delivery, 快点! = hurry up!",w:[["快递","kuàidì","express delivery"],["快乐","kuàilè","happy"]]},
+{c:"货",py:"huò",t:4,m:"goods",pos:"noun",f:41,k:[["化","to change (huà)"],["贝","money shell"]],mn:"Things that change 化 into money 贝 — GOODS. 发货 shipped, 收货 received, 退货 returned.",w:[["发货","fāhuò","to ship (an order)"],["退货","tuìhuò","to return goods"]]},
+{c:"物",py:"wù",t:4,m:"thing, object",pos:"noun",f:17,k:[["牛","ox"],["勿","do-not flag (wù — the sound!)"]],mn:"Oxen 牛 of every marking — things of all kinds. 购物 = shopping, 动物 = animal ('moving thing').",w:[["购物","gòuwù","shopping"],["动物","dòngwù","animal"]]},
+{c:"量",py:"liàng",t:4,m:"amount",pos:"noun",f:7,k:[["日","sun"],["里","village fields (lǐ)"]],mn:"Measuring the fields 里 under the sun 日 — an AMOUNT. 流量 = mobile data ('flow-amount')!",w:[["流量","liúliàng","mobile data"],["数量","shùliàng","quantity"]]},
+{c:"数",py:"shù",t:4,m:"number; (shǔ) to count",pos:"noun",f:52,k:[["米","rice"],["女","woman"],["攵","action hand"]],mn:"A hand 攵 counting rice grains 米 — numbers. 数字 = digit, 数据 = data.",w:[["数字","shùzì","number, digit"],["数据","shùjù","data"]]},
+{c:"据",py:"jù",t:4,m:"evidence; according to",pos:"noun",f:3,k:[["扌","hand"],["居","to dwell (jū — the sound!)"]],mn:"What your hand 扌 holds onto — evidence, basis. 数据 = data, 收据 = receipt.",w:[["数据","shùjù","data"],["收据","shōujù","receipt"]]},
+{c:"骗",py:"piàn",t:4,m:"to cheat, scam",pos:"verb",f:49,k:[["马","horse"],["扁","flat (biǎn)"]],mn:"Selling you a 'horse' 马 that turns out flat 扁 — a SCAM. 骗子 = scammer. Hang up the phone!",w:[["骗子","piànzi","scammer"],["别骗我","bié piàn wǒ","don't lie to me"]]},
+{c:"隐",py:"yǐn",t:3,m:"hidden",pos:"adjective",f:31,k:[["阝","hill (on the left)"],["急-ish","tucked away"]],mn:"Tucked behind the hill 阝 — hidden. 隐私 = privacy (check those app permissions!).",w:[["隐私","yǐnsī","privacy"],["隐身","yǐnshēn","invisible (mode)"]]},
+{c:"私",py:"sī",t:1,m:"private",pos:"adjective",f:17,k:[["禾","grain"],["厶","private corner"]],mn:"Grain 禾 set aside in your own corner 厶 — PRIVATE. 隐私 privacy, 私聊 = DM me.",w:[["隐私","yǐnsī","privacy"],["私聊","sīliáo","private chat, DM"]]},
+{c:"限",py:"xiàn",t:4,m:"limit",pos:"noun",f:31,k:[["阝","hill (on the left)"],["艮","hard stop (gèn)"]],mn:"The hill 阝 where you must stop 艮 — a LIMIT. 限时 = limited time, 每人限一份 = one per person.",w:[["限时","xiànshí","limited-time"],["限制","xiànzhì","restriction"]]},
+{c:"份",py:"fèn",t:4,m:"portion, copy",pos:"measure word",f:4,k:[["亻","person"],["分","to divide (fēn — the sound!)"]],mn:"Divided 分 per person 亻 — a portion. 一份 = one serving/copy; 身份证 = ID card.",w:[["一份","yí fèn","one portion"],["身份证","shēnfènzhèng","ID card"]]},
+{c:"条",py:"tiáo",t:2,m:"strip; (measure for long things)",pos:"measure word",f:6,k:[["夂","drooping top"],["木","tree"]],mn:"A long swaying branch off the tree 木 — a strip: rivers, roads, fish, messages, NOODLES all count with 条.",w:[["面条","miàntiáo","noodles"],["一条消息","yì tiáo xiāoxi","one message"]]},
+{c:"张",py:"zhāng",t:1,m:"(measure for flat things); to stretch",pos:"measure word",f:17,k:[["弓","bow"],["长","long (cháng)"]],mn:"A bow 弓 stretched long 长 — flat things pulled taut: tickets, photos, tables, bank cards — 一张票!",w:[["一张票","yì zhāng piào","one ticket"],["两张","liǎng zhāng","two (tickets/sheets)"]]},
+{c:"次",py:"cì",t:4,m:"time (occurrence)",pos:"measure word",f:17,k:[["冫","two marks"],["欠","yawn (qiàn)"]],mn:"Yawning 欠 a second 冫 time — an occurrence. 下次 = next time, 第一次 = the first time.",w:[["下次","xià cì","next time"],["第一次","dì yī cì","the first time"]]},
+{c:"些",py:"xiē",t:1,m:"some, a few",pos:"measure word",f:17,k:[["此","this (cǐ)"],["二","two"]],mn:"This 此 plus a couple more 二 — SOME. 这些 = these, 一些 = a few.",w:[["这些","zhèxiē","these"],["一些","yìxiē","some, a few"]]},
+{c:"汉",py:"hàn",t:4,m:"Han; Chinese",pos:"noun",f:0,k:[["氵","water"],["又","hand"]],mn:"Named for the Han River 氵 — the Han people, and everything Chinese: 汉字, 汉语. It's this app's icon!",w:[["汉字","Hànzì","Chinese characters"],["汉语","Hànyǔ","Chinese language"]]},
+{c:"拼",py:"pīn",t:1,m:"to piece together",pos:"verb",f:3,k:[["扌","hand"],["并","side by side (bìng)"]],mn:"Hands 扌 fitting pieces side by side 并 — to spell out: 拼音 pinyin! Also 拼车 = carpool.",w:[["拼音","pīnyīn","pinyin"],["拼车","pīnchē","to carpool"]]},
+{c:"译",py:"yì",t:4,m:"to translate",pos:"verb",f:1,k:[["讠","speech"],["举-ish","picked out one by one"]],mn:"Speech 讠 picked apart and re-threaded — to TRANSLATE. 翻译 = translate/translator.",w:[["翻译","fānyì","to translate"],["译文","yìwén","translated text"]]},
+{c:"翻",py:"fān",t:1,m:"to flip over",pos:"verb",f:17,k:[["番","field turns (fān — the sound!)"],["羽","feathers"]],mn:"Feathered wings 羽 turning over the field 番 — to FLIP: pages, pancakes, languages (翻译).",w:[["翻译","fānyì","to translate"],["翻页","fānyè","turn the page"]]},
+{c:"帮",py:"bāng",t:1,m:"to help",pos:"verb",f:17,k:[["邦","country (bāng — the sound!)"],["巾","cloth"]],mn:"The whole village 邦 sewing one cloth 巾 — to HELP. 帮我一下 = help me out. 帮助 in every app menu.",w:[["帮助","bāngzhù","help"],["帮忙","bāngmáng","to lend a hand"]]},
+{c:"查",py:"chá",t:2,m:"to check, look up",pos:"verb",f:6,k:[["木","tree"],["旦","dawn (dàn)"]],mn:"Checking the woodpile 木 at dawn 旦 — to inspect, LOOK UP. 查一下 = look it up.",w:[["检查","jiǎnchá","to check, inspect"],["查一下","chá yíxià","look it up"]]},
+{c:"静",py:"jìng",t:4,m:"quiet",pos:"adjective",f:5,k:[["青","blue-green (the qing family!)"],["争","to contend (zhēng)"]],mn:"The struggle 争 settling into stillness 青 — QUIET. 静音 = mute (the button you need in the cinema).",w:[["静音","jìngyīn","mute, silent mode"],["安静","ānjìng","quiet"]]},
+{c:"式",py:"shì",t:4,m:"style; formula",pos:"noun",f:17,k:[["工","work tool"],["弋","stake"]],mn:"The craftsman's tool 工 staked 弋 as the standard — a STYLE, a mode. 方式 = method, 中式 = Chinese-style.",w:[["方式","fāngshì","way, method"],["模式","móshì","mode"]]},
+{c:"功",py:"gōng",t:1,m:"achievement; skill",pos:"noun",f:38,k:[["工","work (gōng — the sound!)"],["力","strength"]],mn:"Work 工 plus strength 力 — achievement. 成功 = success, 功能 = a feature (what the app CAN do).",w:[["成功","chénggōng","success"],["功能","gōngnéng","function, feature"]]},
+{c:"成",py:"chéng",t:2,m:"to become; to succeed",pos:"verb",f:17,k:[["成","an axe striking true"]],mn:"An axe-stroke that lands true — done, accomplished: to BECOME. 完成 = complete, 成功 = success.",w:[["成功","chénggōng","success"],["完成","wánchéng","to complete"]]},
+{c:"果",py:"guǒ",t:3,m:"fruit; result",pos:"noun",f:6,k:[["田","round fruit on top"],["木","tree"]],mn:"A round fruit sitting on the tree 木 — fruit, and what efforts bear: RESULTS. 如果 = if, 水果 = fruit.",w:[["水果","shuǐguǒ","fruit"],["如果","rúguǒ","if"]]},
+/* --- LEVEL 6: Food & menus — read any menu in China --- */
+{c:"饭",py:"fàn",t:4,m:"rice; meal",pos:"noun",f:26,k:[["饣","food"],["反","to turn (fǎn)"]],mn:"Food 饣 turned 反 over the fire — cooked rice, and by extension every MEAL. 吃饭 = to eat.",w:[["吃饭","chīfàn","to eat (a meal)"],["米饭","mǐfàn","steamed rice"]]},
+{c:"肉",py:"ròu",t:4,m:"meat",pos:"noun",f:21,k:[["肉","ribs of meat"]],mn:"Strips of meat with the grain showing — MEAT. This is the full form of the 月-flesh you've seen in 脸脚脑!",w:[["牛肉","niúròu","beef"],["肉夹馍","ròujiāmó","Chinese 'burger'"]]},
+{c:"牛",py:"niú",t:2,m:"ox, cow",pos:"noun",f:17,k:[["牛","an ox head with horns"]],mn:"An ox head with one horn swept up — beef on menus, and slang for 'awesome!' (牛!).",w:[["牛肉","niúròu","beef"],["牛奶","niúnǎi","milk"]]},
+{c:"羊",py:"yáng",t:2,m:"sheep, lamb",pos:"noun",f:17,k:[["羊","a sheep's head with horns"]],mn:"A sheep's face with curling horns — lamb: 羊肉串 is the smell of a Chinese summer night.",w:[["羊肉","yángròu","lamb, mutton"],["羊肉串","yángròuchuàn","lamb skewers"]]},
+{c:"猪",py:"zhū",t:1,m:"pig, pork",pos:"noun",f:32,k:[["犭","animal"],["者","the one who (zhě)"]],mn:"THE animal 犭 of the Chinese kitchen — pork is the default meat: plain 肉 usually means 猪肉.",w:[["猪肉","zhūròu","pork"],["小猪","xiǎozhū","piglet"]]},
+{c:"鱼",py:"yú",t:2,m:"fish",pos:"noun",f:17,k:[["鱼","a fish with head, scales, tail"]],mn:"Head, scaled body, tail — a whole fish, which is exactly how it arrives at the table.",w:[["鱼肉","yúròu","fish (meat)"],["烤鱼","kǎoyú","grilled fish"]]},
+{c:"虾",py:"xiā",t:1,m:"shrimp",pos:"noun",f:47,k:[["虫","creature"],["下","down (xià — the sound!)"]],mn:"The little creature 虫 that bows down 下 — a curled shrimp.",w:[["虾仁","xiārén","shelled shrimp"],["大虾","dàxiā","prawns"]]},
+{c:"米",py:"mǐ",t:3,m:"rice (grain)",pos:"noun",f:46,k:[["米","grains around a cross"]],mn:"The family glyph itself — grains scattered around a stalk. 米饭 cooked rice, 米线 rice noodles.",w:[["米饭","mǐfàn","steamed rice"],["米线","mǐxiàn","rice noodles"]]},
+{c:"粥",py:"zhōu",t:1,m:"congee, porridge",pos:"noun",f:46,k:[["弓","steam curls (two!)"],["米","rice"]],mn:"Rice 米 between curls of steam 弓弓 — breakfast congee, bubbling away.",w:[["喝粥","hē zhōu","eat congee"],["皮蛋粥","pídàn zhōu","century-egg congee"]]},
+{c:"饼",py:"bǐng",t:3,m:"flatbread, pancake",pos:"noun",f:26,k:[["饣","food"],["并","side by side (bìng)"]],mn:"Food 饣 pressed flat side to side 并 — flatbread: 煎饼 breakfast crepes, 月饼 mooncakes.",w:[["煎饼","jiānbing","jianbing crepe"],["月饼","yuèbing","mooncake"]]},
+{c:"豆",py:"dòu",t:4,m:"bean",pos:"noun",f:17,k:[["豆","a footed dish"]],mn:"An ancient footed dish — later the word for BEANS. 豆腐, 豆浆, 红豆.",w:[["豆腐","dòufu","tofu"],["豆浆","dòujiāng","soy milk"]]},
+{c:"腐",py:"fǔ",t:3,m:"curdled; rotten",pos:"adjective",f:21,k:[["府","storehouse (fǔ — the sound!)"],["肉","meat"]],mn:"Meat 肉 left in the storehouse 府 — gone soft: curdled. 豆腐 = 'bean-curd' = tofu!",w:[["豆腐","dòufu","tofu"],["臭豆腐","chòudòufu","stinky tofu"]]},
+{c:"茶",py:"chá",t:2,m:"tea",pos:"noun",f:20,k:[["艹","grass"],["人","person"],["木","tree"]],mn:"A person 人 between the grass 艹 and the trees 木, picking leaves — TEA.",w:[["奶茶","nǎichá","milk tea"],["喝茶","hē chá","drink tea"]]},
+{c:"咖",py:"kā",t:1,m:"(coffee)",pos:"prefix",f:14,k:[["口","mouth"],["加","to add (jiā)"]],mn:"A mouth 口 adding 加 a foreign word to Chinese — 咖啡, coffee, spelled by sound.",w:[["咖啡","kāfēi","coffee"],["咖啡馆","kāfēiguǎn","café"]]},
+{c:"啡",py:"fēi",t:1,m:"(coffee)",pos:"prefix",f:14,k:[["口","mouth"],["非","not (fēi — the sound!)"]],mn:"The second half of 咖啡 — 非 gives the sound fēi. Together: coffee.",w:[["咖啡","kāfēi","coffee"],["拿铁咖啡","nátiě kāfēi","latte"]]},
+{c:"汁",py:"zhī",t:1,m:"juice",pos:"noun",f:0,k:[["氵","water"],["十","ten"]],mn:"Liquid 氵 pressed out ten 十 drops at a time — JUICE. 果汁 = fruit juice.",w:[["果汁","guǒzhī","fruit juice"],["西瓜汁","xīguāzhī","watermelon juice"]]},
+{c:"啤",py:"pí",t:2,m:"(beer)",pos:"prefix",f:14,k:[["口","mouth"],["卑","low (bēi — the sound!)"]],mn:"A mouth 口 borrowing the sound of 'beer' — 啤酒. Cheers: 干杯!",w:[["啤酒","píjiǔ","beer"],["冰啤酒","bīng píjiǔ","cold beer"]]},
+{c:"杯",py:"bēi",t:1,m:"cup, glass",pos:"noun",f:6,k:[["木","tree"],["不","not (bù)"]],mn:"Wooden 木, but NOT 不 a bowl — a cup. 一杯水, 干杯! = 'dry the cup' = cheers!",w:[["一杯","yì bēi","one cup of"],["干杯","gānbēi","cheers!"]]},
+{c:"瓶",py:"píng",t:2,m:"bottle",pos:"noun",f:17,k:[["并","side by side (bìng)"],["瓦","clay tile"]],mn:"Clay 瓦 vessels lined up side by side 并 — bottles. 一瓶水 = a bottle of water.",w:[["一瓶","yì píng","one bottle of"],["瓶子","píngzi","bottle"]]},
+{c:"甜",py:"tián",t:2,m:"sweet",pos:"adjective",f:14,k:[["舌","tongue"],["甘","sweetness held in the mouth"]],mn:"The tongue 舌 resting on something sweet 甘 — SWEET. 甜品 = dessert.",w:[["甜品","tiánpǐn","dessert"],["太甜了","tài tián le","too sweet!"]]},
+{c:"酸",py:"suān",t:1,m:"sour",pos:"adjective",f:53,k:[["酉","wine jar"],["夋","slow walker (qūn)"]],mn:"Wine 酉 left too long — gone SOUR. 酸辣汤 = hot-and-sour soup; also 'aching' legs after a hike!",w:[["酸辣","suānlà","hot and sour"],["酸奶","suānnǎi","yogurt"]]},
+{c:"辣",py:"là",t:4,m:"spicy",pos:"adjective",f:17,k:[["辛","bitter blade"],["束","a bundle (shù)"]],mn:"A whole bundle 束 of sharpness 辛 — SPICY. The most important menu character in Sichuan: 微辣 or 特辣?!",w:[["微辣","wēilà","mildly spicy"],["麻辣","málà","numbing-spicy"]]},
+{c:"咸",py:"xián",t:2,m:"salty",pos:"adjective",f:14,k:[["戌","a big axe"],["口","mouth"]],mn:"An axe 戌 and every mouth 口 crying 'water!' — SALTY. 太咸了 = too salty!",w:[["太咸了","tài xián le","too salty!"],["咸的","xián de","the salty kind"]]},
+{c:"香",py:"xiāng",t:1,m:"fragrant, delicious-smelling",pos:"adjective",f:7,k:[["禾","grain"],["日","sun"]],mn:"Grain 禾 warming in the sun 日 — that smell: FRAGRANT. 好香啊! = smells amazing! 香港 = Fragrant Harbor.",w:[["好香","hǎo xiāng","smells great"],["香港","Xiānggǎng","Hong Kong"]]},
+{c:"臭",py:"chòu",t:4,m:"stinky",pos:"adjective",f:17,k:[["自","nose"],["犬","dog"]],mn:"A nose 自 over a dog 犬 — the dog's nose knows: STINKY. 臭豆腐 smells terrible, tastes amazing. Trust the queue.",w:[["臭豆腐","chòudòufu","stinky tofu"],["好臭","hǎo chòu","so stinky!"]]},
+{c:"冰",py:"bīng",t:1,m:"ice",pos:"noun",f:0,k:[["冫","ice crystals"],["水","water"]],mn:"Water 水 with two frost-cracks 冫 — ICE. 加冰 = with ice; 冰的 = the cold one (drinks default warm in China!).",w:[["加冰","jiā bīng","with ice"],["冰水","bīngshuǐ","ice water"]]},
+{c:"烫",py:"tàng",t:4,m:"scalding hot",pos:"adjective",f:11,k:[["汤","soup (tāng — the sound!)"],["火","fire"]],mn:"Soup 汤 straight off the fire 火 — SCALDING. 小心烫! = careful, hot! (on every soup cup). 麻辣烫!",w:[["小心烫","xiǎoxīn tàng","careful — hot!"],["麻辣烫","málàtàng","malatang hotpot soup"]]},
+{c:"凉",py:"liáng",t:2,m:"cool, cold (food)",pos:"adjective",f:17,k:[["冫","ice"],["京","capital (jīng)"]],mn:"A frosty 冫 morning in the capital 京 — pleasantly COOL. 凉菜 = cold dishes (the menu's first page).",w:[["凉菜","liángcài","cold dishes"],["凉快","liángkuai","nice and cool"]]},
+{c:"温",py:"wēn",t:1,m:"warm; temperature",pos:"adjective",f:0,k:[["氵","water"],["昷","sun over a dish"]],mn:"Water 氵 warmed like a dish in the sun — gently WARM. 温水 = lukewarm water (the default!).",w:[["温水","wēnshuǐ","warm water"],["温度","wēndù","temperature"]]},
+{c:"度",py:"dù",t:4,m:"degree",pos:"noun",f:30,k:[["广","shelter"],["又","hand"]],mn:"A hand 又 measuring out spans under the roof 广 — DEGREES: of heat, of angles. 三十八度 = 38°.",w:[["温度","wēndù","temperature"],["度数","dùshu","the degrees"]]},
+{c:"素",py:"sù",t:4,m:"vegetarian; plain",pos:"adjective",f:13,k:[["主-ish","raw silk top"],["糸","silk"]],mn:"Undyed silk 糸 — plain, unadorned: VEGETARIAN. 我吃素 = I'm vegetarian.",w:[["吃素","chīsù","eat vegetarian"],["素菜","sùcài","vegetable dishes"]]},
+{c:"少",py:"shǎo",t:3,m:"few, less",pos:"adjective",f:17,k:[["小","small"],["丿","one shaved off"]],mn:"Small 小 with one more stroke shaved off — even LESS. 少辣 = less spice, 多少? = how much?",w:[["多少","duōshao","how much?"],["少辣","shǎo là","less spicy"]]},
+{c:"盐",py:"yán",t:2,m:"salt",pos:"noun",f:50,k:[["卜","scoop"],["皿","dish"]],mn:"Scooped 卜 crystals in the dish 皿 — SALT. 少放盐 = go easy on the salt.",w:[["放盐","fàng yán","add salt"],["盐水","yánshuǐ","salt water, brine"]]},
+{c:"醋",py:"cù",t:4,m:"vinegar",pos:"noun",f:53,k:[["酉","wine jar"],["昔","old days (xī)"]],mn:"Wine 酉 from the old days 昔 — turned to VINEGAR. Dumplings demand it. Also: jealousy (吃醋 'eating vinegar')!",w:[["吃醋","chīcù","to be jealous"],["米醋","mǐcù","rice vinegar"]]},
+{c:"酱",py:"jiàng",t:4,m:"sauce, paste",pos:"noun",f:53,k:[["将","general (jiāng — the sound!)"],["酉","wine jar"]],mn:"The general 将 of the wine-jar family 酉 — thick SAUCE. 酱油 = soy sauce commands every kitchen.",w:[["酱油","jiàngyóu","soy sauce"],["辣酱","làjiàng","chili sauce"]]},
+{c:"苹",py:"píng",t:2,m:"(apple)",pos:"prefix",f:20,k:[["艹","grass"],["平","flat (píng — the sound!)"]],mn:"A plant 艹 that sounds like 平 — the apple of 苹果. (Yes, also the phone brand!)",w:[["苹果","píngguǒ","apple"],["苹果手机","píngguǒ shǒujī","iPhone"]]},
+{c:"蕉",py:"jiāo",t:1,m:"(banana)",pos:"prefix",f:20,k:[["艹","grass"],["焦","scorched (jiāo — the sound!)"]],mn:"A plant 艹 that browns 焦 as it ripens — the banana of 香蕉.",w:[["香蕉","xiāngjiāo","banana"],["香蕉牛奶","xiāngjiāo niúnǎi","banana milk"]]},
+{c:"瓜",py:"guā",t:1,m:"melon, gourd",pos:"noun",f:17,k:[["瓜","a melon hanging from the vine"]],mn:"A melon dangling from its vine — 西瓜 watermelon, 黄瓜 cucumber, 冬瓜 winter melon.",w:[["西瓜","xīguā","watermelon"],["黄瓜","huángguā","cucumber"]]},
+{c:"黄",py:"huáng",t:2,m:"yellow",pos:"adjective",f:17,k:[["黄","a jade pendant"]],mn:"A royal jade pendant — imperial YELLOW. 黄河 the Yellow River, 黄瓜 the (green!) cucumber.",w:[["黄瓜","huángguā","cucumber"],["黄河","Huánghé","Yellow River"]]},
+{c:"白",py:"bái",t:2,m:"white; plain",pos:"adjective",f:17,k:[["白","the sun's first ray"]],mn:"The sun 日 with its first ray breaking out — dawn WHITE. 白饭 plain rice, 白酒 the infamous liquor.",w:[["白饭","báifàn","plain rice"],["白酒","báijiǔ","baijiu liquor"]]},
+{c:"黑",py:"hēi",t:1,m:"black",pos:"adjective",f:17,k:[["黑","a soot-blackened chimney"]],mn:"A chimney window blackened by soot over fire dots — BLACK. 黑咖啡 = black coffee.",w:[["黑咖啡","hēi kāfēi","black coffee"],["黑色","hēisè","black (color)"]]},
+{c:"蓝",py:"lán",t:2,m:"blue",pos:"adjective",f:20,k:[["艹","grass"],["监","overseeing vat (jiān)"]],mn:"The indigo plant 艹 fermented in a vat 监 — BLUE dye. 蓝色 = blue.",w:[["蓝色","lánsè","blue"],["蓝天","lántiān","blue sky"]]},
+{c:"色",py:"sè",t:4,m:"color",pos:"noun",f:17,k:[["色","a kneeling figure with a seal"]],mn:"A face changing expression — COLOR. 颜色 color, 特色菜 = the house specialty ('special-color dish').",w:[["颜色","yánsè","color"],["特色菜","tèsècài","house specialty"]]},
+{c:"主",py:"zhǔ",t:3,m:"main; owner",pos:"adjective",f:17,k:[["王","king"],["丶","a lamp flame"]],mn:"The flame 丶 above the king 王 — the MASTER of the house. 主食 = the staple (rice or noodles?).",w:[["主食","zhǔshí","staple food"],["主人","zhǔrén","host, owner"]]},
+{c:"食",py:"shí",t:2,m:"food",pos:"noun",f:26,k:[["食","a lidded pot of food"]],mn:"A lid over a full pot — FOOD itself, the full form of 饣. 美食 = delicious food, 主食 = staples.",w:[["美食","měishí","delicious food"],["食物","shíwù","food"]]},
+{c:"美",py:"měi",t:3,m:"beautiful; delicious",pos:"adjective",f:17,k:[["羊","sheep"],["大","big"]],mn:"A big 大 fat sheep 羊 — to the ancients, BEAUTIFUL (and delicious). 美食! 美国 = the 'beautiful country' = USA.",w:[["美食","měishí","great food"],["美国","Měiguó","USA"]]},
+{c:"国",py:"guó",t:2,m:"country",pos:"noun",f:24,k:[["囗","walls around"],["玉","jade"]],mn:"Jade 玉 (the king's treasure) safe within walls 囗 — a COUNTRY. 中国, 美国, 国外.",w:[["中国","Zhōngguó","China"],["外国","wàiguó","foreign country"]]},
+{c:"子",py:"zǐ",t:3,m:"child; (suffix)",pos:"noun",f:17,k:[["子","a swaddled child"]],mn:"A baby with arms out — child. Tags along unstressed at the end of everything: 包子, 饺子, 杯子, 筷子!",w:[["包子","bāozi","steamed bun"],["孩子","háizi","child"]]},
+{c:"头",py:"tóu",t:2,m:"head",pos:"noun",f:17,k:[["头","two drops on a stand"]],mn:"Two dots crowning a frame — the HEAD. 馒头 steamed bun, 骨头 bone, 头疼 headache.",w:[["馒头","mántou","steamed bun"],["骨头","gǔtou","bone"]]},
+{c:"堂",py:"táng",t:2,m:"hall",pos:"noun",f:23,k:[["尚","esteemed top (shàng)"],["土","earth"]],mn:"The esteemed 尚 room built on packed earth 土 — a HALL. 堂食 = dine in (vs 打包 takeout).",w:[["堂食","tángshí","dine in"],["食堂","shítáng","canteen"]]},
+{c:"排",py:"pái",t:2,m:"to line up; a row",pos:"verb",f:3,k:[["扌","hand"],["非","two opposed wings (fēi)"]],mn:"Hands 扌 arranging things wing to wing 非 — a ROW: 排队 queue up, 排骨 ribs (a row of bones!).",w:[["排队","páiduì","to queue"],["排骨","páigǔ","pork ribs"]]},
+{c:"骨",py:"gǔ",t:3,m:"bone",pos:"noun",f:21,k:[["冎","a joint socket"],["月","flesh"]],mn:"A joint 冎 wrapped in flesh 月 — BONE. 排骨 ribs, 骨头汤 bone broth.",w:[["排骨","páigǔ","ribs"],["骨头","gǔtou","bone"]]},
+{c:"锅",py:"guō",t:1,m:"pot, wok",pos:"noun",f:10,k:[["钅","metal"],["呙","hollow (guō — the sound!)"]],mn:"A hollow 呙 of metal 钅 — the WOK. 火锅 = hotpot, the meal that's also a party.",w:[["火锅","huǒguō","hotpot"],["锅贴","guōtiē","potstickers"]]},
+{c:"煮",py:"zhǔ",t:3,m:"to boil",pos:"verb",f:11,k:[["者","the one who (zhě)"],["灬","fire dots"]],mn:"The one 者 standing over the fire 灬 — to BOIL. 水煮鱼: 'water-boiled fish' that is anything but mild.",w:[["水煮鱼","shuǐzhǔyú","Sichuan boiled fish"],["煮饭","zhǔfàn","cook rice"]]},
+{c:"蒸",py:"zhēng",t:1,m:"to steam",pos:"verb",f:11,k:[["艹","grass lid"],["灬","fire dots"]],mn:"Herbs 艹 over fire 灬 with the steam trapped — to STEAM. 蒸饺 = steamed dumplings.",w:[["蒸饺","zhēngjiǎo","steamed dumplings"],["清蒸鱼","qīngzhēng yú","steamed fish"]]},
+{c:"炸",py:"zhá",t:2,m:"to deep-fry",pos:"verb",f:11,k:[["火","fire"],["乍","suddenly (zhà)"]],mn:"Fire 火 that hits suddenly 乍 — to DEEP-FRY (zhá). Read zhà, it means to explode — same energy.",w:[["油炸","yóuzhá","deep-fried"],["炸鸡","zhájī","fried chicken"]]},
+{c:"煎",py:"jiān",t:1,m:"to pan-fry",pos:"verb",f:11,k:[["前","front (jián-ish sound)"],["灬","fire dots"]],mn:"Standing in front 前 of the flat fire 灬 — to PAN-FRY. 煎饼 = the breakfast crepe.",w:[["煎饼","jiānbing","jianbing crepe"],["煎蛋","jiāndàn","fried egg"]]},
+{c:"串",py:"chuàn",t:4,m:"skewer; string of",pos:"measure word",f:17,k:[["串","two things on a stick"]],mn:"Look at it: two chunks ON A STICK. The most honest character in Chinese — 羊肉串, lamb skewers.",w:[["羊肉串","yángròuchuàn","lamb skewers"],["一串","yí chuàn","one skewer/string"]]},
+{c:"卷",py:"juǎn",t:3,m:"roll; to roll up",pos:"noun",f:17,k:[["龹","hands rolling"],["㔾","curled up"]],mn:"Hands rolling something up tight 㔾 — a ROLL: 春卷 spring rolls, 鸡肉卷 chicken wraps.",w:[["春卷","chūnjuǎn","spring roll"],["蛋卷","dànjuǎn","egg roll"]]},
+{c:"馒",py:"mán",t:2,m:"(steamed bun)",pos:"prefix",f:26,k:[["饣","food"],["曼","soft and drawn out (màn)"]],mn:"Food 饣 that's soft and stretchy 曼 — 馒头, the pillowy plain steamed bun.",w:[["馒头","mántou","steamed bun"],["白馒头","bái mántou","plain mantou"]]},
+{c:"喜",py:"xǐ",t:3,m:"joy; to like",pos:"noun",f:14,k:[["壴","a drum on a stand"],["口","mouth"]],mn:"Drums 壴 and singing mouths 口 — JOY. 喜欢 = to like; double 喜喜 on red paper = wedding!",w:[["喜欢","xǐhuan","to like"],["恭喜","gōngxǐ","congratulations!"]]},
+{c:"欢",py:"huān",t:1,m:"happy, welcome",pos:"adjective",f:39,k:[["又","hand"],["欠","open mouth"]],mn:"Hands 又 up and mouth 欠 open in a cheer — DELIGHT. 欢迎光临! rings out at every shop door.",w:[["欢迎","huānyíng","welcome!"],["喜欢","xǐhuan","to like"]]},
+{c:"饮",py:"yǐn",t:3,m:"to drink; beverage",pos:"noun",f:26,k:[["饣","food"],["欠","open mouth"]],mn:"Food 饣 for the open mouth 欠 that's thirsty — DRINK. 饮料 = the beverages section.",w:[["饮料","yǐnliào","beverage, soft drink"],["冷饮","lěngyǐn","cold drinks"]]},
+{c:"料",py:"liào",t:4,m:"ingredients, material",pos:"noun",f:46,k:[["米","rice"],["斗","a measuring scoop"]],mn:"Rice 米 measured by the scoop 斗 — MATERIALS. 饮料 drinks, 调料 seasonings, 材料 ingredients.",w:[["饮料","yǐnliào","beverage"],["调料","tiáoliào","seasoning"]]},
+{c:"叫",py:"jiào",t:4,m:"to call; to order (delivery)",pos:"verb",f:14,k:[["口","mouth"],["丩","tangled cord"]],mn:"A mouth 口 pulling on the cord 丩 — to CALL. 你叫什么名字? And the modern classic: 叫外卖 = order delivery.",w:[["叫外卖","jiào wàimài","order delivery"],["叫什么","jiào shénme","called what?"]]},
+{c:"优",py:"yōu",t:1,m:"excellent",pos:"adjective",f:4,k:[["亻","person"],["尤","outstanding (yóu)"]],mn:"A person 亻 who stands out 尤 — EXCELLENT. 优惠 = special offer (the word to hunt for).",w:[["优惠","yōuhuì","discount, special offer"],["优先","yōuxiān","priority"]]},
+{c:"惠",py:"huì",t:4,m:"benefit, favor",pos:"noun",f:2,k:[["专-ish","a spindle giving thread"],["心","heart"]],mn:"A generous heart 心 spinning out favors — BENEFIT. 优惠券 = coupon. Never pay full price in China.",w:[["优惠","yōuhuì","special offer"],["优惠券","yōuhuìquàn","coupon"]]},
+{c:"减",py:"jiǎn",t:3,m:"to subtract, reduce",pos:"verb",f:17,k:[["冫","ice"],["咸","salty (xián)"]],mn:"Ice 冫 shrinking the salty sea 咸 — to REDUCE. 满30减5 = spend 30, get 5 off (do the math before checkout!).",w:[["满减","mǎnjiǎn","spend-X-save-Y deal"],["减肥","jiǎnféi","to diet"]]},
+{c:"肥",py:"féi",t:2,m:"fatty; fat",pos:"adjective",f:21,k:[["月","flesh"],["巴","clinging (bā)"]],mn:"Flesh 月 with extra clinging on 巴 — FATTY. 肥牛 = fatty beef (a hotpot must); 减肥 = dieting.",w:[["肥牛","féiniú","fatty beef slices"],["减肥","jiǎnféi","to lose weight"]]},
+{c:"筷",py:"kuài",t:4,m:"chopsticks",pos:"noun",f:33,k:[["竹","bamboo"],["快","fast (kuài — the sound!)"]],mn:"Bamboo 竹 that moves fast 快 — CHOPSTICKS. 一双筷子 = one pair.",w:[["筷子","kuàizi","chopsticks"],["一双筷子","yì shuāng kuàizi","a pair of chopsticks"]]},
+{c:"堡",py:"bǎo",t:3,m:"fort; (burger)",pos:"noun",f:23,k:[["保","to protect (bǎo — the sound!)"],["土","earth"]],mn:"An earth 土 fort that protects 保 — and the borrowed sound in 汉堡: the HAMBURGER.",w:[["汉堡","hànbǎo","hamburger"],["汉堡包","hànbǎobāo","burger"]]},
+{c:"薯",py:"shǔ",t:3,m:"potato",pos:"noun",f:20,k:[["艹","grass"],["署","office (shǔ — the sound!)"]],mn:"A plant 艹 with treasure underground — the POTATO. 薯条 = fries ('potato strips').",w:[["薯条","shǔtiáo","french fries"],["红薯","hóngshǔ","sweet potato"]]},
+{c:"寿",py:"shòu",t:4,m:"long life",pos:"noun",f:17,k:[["寿","an elder with a staff"]],mn:"An elder with a staff — LONG LIFE. 寿司 = sushi (borrowed by sound); 长寿面 = birthday noodles.",w:[["寿司","shòusī","sushi"],["长寿","chángshòu","longevity"]]},
+{c:"司",py:"sī",t:1,m:"to manage",pos:"verb",f:14,k:[["𠁣","a raised hand"],["口","mouth"]],mn:"A hand raised over the mouth 口 giving orders — to MANAGE. 公司 = company, 司机 = the driver.",w:[["公司","gōngsī","company"],["司机","sījī","driver"]]},
+{c:"沙",py:"shā",t:1,m:"sand",pos:"noun",f:0,k:[["氵","water"],["少","few (shǎo)"]],mn:"Where the water 氵 runs low 少, it leaves SAND. 沙拉 = salad (by sound!), 沙发 = sofa.",w:[["沙拉","shālā","salad"],["沙发","shāfā","sofa"]]},
+{c:"糕",py:"gāo",t:1,m:"cake",pos:"noun",f:46,k:[["米","rice"],["羔","lamb (gāo — the sound!)"]],mn:"Rice flour 米 baked soft as a lamb 羔 — CAKE. 蛋糕 = (birthday) cake, 糟糕! = oh no!",w:[["蛋糕","dàngāo","cake"],["糟糕","zāogāo","oh no!"]]},
+{c:"巧",py:"qiǎo",t:3,m:"skillful; (chocolate)",pos:"adjective",f:17,k:[["工","work tool"],["丂","a clever bend"]],mn:"A tool 工 with a clever bend 丂 — SKILLFUL. And by sound: 巧克力, chocolate.",w:[["巧克力","qiǎokèlì","chocolate"],["正巧","zhèngqiǎo","by lucky chance"]]},
+{c:"克",py:"kè",t:4,m:"gram; to overcome",pos:"measure word",f:17,k:[["克","a warrior under his helmet"]],mn:"A warrior bearing the weight of his helmet — to OVERCOME; and the unit of weight: 500克 = 一斤.",w:[["巧克力","qiǎokèlì","chocolate"],["五百克","wǔbǎi kè","500 grams"]]},
+{c:"力",py:"lì",t:4,m:"strength",pos:"noun",f:38,k:[["力","a flexed arm"]],mn:"The family glyph itself — a flexed arm (or a plow). 力气 strength, 努力 hard work, 巧克力's last syllable!",w:[["努力","nǔlì","to work hard"],["力气","lìqi","physical strength"]]},
+{c:"敏",py:"mǐn",t:3,m:"quick; allergic",pos:"adjective",f:52,k:[["每","every (měi)"],["攵","action hand"]],mn:"A hand 攵 reacting to every 每 little thing — QUICK, sensitive. 过敏 = allergy: 我对花生过敏!",w:[["过敏","guòmǐn","allergy, allergic"],["敏感","mǐngǎn","sensitive"]]},
+{c:"麻",py:"má",t:2,m:"numbing; hemp",pos:"adjective",f:30,k:[["广","shelter"],["林","plants hung to dry"]],mn:"Hemp plants 林 drying under the shed 广 — and the tingling NUMB of Sichuan pepper: 麻辣! Also 麻烦 = hassle.",w:[["麻辣","málà","numbing-spicy"],["麻烦","máfan","trouble, hassle"]]},
+{c:"椒",py:"jiāo",t:1,m:"pepper",pos:"noun",f:6,k:[["木","tree"],["叔","uncle (shū)"]],mn:"The tree 木 uncle 叔 brings heat from — PEPPER. 辣椒 chili, 花椒 the numbing Sichuan peppercorn.",w:[["辣椒","làjiāo","chili pepper"],["花椒","huājiāo","Sichuan peppercorn"]]},
+{c:"胡",py:"hú",t:2,m:"foreign (old); reckless",pos:"adjective",f:21,k:[["古","ancient (gǔ)"],["月","flesh"]],mn:"Old 古 words for things from the west: 胡椒 black pepper, 胡同 Beijing's alleys, 胡说 = nonsense!",w:[["胡同","hútòng","hutong alley"],["胡椒","hújiāo","black pepper"]]},
+{c:"同",py:"tóng",t:2,m:"same; together",pos:"adjective",f:14,k:[["冂","one frame"],["口","mouth"]],mn:"Everyone's mouths 口 under one frame 冂 — the SAME, together. 同学 classmate, 一同 together.",w:[["同学","tóngxué","classmate"],["相同","xiāngtóng","identical"]]},
+{c:"学",py:"xué",t:2,m:"to study, learn",pos:"verb",f:17,k:[["⺍","sparks of knowledge"],["子","child"]],mn:"Sparks ⺍ landing on a child 子 under the roof of learning — to STUDY. 学生, 大学, 学中文!",w:[["学习","xuéxí","to study"],["大学","dàxué","university"]]},
+{c:"习",py:"xí",t:2,m:"to practice",pos:"verb",f:17,k:[["习","one wing beating"]],mn:"Half of 羽 'wings' — a fledgling beating one wing over and over: to PRACTICE. 练习 = drill (like this app!).",w:[["学习","xuéxí","to study"],["练习","liànxí","to practice"]]},
+{c:"常",py:"cháng",t:2,m:"often; ordinary",pos:"adverb",f:17,k:[["尚","esteemed (shàng)"],["巾","cloth"]],mn:"The cloth 巾 banner always flying — CONSTANT, usual. 常常 = often, 家常菜 = home-style dishes.",w:[["非常","fēicháng","extremely"],["家常菜","jiāchángcài","home-style food"]]},
+{c:"非",py:"fēi",t:1,m:"not; wrong",pos:"adverb",f:17,k:[["非","two wings pulling apart"]],mn:"Two wings beating against each other — opposition: NOT. 非常 = 'not ordinary' = extremely!",w:[["非常","fēicháng","extremely"],["咖啡","kāfēi","coffee (hides a 非!)"]]},
+{c:"特",py:"tè",t:4,m:"special",pos:"adjective",f:17,k:[["牛","ox"],["寺","temple (sì)"]],mn:"The one ox 牛 chosen for the temple 寺 — SPECIAL. 特价 special price, 特色菜 house specialty.",w:[["特价","tèjià","special price"],["特别","tèbié","especially"]]},
+{c:"做",py:"zuò",t:4,m:"to make, do",pos:"verb",f:4,k:[["亻","person"],["故","deed (gù)"]],mn:"A person 亻 with deeds 故 to their name — to DO, to MAKE. 做饭 = to cook.",w:[["做饭","zuòfàn","to cook"],["做菜","zuòcài","to cook dishes"]]},
+{c:"光",py:"guāng",t:1,m:"light; all gone",pos:"noun",f:17,k:[["⺌","flames"],["儿","legs"]],mn:"A flame ⺌ carried on legs 儿 — LIGHT. Food slang: 吃光 = eaten till only light remains — all gone!",w:[["吃光","chīguāng","eat it all up"],["阳光","yángguāng","sunshine"]]},
+{c:"净",py:"jìng",t:4,m:"clean",pos:"adjective",f:17,k:[["冫","ice"],["争","to strive (zhēng)"]],mn:"Scrubbed with ice-water 冫 until it gleams — CLEAN. 干净 = clean (the restaurant checklist).",w:[["干净","gānjìng","clean"],["净重","jìngzhòng","net weight"]]},
+{c:"干",py:"gān",t:1,m:"dry; to do (gàn)",pos:"adjective",f:17,k:[["干","a drying rack"]],mn:"A simple drying rack — DRY. 干杯 dry-the-cup = cheers!, 饼干 = biscuits, 干净 = clean.",w:[["干杯","gānbēi","cheers!"],["饼干","bǐnggān","biscuit, cookie"]]},
+{c:"毒",py:"dú",t:2,m:"poison",pos:"noun",f:17,k:[["龶","growth"],["母","mother"]],mn:"A plant that even mother 母 warns about — POISON. 有毒 = toxic; 消毒 = disinfect.",w:[["有毒","yǒudú","poisonous"],["消毒","xiāodú","to disinfect"]]},
+{c:"鲜",py:"xiān",t:1,m:"fresh",pos:"adjective",f:17,k:[["鱼","fish"],["羊","sheep"]],mn:"Fish 鱼 plus lamb 羊 — the two proudest flavors, at their best only when FRESH. 海鲜 = seafood.",w:[["新鲜","xīnxiān","fresh"],["海鲜","hǎixiān","seafood"]]},
+{c:"家",py:"jiā",t:1,m:"home, family; (measure for shops)",pos:"noun",f:18,k:[["宀","roof"],["豕","pig"]],mn:"A pig 豕 under the roof 宀 — wealth and warmth: HOME. Also counts businesses: 一家店, 这家餐厅.",w:[["回家","huí jiā","go home"],["大家","dàjiā","everyone"]]},
+{c:"摊",py:"tān",t:1,m:"street stall",pos:"noun",f:3,k:[["扌","hand"],["难","hard (nán)"]],mn:"Hands 扌 spreading goods out on the ground — a street STALL. 地摊 = street vendor, 早点摊 = breakfast stand.",w:[["地摊","dìtān","street stall"],["摆摊","bǎitān","set up a stall"]]},
+{c:"夹",py:"jiā",t:1,m:"to clamp, tuck between",pos:"verb",f:17,k:[["夹","a person carrying two underarm"]],mn:"A big person 大 with something tucked under each arm — to CLAMP between. 肉夹馍 = meat tucked in bread!",w:[["肉夹馍","ròujiāmó","Chinese 'burger'"],["夹菜","jiācài","serve food (with chopsticks)"]]},
+{c:"荐",py:"jiàn",t:4,m:"to recommend",pos:"verb",f:20,k:[["艹","grass"],["存","to keep (cún)"]],mn:"The freshest cutting 艹, kept 存 aside for a guest — to RECOMMEND. 推荐菜 = chef's picks.",w:[["推荐","tuījiàn","to recommend"],["推荐菜","tuījiàncài","recommended dishes"]]},
+{c:"套",py:"tào",t:4,m:"set; (measure for sets)",pos:"measure word",f:17,k:[["大","big"],["长-ish","something long inside"]],mn:"Something big 大 slipped over something long — a cover, a SET. 套餐 = the set meal (combo).",w:[["套餐","tàocān","set meal, combo"],["一套","yí tào","one set"]]},
+/* --- LEVEL 7: Everyday glue — the high-frequency words that hold sentences together --- */
+{c:"很",py:"hěn",t:3,m:"very",pos:"adverb",f:17,k:[["彳","small steps"],["艮","firm and stubborn"]],mn:"Stubbornly 艮 much — VERY. You've read it in half this app's sentences; now it's officially yours: 很好!",w:[["很好","hěn hǎo","very good"],["很多","hěn duō","a lot"]]},
+{c:"太",py:"tài",t:4,m:"too (much)",pos:"adverb",f:17,k:[["大","big"],["丶","one drop more"]],mn:"Big 大 plus one drop more 丶 — TOO much. 太贵了! too expensive! 太好了! wonderful!",w:[["太好了","tài hǎo le","great!"],["太贵了","tài guì le","too expensive!"]]},
+{c:"真",py:"zhēn",t:1,m:"real; really",pos:"adverb",f:22,k:[["十","ten"],["目","eye"],["一","level base"]],mn:"Ten 十 eyes 目 checking on a level base — REAL, true. 真的吗? = really?!",w:[["真的","zhēn de","really, truly"],["真好","zhēn hǎo","really nice"]]},
+{c:"也",py:"yě",t:3,m:"also",pos:"adverb",f:17,k:[["也","a winding snake"]],mn:"The little snake you've seen inside 他她 — on its own it means ALSO. 我也是! = me too!",w:[["也是","yě shì","is also"],["也许","yěxǔ","maybe"]]},
+{c:"还",py:"hái",t:2,m:"still; also; (huán) return",pos:"adverb",f:19,k:[["辶","walk"],["不","not (bù)"]],mn:"Walking 辶 but not 不 done — STILL, yet. Read huán: to give back. 还有 = there's more!",w:[["还有","hái yǒu","also, there's more"],["还没","hái méi","not yet"]]},
+{c:"再",py:"zài",t:4,m:"again",pos:"adverb",f:17,k:[["再","a stacked fish trap"]],mn:"Set the trap once more — AGAIN. 再见 = 'see you again' = goodbye; 再来一个! = one more!",w:[["再见","zàijiàn","goodbye"],["再来一个","zài lái yí ge","one more!"]]},
+{c:"见",py:"jiàn",t:4,m:"to see, meet",pos:"verb",f:40,k:[["见","an eye on legs"]],mn:"The family glyph itself — an eye walking around: to SEE. 再见, 明天见, 看见.",w:[["再见","zàijiàn","goodbye"],["看见","kànjiàn","to see"]]},
+{c:"爱",py:"ài",t:4,m:"to love",pos:"verb",f:39,k:[["爫","a hand from above"],["冖","cover"],["友","friend"]],mn:"A hand 爫 sheltering 冖 a friend 友 — LOVE. (The old form had a 心 heart inside — people still argue about losing it!)",w:[["我爱你","wǒ ài nǐ","I love you"],["爱好","àihào","hobby"]]},
+{c:"给",py:"gěi",t:3,m:"to give; for",pos:"verb",f:13,k:[["纟","silk"],["合","to join (hé)"]],mn:"Threads 纟 joining 合 two hands — to GIVE. 给我 = give me / for me.",w:[["给我","gěi wǒ","give me"],["送给","sònggěi","to give (a gift) to"]]},
+{c:"从",py:"cóng",t:2,m:"from; to follow",pos:"preposition",f:4,k:[["人","person"],["人","another person behind"]],mn:"One person walking behind another — to FOLLOW; the place you follow FROM. 从这里到那里.",w:[["从…到…","cóng…dào…","from…to…"],["从来","cónglái","(never) ever"]]},
+{c:"向",py:"xiàng",t:4,m:"toward",pos:"preposition",f:14,k:[["冂","a window frame"],["口","opening"]],mn:"A window 口 facing out — TOWARD. 方向 = direction, 向左走 = head left.",w:[["方向","fāngxiàng","direction"],["向前","xiàng qián","forward"]]},
+{c:"往",py:"wǎng",t:3,m:"toward, bound for",pos:"preposition",f:17,k:[["彳","small steps"],["主","master (zhǔ)"]],mn:"Steps 彳 heading where the master 主 points — BOUND FOR. On metro signs: 往…方向 = trains toward…",w:[["往前走","wǎng qián zǒu","go straight ahead"],["开往","kāiwǎng","bound for (metro)"]]},
+{c:"离",py:"lí",t:2,m:"to leave; distance from",pos:"verb",f:17,k:[["离","a bird caught in a net"]],mn:"A bird pulling free of the net — to LEAVE; how far apart things are: 离这里远吗? Is it far from here?",w:[["离开","líkāi","to leave"],["距离","jùlí","distance"]]},
+{c:"或",py:"huò",t:4,m:"or",pos:"conjunction",f:17,k:[["戈","spear"],["口","territory"],["一","border line"]],mn:"A spear 戈 guarding territory 口 — one OR the other side of the line. 或者 = or.",w:[["或者","huòzhě","or (statements)"],["或是","huòshì","or perhaps"]]},
+{c:"者",py:"zhě",t:3,m:"-er (one who)",pos:"particle",f:17,k:[["耂","elder on top"],["日","sun"]],mn:"The one who does it — the '-ER': 记者 report-ER, 或者 = or. You met it hiding in 猪 and 煮!",w:[["或者","huòzhě","or"],["记者","jìzhě","reporter"]]},
+{c:"但",py:"dàn",t:4,m:"but",pos:"conjunction",f:4,k:[["亻","person"],["旦","sunrise (dàn)"]],mn:"A person 亻 at sunrise 旦 — a new turn: BUT. 但是 = however.",w:[["但是","dànshì","but, however"],["不但","búdàn","not only"]]},
+{c:"因",py:"yīn",t:1,m:"cause, reason",pos:"noun",f:17,k:[["囗","a box"],["大","a person filling it"]],mn:"A person 大 boxed in 囗 by circumstances — the CAUSE. 因为 = because.",w:[["因为","yīnwèi","because"],["原因","yuányīn","reason"]]},
+{c:"为",py:"wèi",t:4,m:"for; because of",pos:"preposition",f:17,k:[["为","a hand leading an elephant"]],mn:"Originally a hand leading an elephant to work — doing things FOR a purpose. 因为 because, 为什么 why.",w:[["因为","yīnwèi","because"],["为什么","wèishénme","why"]]},
+{c:"以",py:"yǐ",t:3,m:"by means of; (marker)",pos:"preposition",f:17,k:[["以","a person with a tool"]],mn:"A person putting something to use — BY MEANS OF. 可以 = may, 以前/以后 = before/after, 所以 = so.",w:[["可以","kěyǐ","can, may"],["所以","suǒyǐ","therefore"]]},
+{c:"可",py:"kě",t:3,m:"can, may; -able",pos:"verb",f:14,k:[["丁","nail (dīng)"],["口","mouth"]],mn:"The mouth 口 nails it 丁: approved — CAN, may. 可以! 可爱 = love-able = cute. 可乐 = cola!",w:[["可以","kěyǐ","can, may"],["可爱","kě'ài","cute"]]},
+{c:"该",py:"gāi",t:1,m:"should",pos:"verb",f:1,k:[["讠","speech"],["亥","last earthly branch (hài)"]],mn:"The word 讠 that closes the cycle 亥 — what one SHOULD do. 应该 = ought to; 该走了 = time to go.",w:[["应该","yīnggāi","should"],["该走了","gāi zǒu le","time to go"]]},
+{c:"当",py:"dāng",t:1,m:"to be, serve as; at (a time)",pos:"verb",f:17,k:[["⺌","small flames"],["彐","a hand below"]],mn:"Standing right where the sparks fall — right THEN and THERE: 当然 of course, 当时 at that moment.",w:[["当然","dāngrán","of course"],["当时","dāngshí","at that time"]]},
+{c:"然",py:"rán",t:2,m:"so, like that",pos:"particle",f:11,k:[["月","flesh"],["犬","dog"],["灬","fire dots"]],mn:"An old character about roasting — now it just means 'SO': 当然 of course, 然后 and then, 自然 naturally.",w:[["然后","ránhòu","and then"],["当然","dāngrán","of course"]]},
+{c:"如",py:"rú",t:2,m:"if; like",pos:"conjunction",f:15,k:[["女","woman"],["口","mouth"]],mn:"As the lady of the house 女 says 口 — just LIKE that; IF it be so: 如果 = if.",w:[["如果","rúguǒ","if"],["比如","bǐrú","for example"]]},
+{c:"又",py:"yòu",t:4,m:"again; both…and",pos:"adverb",f:39,k:[["又","a right hand"]],mn:"The family glyph itself — a hand that keeps coming back: AGAIN. 又来了! Here we go again!",w:[["又来了","yòu lái le","here we go again"],["又大又甜","yòu dà yòu tián","big AND sweet"]]},
+{c:"都",py:"dōu",t:1,m:"all; (dū) capital",pos:"adverb",f:31,k:[["者","the ones who (zhě)"],["⻏","city"]],mn:"Everyone 者 in the city ⻏ — ALL of them. Read dū it's the capital itself: 首都 = Beijing's job.",w:[["都是","dōu shì","all are"],["首都","shǒudū","capital city"]]},
+{c:"只",py:"zhǐ",t:3,m:"only; (zhī) measure for animals",pos:"adverb",f:14,k:[["口","mouth"],["八","breath splitting"]],mn:"One mouth 口, one breath 八 — ONLY. 只有一个 = there's only one. Read zhī, it counts animals: 一只猫.",w:[["只有","zhǐyǒu","only have"],["一只猫","yì zhī māo","one cat"]]},
+{c:"种",py:"zhǒng",t:3,m:"kind, type; (zhòng) to plant",pos:"noun",f:17,k:[["禾","grain"],["中","middle (zhōng — the sound!)"]],mn:"Grain 禾 sorted by the middle 中 bin — a KIND, a seed type. 这种 = this kind; 种花 (zhòng) = plant flowers.",w:[["这种","zhè zhǒng","this kind"],["种类","zhǒnglèi","variety, type"]]},
+{c:"另",py:"lìng",t:4,m:"other, another",pos:"pronoun",f:14,k:[["口","mouth"],["力","strength"]],mn:"A mouth 口 and muscle 力 splitting one thing into two — the OTHER one. 另一个 = the other one.",w:[["另一个","lìng yí ge","the other one"],["另外","lìngwài","besides, additionally"]]},
+{c:"其",py:"qí",t:2,m:"its; that",pos:"pronoun",f:17,k:[["其","a winnowing basket"]],mn:"An old winnowing basket lent out so often it became 'ITS/THAT'. 其他 = the others, 其实 = actually.",w:[["其他","qítā","other, the rest"],["其实","qíshí","actually"]]},
+{c:"呢",py:"ne",t:0,m:"(and…? particle)",pos:"particle",f:14,k:[["口","mouth"],["尼","nun (ní — the sound!)"]],mn:"The little bounce at the end that tosses the question back: 我很好，你呢? — and YOU?",w:[["你呢","nǐ ne","and you?"],["在哪儿呢","zài nǎr ne","where is it, hm?"]]},
+{c:"吧",py:"ba",t:0,m:"(let's…; softener)",pos:"particle",f:14,k:[["口","mouth"],["巴","clinging (bā — the sound!)"]],mn:"The soft push at the end of a sentence: 走吧 let's go, 好吧 fine then. (On storefronts: 酒吧 = bar!)",w:[["走吧","zǒu ba","let's go"],["好吧","hǎo ba","fine, OK then"]]},
+{c:"哪",py:"nǎ",t:3,m:"which; where",pos:"pronoun",f:14,k:[["口","mouth"],["那","that (nà)"]],mn:"那 'that' with a questioning mouth 口 — WHICH that? 哪里/哪儿 = where, 哪个 = which one.",w:[["哪里","nǎlǐ","where"],["哪个","nǎge","which one"]]},
+{c:"谁",py:"shéi",t:2,m:"who",pos:"pronoun",f:1,k:[["讠","speech"],["隹","bird"]],mn:"A voice 讠 like a bird call 隹 in the dark — WHO's there? 是谁? = who is it?",w:[["是谁","shì shéi","who is it?"],["谁的","shéi de","whose"]]},
+{c:"会",py:"huì",t:4,m:"can (know how); will; meeting",pos:"verb",f:4,k:[["人","gathered under a roof"],["云","cloud"]],mn:"People 人 gathering like clouds 云 — a MEETING; and what practice teaches you: 会说中文! = can speak Chinese!",w:[["会说","huì shuō","can speak"],["开会","kāihuì","have a meeting"]]},
+{c:"得",py:"de",t:0,m:"(degree particle); (dé) to get",pos:"particle",f:17,k:[["彳","small steps"],["日","sun"],["寸","inch"]],mn:"Step by step, inch by inch — HOW something is done: 说得好! = well said! Read dé: to get.",w:[["说得好","shuō de hǎo","well said!"],["觉得","juéde","to feel, think"]]},
+{c:"着",py:"zhe",t:0,m:"(-ing marker)",pos:"particle",f:22,k:[["羊","sheep on top"],["目","eye"]],mn:"An eye 目 fixed on the sheep 羊 — ongoing attention: the '-ING' marker. 开着 = is open, 看着 = watching.",w:[["开着","kāi zhe","is open (state)"],["等着","děng zhe","waiting"]]},
+{c:"老",py:"lǎo",t:3,m:"old; venerable",pos:"adjective",f:17,k:[["耂","an elder with a stick"]],mn:"An elder leaning on a stick — OLD, and respected: 老师 teacher, 老板 boss, 老外 = you-know-who!",w:[["老师","lǎoshī","teacher"],["老板","lǎobǎn","boss, shopkeeper"]]},
+{c:"师",py:"shī",t:1,m:"teacher, master",pos:"noun",f:17,k:[["丨刂","banner pole"],["巾","cloth banner"]],mn:"The banner 巾 an army followed — the MASTER everyone follows: 老师 teacher, 师傅 master craftsman.",w:[["老师","lǎoshī","teacher"],["师傅","shīfu","master; 'boss' (drivers!)"]]},
+{c:"傅",py:"fù",t:4,m:"tutor, master",pos:"noun",f:4,k:[["亻","person"],["尃","to spread out (fū)"]],mn:"The person 亻 who spreads 尃 knowledge — a master. 师傅! is how you hail any driver or repairman.",w:[["师傅","shīfu","master (form of address)"],["李师傅","Lǐ shīfu","Master Li"]]},
+{c:"阿",py:"ā",t:1,m:"(friendly prefix)",pos:"prefix",f:31,k:[["阝","hill (on the left)"],["可","can (kě)"]],mn:"A warm call echoing off the hill 阝 — the friendly prefix: 阿姨 auntie, 阿婆 granny.",w:[["阿姨","āyí","auntie (any older woman)"],["阿妈","āmā","mama"]]},
+{c:"姨",py:"yí",t:2,m:"aunt",pos:"noun",f:15,k:[["女","woman"],["夷","distant (yí — the sound!)"]],mn:"The woman 女 from mother's side — AUNT. 阿姨 is the polite call for shopkeepers, cleaners, neighbors.",w:[["阿姨","āyí","auntie"],["小姨","xiǎoyí","youngest aunt"]]},
+{c:"孩",py:"hái",t:2,m:"child",pos:"noun",f:17,k:[["子","child"],["亥","the last branch (hài — the sound!)"]],mn:"A child 子 with 亥 lending the sound — CHILD. 孩子, 小孩, 男孩/女孩.",w:[["孩子","háizi","child"],["小孩","xiǎohái","little kid"]]},
+{c:"朋",py:"péng",t:2,m:"friend",pos:"noun",f:21,k:[["月","strings of shells (two!)"]],mn:"Two strings of shell-money side by side — equals, companions: FRIEND. 朋友!",w:[["朋友","péngyou","friend"],["男朋友","nánpéngyou","boyfriend"]]},
+{c:"友",py:"yǒu",t:3,m:"friend",pos:"noun",f:39,k:[["𠂇","a left hand"],["又","a right hand"]],mn:"Two hands clasped — FRIENDSHIP. 朋友 friend, 友好 friendly, 网友 online friend.",w:[["朋友","péngyou","friend"],["友好","yǒuhǎo","friendly"]]},
+{c:"事",py:"shì",t:4,m:"matter, affair",pos:"noun",f:17,k:[["事","a hand holding a record rod"]],mn:"A hand gripping the official's rod — MATTERS, business. 没事 = it's nothing; 有事吗? = something up?",w:[["没事","méishì","it's nothing, no problem"],["事情","shìqing","matter, thing"]]},
+{c:"作",py:"zuò",t:4,m:"to do, work",pos:"verb",f:4,k:[["亻","person"],["乍","suddenly (zhà)"]],mn:"A person 亻 springing into action 乍 — to DO: 工作 work, 作业 homework.",w:[["工作","gōngzuò","work, job"],["作业","zuòyè","homework"]]},
+{c:"假",py:"jià",t:4,m:"holiday; (jiǎ) fake",pos:"noun",f:4,k:[["亻","person"],["叚","borrowed (jiǎ)"]],mn:"Borrowed 叚 time for a person 亻 — a HOLIDAY (jià). Read jiǎ: borrowed = not real = FAKE.",w:[["放假","fàngjià","be on holiday"],["请假","qǐngjià","ask for leave"]]},
+{c:"旅",py:"lǚ",t:3,m:"to travel",pos:"verb",f:17,k:[["方","banner"],["㫃-people","marchers behind it"]],mn:"People marching behind a banner 方 — a traveling company: 旅游 travel, 旅行 journey.",w:[["旅游","lǚyóu","to travel, tour"],["旅行","lǚxíng","trip, journey"]]},
+{c:"相",py:"xiāng",t:1,m:"mutual; (xiàng) appearance",pos:"adverb",f:6,k:[["木","tree"],["目","eye"]],mn:"An eye 目 sizing up a tree 木 — looking AT each other: mutual. 相同 = the same; 照相 = take photos.",w:[["相同","xiāngtóng","the same"],["照相","zhàoxiàng","take a photo"]]},
+{c:"处",py:"chù",t:4,m:"place, spot",pos:"noun",f:17,k:[["夂","striding legs"],["卜","a marker"]],mn:"Where your stride 夂 stops at the marker 卜 — a SPOT. 到处 = everywhere; 好处 = benefit.",w:[["到处","dàochù","everywhere"],["好处","hǎochu","benefit"]]},
+{c:"联",py:"lián",t:2,m:"to connect",pos:"verb",f:17,k:[["耳","ear"],["关","gate bar (guān)"]],mn:"Ears 耳 linked through the gate 关 — CONNECTED. 联系 = to contact: 有事联系我!",w:[["联系","liánxì","to contact"],["互联网","hùliánwǎng","the internet"]]},
+{c:"希",py:"xī",t:1,m:"to hope",pos:"verb",f:17,k:[["爻","sparse weave"],["巾","cloth"]],mn:"Cloth 巾 woven so fine 爻 it's rare — rare things are HOPED for: 希望 = hope.",w:[["希望","xīwàng","to hope"],["希望如此","xīwàng rúcǐ","hopefully so"]]},
+{c:"康",py:"kāng",t:1,m:"health",pos:"noun",f:30,k:[["广","shelter"],["隶","grain in hand"]],mn:"A full granary under the roof 广 — well-being: HEALTH. 健康 = healthy (the toast after 干杯!).",w:[["健康","jiànkāng","health, healthy"],["康复","kāngfù","to recover"]]},
+{c:"身",py:"shēn",t:1,m:"body",pos:"noun",f:17,k:[["身","a body in profile"]],mn:"A person in profile, standing tall — the BODY. 身体 body/health, 身份证 ID card.",w:[["身体","shēntǐ","body, health"],["身份证","shēnfènzhèng","ID card"]]},
+{c:"体",py:"tǐ",t:3,m:"body; form",pos:"noun",f:4,k:[["亻","person"],["本","root"]],mn:"A person's 亻 root 本 — the BODY. 身体好吗? = how's your health?",w:[["身体","shēntǐ","body, health"],["体验","tǐyàn","to experience"]]},
+{c:"护",py:"hù",t:4,m:"to protect",pos:"verb",f:3,k:[["扌","hand"],["户","door"]],mn:"A hand 扌 barring the door 户 — to PROTECT. 护照 = passport (don't lose it!), 护士 = nurse.",w:[["护照","hùzhào","passport"],["护士","hùshi","nurse"]]},
+{c:"签",py:"qiān",t:1,m:"to sign; label",pos:"verb",f:33,k:[["竹","bamboo"],["佥","everyone (qiān — the sound!)"]],mn:"Bamboo 竹 slips everyone 佥 draws and signs — to SIGN. 签证 = visa, 签名 = signature.",w:[["签证","qiānzhèng","visa"],["签名","qiānmíng","signature"]]},
+{c:"际",py:"jì",t:4,m:"border; between",pos:"noun",f:31,k:[["阝","hill (on the left)"],["示","altar (shì)"]],mn:"The altar 示 at the hill 阝 border — the BOUNDARY between: 国际 = inter-national.",w:[["国际","guójì","international"],["实际","shíjì","actual, practical"]]},
+{c:"内",py:"nèi",t:4,m:"inside, internal",pos:"noun",f:17,k:[["冂","a doorway"],["人","person going in"]],mn:"A person 人 stepping through the doorway 冂 — INSIDE. 国内 = domestic, 室内 = indoors.",w:[["国内","guónèi","domestic"],["内容","nèiróng","content"]]},
+{c:"房",py:"fáng",t:2,m:"room, house",pos:"noun",f:44,k:[["户","door"],["方","square (fāng — the sound!)"]],mn:"A door 户 to a square 方 space — a ROOM. 房间 hotel room, 厨房 kitchen.",w:[["房间","fángjiān","room"],["厨房","chúfáng","kitchen"]]},
+{c:"懂",py:"dǒng",t:3,m:"to understand",pos:"verb",f:2,k:[["忄","heart"],["董","to oversee (dǒng — the sound!)"]],mn:"The heart 忄 overseeing 董 what the ears take in — to UNDERSTAND. 听不懂 = I don't follow (your #1 phrase!).",w:[["听不懂","tīng bu dǒng","can't understand (hearing)"],["看得懂","kàn de dǒng","can understand (reading)"]]},
+{c:"听",py:"tīng",t:1,m:"to listen",pos:"verb",f:14,k:[["口","mouth"],["斤","axe (jīn)"]],mn:"A mouth 口 speaks, an axe 斤 of attention falls — to LISTEN. 听说 = I heard that…, 好听 = sounds nice.",w:[["听说","tīngshuō","heard that…"],["好听","hǎotīng","nice-sounding"]]},
+{c:"写",py:"xiě",t:3,m:"to write",pos:"verb",f:17,k:[["冖","a cover"],["与","to give (yǔ)"]],mn:"Under the study's roof 冖, giving 与 words to paper — to WRITE. 写字, 写名字.",w:[["写字","xiězì","write characters"],["写作","xiězuò","writing"]]},
+{c:"教",py:"jiāo",t:1,m:"to teach",pos:"verb",f:52,k:[["孝","respect for elders (xiào)"],["攵","action hand"]],mn:"The elder's hand 攵 guiding respectfully 孝 — to TEACH. 教我! = teach me! 教师 = teacher.",w:[["教我","jiāo wǒ","teach me"],["教室","jiàoshì","classroom"]]},
+{c:"备",py:"bèi",t:4,m:"to prepare",pos:"verb",f:37,k:[["夂","striding legs"],["田","field"]],mn:"Striding 夂 out to ready the field 田 — to PREPARE. 准备好了吗? = ready?",w:[["准备","zhǔnbèi","to prepare"],["准备好了","zhǔnbèi hǎo le","all set"]]},
+{c:"带",py:"dài",t:4,m:"to bring, carry; belt",pos:"verb",f:17,k:[["带","a belt with hanging ends"]],mn:"A belt with straps hanging — what you strap on and BRING. 带走 = to go (food)! 别忘了带护照!",w:[["带走","dàizǒu","takeaway, to go"],["带来","dàilái","to bring"]]},
+{c:"钥",py:"yào",t:4,m:"key",pos:"noun",f:10,k:[["钅","metal"],["月","moon"]],mn:"A sliver of metal 钅 shaped like a crescent moon 月 — the KEY. 钥匙 — don't leave it in the room!",w:[["钥匙","yàoshi","key"],["房间钥匙","fángjiān yàoshi","room key"]]},
+{c:"匙",py:"shi",t:0,m:"(in 钥匙) key; spoon",pos:"noun",f:17,k:[["是","to be (shì)"],["匕","little ladle"]],mn:"A little ladle 匕 that IS 是 the answer — the second half of 钥匙 (key); alone (chí) it's a spoon.",w:[["钥匙","yàoshi","key"],["汤匙","tāngchí","soup spoon"]]},
+{c:"伞",py:"sǎn",t:3,m:"umbrella",pos:"noun",f:17,k:[["伞","an open umbrella"]],mn:"Look at it — a canopy, ribs, and a handle: an UMBRELLA. 雨伞. It IS the picture.",w:[["雨伞","yǔsǎn","umbrella"],["带伞","dài sǎn","bring an umbrella"]]},
+{c:"雨",py:"yǔ",t:3,m:"rain",pos:"noun",f:8,k:[["雨","raindrops under a cloud"]],mn:"The family glyph itself — drops falling under a cloud bar: RAIN. 下雨了 = it's raining.",w:[["下雨","xià yǔ","to rain"],["雨伞","yǔsǎn","umbrella"]]},
+{c:"校",py:"xiào",t:4,m:"school",pos:"noun",f:6,k:[["木","tree"],["交","to cross (jiāo — the sound!)"]],mn:"Wooden 木 halls where paths cross 交 — SCHOOL. 学校, 校门口 = the school gate.",w:[["学校","xuéxiào","school"],["校长","xiàozhǎng","principal"]]},
+{c:"冒",py:"mào",t:4,m:"to emit; to risk",pos:"verb",f:22,k:[["曰","a covering hat"],["目","eye"]],mn:"Pushing out with eyes 目 barely covered — to burst out, to RISK. 感冒 = catch a cold.",w:[["感冒","gǎnmào","to have a cold"],["冒雨","mào yǔ","brave the rain"]]},
+{c:"舒",py:"shū",t:1,m:"comfortable; to stretch",pos:"adjective",f:17,k:[["舍","cottage (shè)"],["予","to give (yǔ)"]],mn:"The cottage 舍 gives 予 you room to stretch — COMFORTABLE. 舒服 = comfy; 不舒服 = feeling unwell.",w:[["舒服","shūfu","comfortable"],["不舒服","bù shūfu","unwell"]]},
+{c:"气",py:"qì",t:4,m:"air; energy; temper",pos:"noun",f:17,k:[["气","rising vapor"]],mn:"Curls of rising vapor — AIR, breath, mood. 天气 weather, 生气 angry, 客气 polite. (You know its cousin 汽!)",w:[["天气","tiānqì","weather"],["生气","shēngqì","to get angry"]]},
+{c:"阴",py:"yīn",t:1,m:"overcast; shady",pos:"adjective",f:31,k:[["阝","hill (on the left)"],["月","moon"]],mn:"The moon 月 side of the hill 阝 — SHADE, overcast. 阴天 = cloudy day. (阳 is the sun side — you know it!)",w:[["阴天","yīntiān","overcast day"],["阴阳","yīnyáng","yin and yang"]]},
+{c:"风",py:"fēng",t:1,m:"wind",pos:"noun",f:17,k:[["风","wind swirling in a sail"]],mn:"A gust caught in a sail — WIND. 台风 typhoon, 风大 = it's windy.",w:[["台风","táifēng","typhoon"],["风很大","fēng hěn dà","very windy"]]},
+{c:"云",py:"yún",t:2,m:"cloud",pos:"noun",f:17,k:[["云","curling vapor"]],mn:"Vapor curling upward — a CLOUD. 多云 = cloudy. (It hid inside 动 and 会 all along!)",w:[["多云","duōyún","cloudy"],["云南","Yúnnán","Yunnan province"]]},
+{c:"冷",py:"lěng",t:3,m:"cold",pos:"adjective",f:17,k:[["冫","ice"],["令","command (lìng)"]],mn:"Ice 冫 at winter's command 令 — COLD. 今天好冷! (热's long-lost opposite, finally!)",w:[["好冷","hǎo lěng","so cold!"],["冷水","lěngshuǐ","cold water"]]},
+{c:"季",py:"jì",t:4,m:"season",pos:"noun",f:17,k:[["禾","grain"],["子","child"]],mn:"Grain 禾 growing like a child 子 — each stage a SEASON. 季节 = the seasons.",w:[["季节","jìjié","season"],["雨季","yǔjì","rainy season"]]},
+{c:"夏",py:"xià",t:4,m:"summer",pos:"noun",f:17,k:[["夏","a figure walking slowly in heat"]],mn:"A figure trudging slowly through the heat — SUMMER. 夏天到了, watermelon time.",w:[["夏天","xiàtiān","summer"],["夏日","xiàrì","summer day"]]},
+{c:"冬",py:"dōng",t:1,m:"winter",pos:"noun",f:17,k:[["夂","end of the march"],["冫","two ice drops"]],mn:"The year's march 夂 ending in two icicles 冫 — WINTER. 冬天 = hotpot season.",w:[["冬天","dōngtiān","winter"],["冬瓜","dōngguā","winter melon"]]},
+{c:"秋",py:"qiū",t:1,m:"autumn",pos:"noun",f:11,k:[["禾","grain"],["火","fire"]],mn:"Grain 禾 gold as fire 火 — AUTUMN, harvest time. 秋天 is Beijing's best season.",w:[["秋天","qiūtiān","autumn"],["中秋","Zhōngqiū","Mid-Autumn Festival"]]},
+{c:"世",py:"shì",t:4,m:"world; generation",pos:"noun",f:17,k:[["世","three tens joined"]],mn:"Three 十s joined — thirty years, a generation; all generations together: the WORLD. 世界!",w:[["世界","shìjiè","the world"],["世纪","shìjì","century"]]},
+{c:"京",py:"jīng",t:1,m:"capital",pos:"noun",f:17,k:[["京","a tall building on a hill"]],mn:"A grand tower on high ground — the CAPITAL. 北京 northern capital, 南京 southern capital.",w:[["北京","Běijīng","Beijing"],["京剧","jīngjù","Beijing opera"]]},
+{c:"州",py:"zhōu",t:1,m:"prefecture, state",pos:"noun",f:17,k:[["州","islets in a river"]],mn:"Dots of land in a flowing river — old river-districts: 广州 Guangzhou, 杭州 Hangzhou.",w:[["广州","Guǎngzhōu","Guangzhou"],["杭州","Hángzhōu","Hangzhou"]]},
+{c:"港",py:"gǎng",t:3,m:"harbor",pos:"noun",f:0,k:[["氵","water"],["巷","lane (xiàng)"]],mn:"A water 氵 lane 巷 for ships — a HARBOR. 香港 = Fragrant Harbor: Hong Kong.",w:[["香港","Xiānggǎng","Hong Kong"],["港口","gǎngkǒu","port"]]},
+{c:"兴",py:"xìng",t:4,m:"interest; (xīng) to rise",pos:"noun",f:17,k:[["兴","hands lifting a tray"]],mn:"Many hands lifting together — spirits RISING: 高兴 = happy, 兴趣 = interest.",w:[["高兴","gāoxìng","happy"],["兴趣","xìngqù","interest"]]},
+{c:"趣",py:"qù",t:4,m:"interest, fun",pos:"noun",f:9,k:[["走","runner"],["取","to grab (qǔ)"]],mn:"Running 走 to grab 取 what delights you — INTEREST. 有趣 = interesting, fun.",w:[["有趣","yǒuqù","interesting"],["兴趣","xìngqù","interest"]]},
+{c:"化",py:"huà",t:4,m:"to change, -ize",pos:"verb",f:4,k:[["亻","person"],["匕","person flipped"]],mn:"A person 亻 and the same person flipped 匕 — TRANSFORMATION. 文化 = culture, 变化 = change.",w:[["文化","wénhuà","culture"],["变化","biànhuà","change"]]},
+{c:"历",py:"lì",t:4,m:"to pass through; calendar",pos:"noun",f:51,k:[["厂","cliff"],["力","strength"]],mn:"Pushing with all your strength 力 past the cliff 厂 — to pass through: 历史 history, 农历 lunar calendar.",w:[["历史","lìshǐ","history"],["农历","nónglì","lunar calendar"]]},
+{c:"史",py:"shǐ",t:3,m:"history",pos:"noun",f:39,k:[["中","the records"],["又","a hand holding them"]],mn:"A hand 又 holding the records upright — the scribe: HISTORY. 历史.",w:[["历史","lìshǐ","history"],["历史上","lìshǐ shàng","in history"]]},
+{c:"故",py:"gù",t:4,m:"old; reason; incident",pos:"adjective",f:52,k:[["古","ancient (gǔ — the sound!)"],["攵","action hand"]],mn:"The hand 攵 of the ancient past 古 — OLD things and the reasons behind them: 故事 story, 故宫!",w:[["故事","gùshi","story"],["故宫","Gùgōng","the Forbidden City"]]},
+{c:"宫",py:"gōng",t:1,m:"palace",pos:"noun",f:18,k:[["宀","roof"],["吕","rooms in a row"]],mn:"Room after room 吕 under one great roof 宀 — a PALACE. 故宫 = the Forbidden City.",w:[["故宫","Gùgōng","Forbidden City"],["宫保鸡丁","gōngbǎo jīdīng","kung pao chicken!"]]},
+{c:"庙",py:"miào",t:4,m:"temple",pos:"noun",f:30,k:[["广","shelter"],["由","source (yóu)"]],mn:"The shelter 广 built at the source 由 of blessings — a TEMPLE. 庙会 = temple fair.",w:[["寺庙","sìmiào","temple"],["庙会","miàohuì","temple fair"]]},
+{c:"简",py:"jiǎn",t:3,m:"simple",pos:"adjective",f:33,k:[["竹","bamboo"],["间","between (jiān — the sound!)"]],mn:"Bamboo 竹 slips with space between 间 the words — kept SIMPLE. 简单 = easy!",w:[["简单","jiǎndān","simple, easy"],["简体字","jiǎntǐzì","simplified characters"]]},
+{c:"容",py:"róng",t:2,m:"to contain; appearance",pos:"verb",f:18,k:[["宀","roof"],["谷","valley"]],mn:"A roof 宀 wide as a valley 谷 — room to CONTAIN anything. 容易 = easy.",w:[["容易","róngyì","easy"],["内容","nèiróng","content"]]},
+{c:"易",py:"yì",t:4,m:"easy; to change",pos:"adjective",f:7,k:[["日","sun"],["勿","don't-flag (wù)"]],mn:"Weather flipping under the sun 日 — changing EASILY. 容易 = easy, 简易 = simplified.",w:[["容易","róngyì","easy"],["不容易","bù róngyì","not easy!"]]},
+{c:"步",py:"bù",t:4,m:"step",pos:"noun",f:9,k:[["止","a footprint"],["少-ish","another footprint below"]],mn:"Two footprints, one after the other — a STEP. 跑步 jogging, 散步 a stroll, 进步 progress!",w:[["跑步","pǎobù","to jog"],["散步","sànbù","take a walk"]]},
+{c:"差",py:"chà",t:4,m:"to differ; lacking",pos:"verb",f:17,k:[["羊-ish","uneven wool"],["工","the standard"]],mn:"Wool measured against the standard 工 and coming up short — DIFFERING. 差不多 = 'differs not much' = close enough — the most Chinese phrase there is!",w:[["差不多","chàbuduō","almost, close enough"],["差一点","chà yìdiǎn","just barely (missed)"]]},
 /*MORE*/
 ];
 /* extra anchor chars used only in look-alike drills */
@@ -914,6 +1331,538 @@ const GROUPS=[
  ["近","进"],
  ["息","思"]
 ];
+
+/* ================= LEVEL 0 — assumed-known basics =================
+   Not part of the Learn queue or level unlocks. Pre-marked 🟢 known on
+   first run (see migrate); shown in Browse as a reference shelf. */
+const BASICS=[
+{c:"一",py:"yī",t:1,m:"one",pos:"numeral",f:17,k:[["一","one line"]],mn:"One stroke. It doesn't get simpler than this.",w:[["一个","yí ge","one (of something)"],["一起","yìqǐ","together"]]},
+{c:"二",py:"èr",t:4,m:"two",pos:"numeral",f:17,k:[["二","two lines"]],mn:"Two strokes stacked — two. (In prices and phone numbers you'll also hear 两 liǎng.)",w:[["二月","èryuè","February"],["十二","shí'èr","twelve"]]},
+{c:"三",py:"sān",t:1,m:"three",pos:"numeral",f:17,k:[["三","three lines"]],mn:"Three strokes — three. The last of the freebies!",w:[["三月","sānyuè","March"],["三十","sānshí","thirty"]]},
+{c:"四",py:"sì",t:4,m:"four",pos:"numeral",f:17,k:[["四","a box with legs inside"]],mn:"A box with two little legs kicking inside — just memorize it: four.",w:[["四月","sìyuè","April"],["十四","shísì","fourteen"]]},
+{c:"五",py:"wǔ",t:3,m:"five",pos:"numeral",f:17,k:[["五","a tally of crossing lines"]],mn:"Lines crossing like a tally that reached five.",w:[["五月","wǔyuè","May"],["十五","shíwǔ","fifteen"]]},
+{c:"六",py:"liù",t:4,m:"six",pos:"numeral",f:17,k:[["六","a roof over two legs"]],mn:"A little roof with two legs under it — six.",w:[["六月","liùyuè","June"],["十六","shíliù","sixteen"]]},
+{c:"七",py:"qī",t:1,m:"seven",pos:"numeral",f:17,k:[["七","a slash across a hook"]],mn:"A slash cutting across a hook — seven.",w:[["七月","qīyuè","July"],["十七","shíqī","seventeen"]]},
+{c:"八",py:"bā",t:1,m:"eight",pos:"numeral",f:17,k:[["八","two strokes leaning apart"]],mn:"Two strokes splitting apart like an open fan — eight.",w:[["八月","bāyuè","August"],["十八","shíbā","eighteen"]]},
+{c:"九",py:"jiǔ",t:3,m:"nine",pos:"numeral",f:17,k:[["九","an elbow with a hook"]],mn:"A bent elbow with a hook — nine, one bend before ten.",w:[["九月","jiǔyuè","September"],["十九","shíjiǔ","nineteen"]]},
+{c:"十",py:"shí",t:2,m:"ten",pos:"numeral",f:17,k:[["十","a full cross"]],mn:"A complete cross — full in both directions: ten, the round number.",w:[["十月","shíyuè","October"],["五十","wǔshí","fifty"]]},
+{c:"个",py:"gè",t:4,m:"(measure word); piece",pos:"measure word",f:17,k:[["人","person"],["丨","a counting stick"]],mn:"A person 人 standing by a counting stick 丨 — the all-purpose counter: 一个, 三个, 这个.",w:[["几个","jǐ ge","how many"],["一个","yí ge","one (of something)"]]},
+{c:"我",py:"wǒ",t:3,m:"I, me",pos:"pronoun",f:17,k:[["手","hand"],["戈","spear"]],mn:"A hand 手 gripping a spear 戈 — defending what's MINE: me, I.",w:[["我们","wǒmen","we, us"],["我的","wǒ de","my, mine"]]},
+{c:"你",py:"nǐ",t:3,m:"you",pos:"pronoun",f:4,k:[["亻","person"],["尔","you (ancient word)"]],mn:"A person 亻 plus the ancient word for 'you' 尔 — you!",w:[["你好","nǐ hǎo","hello"],["你们","nǐmen","you (plural)"]]},
+{c:"他",py:"tā",t:1,m:"he, him",pos:"pronoun",f:4,k:[["亻","person"],["也","also (yě)"]],mn:"Another person 亻 also 也 here — him.",w:[["他们","tāmen","they"],["他的","tā de","his"]]},
+{c:"她",py:"tā",t:1,m:"she, her",pos:"pronoun",f:15,k:[["女","woman"],["也","also (yě)"]],mn:"The same word with woman 女 on the left — her. 他 and 她 sound exactly alike: tā!",w:[["她们","tāmen","they (women)"],["她的","tā de","hers"]]},
+{c:"们",py:"men",t:0,m:"(plural marker)",pos:"particle",f:4,k:[["亻","person"],["门","door (sound)"]],mn:"One person 亻 at the door 门, more crowding in behind — the plural: 我们, 你们, 他们.",w:[["我们","wǒmen","we"],["人们","rénmen","people"]]},
+{c:"的",py:"de",t:0,m:"(possessive marker)",pos:"particle",f:17,k:[["白","white"],["勺","spoon, ladle"]],mn:"A white 白 spoon 勺 — whose spoon? The little word that marks belonging: 我的 = mine.",w:[["我的","wǒ de","mine"],["好的","hǎo de","OK, sure"]]},
+{c:"了",py:"le",t:0,m:"(done / change marker)",pos:"particle",f:17,k:[["了","a swaddled baby"]],mn:"A baby swaddled up, arms wrapped in — all wrapped up, done: 吃了 = ate, 下雨了 = it's raining now.",w:[["好了","hǎo le","done, ready"],["太好了","tài hǎo le","great!"]]},
+{c:"是",py:"shì",t:4,m:"to be; yes",pos:"verb",f:7,k:[["日","sun"],["正","straight (squashed flat)"]],mn:"The sun 日 directly overhead, everything straight 正 below — yes, it IS so: the verb 'to be'.",w:[["是的","shì de","yes"],["不是","bú shì","is not"]]},
+{c:"不",py:"bù",t:4,m:"not, no",pos:"adverb",f:17,k:[["不","a bird blocked by the sky"]],mn:"A bird flying up and hitting the sky-line — blocked! Not, no, don't.",w:[["不是","bú shì","is not"],["不要","bú yào","don't want"]]},
+{c:"在",py:"zài",t:4,m:"at, in; to be (somewhere)",pos:"preposition",f:23,k:[["土","earth"],["才","just now (cái)"]],mn:"Just 才 there on the ground 土 — right where you are: 我在家 = I'm at home.",w:[["现在","xiànzài","now"],["在家","zài jiā","at home"]]},
+{c:"有",py:"yǒu",t:3,m:"to have; there is",pos:"verb",f:21,k:[["月","flesh (a cut of meat)"]],mn:"A hand holding a cut of meat 月 — look what I HAVE!",w:[["没有","méiyǒu","don't have"],["有名","yǒumíng","famous"]]},
+{c:"和",py:"hé",t:2,m:"and; with",pos:"conjunction",f:14,k:[["禾","grain (a rice plant)"],["口","mouth"]],mn:"Grain 禾 for every mouth 口 — harmony, togetherness: and, with.",w:[["和平","hépíng","peace"],["我和你","wǒ hé nǐ","you and me"]]},
+{c:"吗",py:"ma",t:0,m:"(question marker)",pos:"particle",f:14,k:[["口","mouth"],["马","horse (sound)"]],mn:"A horse 马 gallops up to your mouth 口 at the end of a sentence and turns it into a question: …吗?",w:[["好吗","hǎo ma","OK?"],["是吗","shì ma","really?"]]},
+{c:"这",py:"zhè",t:4,m:"this",pos:"pronoun",f:19,k:[["辶","walk"],["文","writing"]],mn:"Walk 辶 right up to the writing 文 and point at it — THIS one.",w:[["这个","zhège","this one"],["这里","zhèlǐ","here"]]},
+{c:"那",py:"nà",t:4,m:"that",pos:"pronoun",f:31,k:[["阝","city (on the right)"]],mn:"Pointing across at the other city 阝 — THAT one, over there.",w:[["那个","nàge","that one"],["那里","nàlǐ","there"]]},
+{c:"什",py:"shén",t:2,m:"what (in 什么)",pos:"pronoun",f:4,k:[["亻","person"],["十","ten (shí)"]],mn:"Ten 十 people 亻 all asking at once — WHAT? 十 (shí) hints the sound. Always travels with 么.",w:[["什么","shénme","what"],["为什么","wèishénme","why"]]},
+{c:"么",py:"me",t:0,m:"(question tail)",pos:"particle",f:17,k:[["么","a tiny curled thread"]],mn:"A tiny curled thread — the little tail on question words: 什么 what, 怎么 how.",w:[["什么","shénme","what"],["怎么","zěnme","how"]]},
+{c:"好",py:"hǎo",t:3,m:"good, well",pos:"adjective",f:15,k:[["女","woman"],["子","child"]],mn:"A mother 女 with her child 子 — the oldest picture of 'all is well': good.",w:[["你好","nǐ hǎo","hello"],["好吃","hǎochī","delicious"]]},
+{c:"大",py:"dà",t:4,m:"big",pos:"adjective",f:17,k:[["大","a person, arms stretched wide"]],mn:"'It was THIS big!' — a person stretching both arms as wide as they'll go.",w:[["大人","dàrén","adult"],["大学","dàxué","university"]]},
+{c:"小",py:"xiǎo",t:3,m:"small",pos:"adjective",f:17,k:[["小","a thing split into little pieces"]],mn:"A hook with two chips flying off — split into little pieces: small.",w:[["小心","xiǎoxīn","careful!"],["小时","xiǎoshí","hour"]]},
+{c:"多",py:"duō",t:1,m:"many, much",pos:"adjective",f:17,k:[["夕","evening (two of them!)"]],mn:"Evening 夕 stacked on evening 夕 — night after night piling up: many.",w:[["多少","duōshao","how much / how many"],["很多","hěn duō","a lot"]]},
+{c:"上",py:"shàng",t:4,m:"up, on; to go up",pos:"noun",f:17,k:[["上","a mark above the line"]],mn:"A stroke standing ABOVE the base line — up, on top. Also 'to attend': 上课 go to class.",w:[["上海","Shànghǎi","Shanghai"],["早上","zǎoshang","morning"]]},
+{c:"下",py:"xià",t:4,m:"down, under; next",pos:"noun",f:17,k:[["下","a mark below the line"]],mn:"The same mark hanging BELOW the line — down, under, next.",w:[["下午","xiàwǔ","afternoon"],["一下","yíxià","for a moment"]]},
+{c:"中",py:"zhōng",t:1,m:"middle, center",pos:"noun",f:17,k:[["中","a line through a box's middle"]],mn:"An arrow straight through the center of a target — the middle. 中国: the Middle Kingdom!",w:[["中国","Zhōngguó","China"],["中文","Zhōngwén","Chinese (language)"]]},
+{c:"天",py:"tiān",t:1,m:"sky; day",pos:"noun",f:17,k:[["一","the sky (line on top)"],["大","a person"]],mn:"The line 一 over a person 大 — whatever is above everyone's head: the sky, and so 'day'.",w:[["今天","jīntiān","today"],["明天","míngtiān","tomorrow"]]},
+{c:"年",py:"nián",t:2,m:"year",pos:"noun",f:17,k:[["年","a person carrying grain"]],mn:"A farmer carrying the harvest home — one harvest, one year.",w:[["今年","jīnnián","this year"],["新年","xīnnián","New Year"]]},
+{c:"来",py:"lái",t:2,m:"to come",pos:"verb",f:17,k:[["来","a wheat plant"]],mn:"Originally a wheat plant — wheat CAME to China from far away, so it means 'to come'.",w:[["回来","huílái","come back"],["来了","lái le","coming!"]]},
+{c:"去",py:"qù",t:4,m:"to go",pos:"verb",f:17,k:[["土","earth"],["厶","private (a closed arm)"]],mn:"Tuck your private 厶 things under your arm and leave the land 土 — to go.",w:[["去年","qùnián","last year"],["回去","huíqù","go back"]]},
+{c:"吃",py:"chī",t:1,m:"to eat",pos:"verb",f:14,k:[["口","mouth"],["乞","to beg (qǐ)"]],mn:"A mouth 口 begging 乞 for food — to eat. 乞 (qǐ) hints the sound chī.",w:[["吃饭","chīfàn","to eat (a meal)"],["好吃","hǎochī","delicious"]]},
+{c:"喝",py:"hē",t:1,m:"to drink",pos:"verb",f:14,k:[["口","mouth"],["曷","parched traveler (sound)"]],mn:"A mouth 口 wide open in the desert sun — DRINK!",w:[["喝水","hē shuǐ","drink water"],["喝茶","hē chá","drink tea"]]},
+{c:"看",py:"kàn",t:4,m:"to look, watch, read",pos:"verb",f:22,k:[["手","hand (flattened on top)"],["目","eye"]],mn:"A hand 手 shading the eye 目 to peer into the distance — to look.",w:[["看书","kàn shū","to read"],["看见","kànjiàn","to see, spot"]]},
+{c:"说",py:"shuō",t:1,m:"to speak, say",pos:"verb",f:1,k:[["讠","speech"],["兑","to exchange (duì)"]],mn:"Speech 讠 exchanged 兑 back and forth between people — to speak.",w:[["说话","shuōhuà","to speak"],["听说","tīngshuō","(I) heard that…"]]},
+{c:"买",py:"mǎi",t:3,m:"to buy",pos:"verb",f:17,k:[["买","a head under a hook"]],mn:"Hook down the thing you want and haggle head-first — to buy. (The old form had a money-shell 贝 inside!)",w:[["买单","mǎidān","the bill, please!"],["买东西","mǎi dōngxi","go shopping"]]},
+{c:"要",py:"yào",t:4,m:"to want; to need",pos:"verb",f:15,k:[["西","west"],["女","woman"]],mn:"The woman 女 of the house points west 西 at the market stall: 'I WANT that one.'",w:[["不要","bú yào","don't want"],["需要","xūyào","to need"]]},
+{c:"谢",py:"xiè",t:4,m:"to thank",pos:"verb",f:1,k:[["讠","speech"],["身","body"],["寸","inch"]],mn:"Words 讠 spoken while bowing your body 身 an inch 寸 lower — thanks! 谢谢!",w:[["谢谢","xièxie","thank you"],["感谢","gǎnxiè","to thank, be grateful"]]},
+{c:"妈",py:"mā",t:1,m:"mom",pos:"noun",f:15,k:[["女","woman"],["马","horse (sound)"]],mn:"Woman 女 + 马 saying mā — the first word in almost every language: mom.",w:[["妈妈","māma","mom"],["大妈","dàmā","auntie (older woman)"]]},
+{c:"爸",py:"bà",t:4,m:"dad",pos:"noun",f:17,k:[["父","father"],["巴","(sound)"]],mn:"Father 父 on top, 巴 saying bà below — dad. Easy one: 爸爸!",w:[["爸爸","bàba","dad"],["爸妈","bàmā","mom and dad"]]},
+{c:"人",py:"rén",t:2,m:"person",pos:"noun",f:4,k:[["人","a person walking (two legs)"]],mn:"Two legs mid-stride — a person. On the left of characters it gets squeezed into 亻.",w:[["中国人","Zhōngguó rén","Chinese person"],["别人","biérén","other people"]]},
+{c:"口",py:"kǒu",t:3,m:"mouth; opening",pos:"noun",f:14,k:[["口","an open mouth"]],mn:"An open mouth — also any opening: 出口 exit, 入口 entrance. Watch for it inside 吃, 喝, 吗.",w:[["出口","chūkǒu","exit"],["人口","rénkǒu","population"]]},
+{c:"手",py:"shǒu",t:3,m:"hand",pos:"noun",f:3,k:[["手","a hand with spread fingers"]],mn:"A palm with fingers spread. On the left of characters it squeezes into 扌 — 打, 找, 拿.",w:[["手机","shǒujī","mobile phone"],["洗手","xǐshǒu","wash hands"]]},
+{c:"水",py:"shuǐ",t:3,m:"water",pos:"noun",f:0,k:[["水","a flowing stream"]],mn:"A stream with splashes on both sides. On the left it becomes the three drops 氵 you know from 河, 海, 洗.",w:[["水果","shuǐguǒ","fruit"],["汽水","qìshuǐ","soda"]]},
+{c:"火",py:"huǒ",t:3,m:"fire",pos:"noun",f:11,k:[["火","flames with sparks"]],mn:"A flame with two sparks flying. Inside characters it also melts into four dots 灬 — 热, 照.",w:[["火车","huǒchē","train"],["火锅","huǒguō","hot pot"]]},
+{c:"门",py:"mén",t:2,m:"door, gate",pos:"noun",f:16,k:[["门","a double door frame"]],mn:"A swinging double door — and a frame that wraps whole characters: 间, 闻.",w:[["开门","kāimén","open the door"],["出门","chūmén","go out"]]},
+{c:"日",py:"rì",t:4,m:"sun; day (of month)",pos:"noun",f:7,k:[["日","the sun"]],mn:"The sun drawn as a square with a spot — day and date: 6月8日 = June 8th.",w:[["生日","shēngrì","birthday"],["日本","Rìběn","Japan"]]},
+{c:"月",py:"yuè",t:4,m:"moon; month",pos:"noun",f:21,k:[["月","a crescent moon"]],mn:"A crescent moon — so also 'month'. Careful: INSIDE characters 月 usually means flesh (脸, 脚, 脑)!",w:[["月亮","yuèliang","the moon"],["一月","yīyuè","January"]]}
+];
+Object.assign(SENTS,{
+"一":["我要一个。","Wǒ yào yí ge.","I want one."],
+"二":["现在是二月。","Xiànzài shì èryuè.","It's February now."],
+"三":["我们三点见。","Wǒmen sān diǎn jiàn.","See you at three."],
+"四":["我住在四楼。","Wǒ zhù zài sì lóu.","I live on the fourth floor."],
+"五":["现在五点了。","Xiànzài wǔ diǎn le.","It's five o'clock now."],
+"六":["我六点回家。","Wǒ liù diǎn huí jiā.","I go home at six."],
+"七":["一个星期有七天。","Yí ge xīngqī yǒu qī tiān.","A week has seven days."],
+"八":["我八点上课。","Wǒ bā diǎn shàngkè.","I have class at eight."],
+"九":["他九岁。","Tā jiǔ suì.","He is nine years old."],
+"十":["这个十块钱。","Zhège shí kuài qián.","This one is ten kuai."],
+"个":["我买两个。","Wǒ mǎi liǎng ge.","I'll buy two."],
+"我":["我很好。","Wǒ hěn hǎo.","I'm fine."],
+"你":["你好吗？","Nǐ hǎo ma?","How are you?"],
+"他":["他是我朋友。","Tā shì wǒ péngyou.","He's my friend."],
+"她":["她很漂亮。","Tā hěn piàoliang.","She is very pretty."],
+"们":["我们走吧。","Wǒmen zǒu ba.","Let's go."],
+"的":["这是我的手机。","Zhè shì wǒ de shǒujī.","This is my phone."],
+"了":["下雨了！","Xià yǔ le!","It's raining!"],
+"是":["他是谁？","Tā shì shéi?","Who is he?"],
+"不":["我不知道。","Wǒ bù zhīdào.","I don't know."],
+"在":["我在家。","Wǒ zài jiā.","I'm at home."],
+"有":["你有时间吗？","Nǐ yǒu shíjiān ma?","Do you have time?"],
+"和":["我和你一起去。","Wǒ hé nǐ yìqǐ qù.","You and I will go together."],
+"吗":["你吃了吗？","Nǐ chī le ma?","Have you eaten?"],
+"这":["这是什么？","Zhè shì shénme?","What is this?"],
+"那":["那是我的。","Nà shì wǒ de.","That one is mine."],
+"什":["你叫什么名字？","Nǐ jiào shénme míngzi?","What's your name?"],
+"么":["你在想什么？","Nǐ zài xiǎng shénme?","What are you thinking about?"],
+"好":["今天天气很好。","Jīntiān tiānqì hěn hǎo.","The weather is nice today."],
+"大":["这个太大了。","Zhège tài dà le.","This one is too big."],
+"小":["我要小的。","Wǒ yào xiǎo de.","I want the small one."],
+"多":["多少钱？","Duōshao qián?","How much is it?"],
+"上":["我在楼上。","Wǒ zài lóushàng.","I'm upstairs."],
+"下":["我们下次见。","Wǒmen xià cì jiàn.","See you next time."],
+"中":["我在学中文。","Wǒ zài xué Zhōngwén.","I'm learning Chinese."],
+"天":["今天很热。","Jīntiān hěn rè.","It's hot today."],
+"年":["我今年二十岁。","Wǒ jīnnián èrshí suì.","I'm twenty this year."],
+"来":["他来了！","Tā lái le!","He's here!"],
+"去":["我去买东西。","Wǒ qù mǎi dōngxi.","I'm going shopping."],
+"吃":["我们去吃饭吧。","Wǒmen qù chīfàn ba.","Let's go eat."],
+"喝":["你想喝什么？","Nǐ xiǎng hē shénme?","What would you like to drink?"],
+"看":["你看，下雪了！","Nǐ kàn, xià xuě le!","Look, it's snowing!"],
+"说":["请再说一遍。","Qǐng zài shuō yí biàn.","Please say it again."],
+"买":["我想买这个。","Wǒ xiǎng mǎi zhège.","I'd like to buy this one."],
+"要":["我不要，谢谢。","Wǒ bú yào, xièxie.","I don't want it, thanks."],
+"谢":["谢谢你！","Xièxie nǐ!","Thank you!"],
+"妈":["妈妈，我饿了！","Māma, wǒ è le!","Mom, I'm hungry!"],
+"爸":["爸爸在家吗？","Bàba zài jiā ma?","Is Dad home?"],
+"人":["这里人很多。","Zhèlǐ rén hěn duō.","There are a lot of people here."],
+"口":["出口在哪里？","Chūkǒu zài nǎlǐ?","Where is the exit?"],
+"手":["请先洗手。","Qǐng xiān xǐshǒu.","Please wash your hands first."],
+"水":["我要一杯水。","Wǒ yào yì bēi shuǐ.","I'd like a glass of water."],
+"火":["我们坐火车去。","Wǒmen zuò huǒchē qù.","We'll go by train."],
+"门":["请开门！","Qǐng kāimén!","Please open the door!"],
+"日":["今天是我的生日。","Jīntiān shì wǒ de shēngrì.","Today is my birthday."],
+"月":["我下个月去中国。","Wǒ xià ge yuè qù Zhōngguó.","I'm going to China next month."]
+});
+/* Level 4 sentences — written like the streets: signs, boards, counters */
+Object.assign(SENTS,{
+"东":["东门在那边。","Dōngmén zài nàbiān.","The east gate is over there."],
+"西":["我们从西门进去。","Wǒmen cóng xīmén jìnqù.","We'll go in through the west gate."],
+"南":["南门不开，走北门。","Nánmén bù kāi, zǒu běimén.","The south gate is closed — use the north gate."],
+"北":["下一站，北京站。","Xià yí zhàn, Běijīng zhàn.","Next stop: Beijing Railway Station."],
+"左":["在前面往左转。","Zài qiánmiàn wǎng zuǒ zhuǎn.","Turn left up ahead."],
+"右":["请靠右站。","Qǐng kào yòu zhàn.","Please stand to the right. (escalator sign)"],
+"前":["往前走五分钟就到。","Wǎng qián zǒu wǔ fēnzhōng jiù dào.","Walk five minutes ahead and you're there."],
+"后":["请从后门下车。","Qǐng cóng hòumén xià chē.","Please exit through the rear door. (bus)"],
+"边":["车站旁边有一家超市。","Chēzhàn pángbiān yǒu yì jiā chāoshì.","There's a supermarket next to the station."],
+"里":["你在哪里？","Nǐ zài nǎlǐ?","Where are you?"],
+"面":["我家对面有一家面馆。","Wǒ jiā duìmiàn yǒu yì jiā miànguǎn.","There's a noodle shop across from my place."],
+"外":["我点了外卖。","Wǒ diǎn le wàimài.","I ordered delivery."],
+"方":["这个地方很好玩。","Zhège dìfang hěn hǎowán.","This place is a lot of fun."],
+"出":["出口在左边。","Chūkǒu zài zuǒbiān.","The exit is on the left."],
+"入":["入口在二楼。","Rùkǒu zài èr lóu.","The entrance is on the second floor."],
+"进":["请进！","Qǐng jìn!","Come in!"],
+"开":["商店十点开门。","Shāngdiàn shí diǎn kāimén.","The shop opens at ten."],
+"关":["银行五点关门。","Yínháng wǔ diǎn guānmén.","The bank closes at five."],
+"退":["我想退款。","Wǒ xiǎng tuìkuǎn.","I'd like a refund."],
+"到":["火车马上到站。","Huǒchē mǎshàng dào zhàn.","The train is arriving now."],
+"达":["飞机下午三点到达。","Fēijī xiàwǔ sān diǎn dàodá.","The plane arrives at 3 pm."],
+"发":["我们明天早上出发。","Wǒmen míngtiān zǎoshang chūfā.","We set off tomorrow morning."],
+"过":["过马路要小心。","Guò mǎlù yào xiǎoxīn.","Be careful crossing the road."],
+"车":["我坐火车去上海。","Wǒ zuò huǒchē qù Shànghǎi.","I'm taking the train to Shanghai."],
+"乘":["在这站换乘二号线。","Zài zhè zhàn huànchéng èr hào xiàn.","Transfer to Line 2 at this stop."],
+"坐":["请坐这里。","Qǐng zuò zhèlǐ.","Please sit here."],
+"号":["你坐几号线？","Nǐ zuò jǐ hào xiàn?","Which metro line do you take?"],
+"票":["我买了两张票。","Wǒ mǎi le liǎng zhāng piào.","I bought two tickets."],
+"机":["我的手机没电了。","Wǒ de shǒujī méi diàn le.","My phone is out of battery."],
+"飞":["飞机要起飞了。","Fēijī yào qǐfēi le.","The plane is about to take off."],
+"公":["公交车来了。","Gōngjiāochē lái le.","The bus is here."],
+"交":["这里交通很忙。","Zhèlǐ jiāotōng hěn máng.","Traffic here is busy."],
+"租":["我坐出租车回家。","Wǒ zuò chūzūchē huí jiā.","I'm taking a taxi home."],
+"自":["我自己去就好。","Wǒ zìjǐ qù jiù hǎo.","I can go by myself."],
+"行":["银行在超市旁边。","Yínháng zài chāoshì pángbiān.","The bank is next to the supermarket."],
+"高":["我们坐高铁去北京。","Wǒmen zuò gāotiě qù Běijīng.","We're taking the high-speed train to Beijing."],
+"动":["这个门是自动的。","Zhège mén shì zìdòng de.","This door is automatic."],
+"电":["电梯在那边。","Diàntī zài nàbiān.","The elevator is over there."],
+"台":["请在三号站台上车。","Qǐng zài sān hào zhàntái shàng chē.","Please board at Platform 3."],
+"登":["现在开始登机。","Xiànzài kāishǐ dēngjī.","Boarding now."],
+"元":["一共三十元。","Yígòng sānshí yuán.","Thirty yuan altogether."],
+"价":["菜单上有价格。","Càidān shàng yǒu jiàgé.","The prices are on the menu."],
+"格":["这个价格很好。","Zhège jiàgé hěn hǎo.","That's a good price."],
+"付":["我用手机付款。","Wǒ yòng shǒujī fùkuǎn.","I'll pay with my phone."],
+"支":["你用支付宝吗？","Nǐ yòng Zhīfùbǎo ma?","Do you use Alipay?"],
+"收":["这里不收现金。","Zhèlǐ bù shōu xiànjīn.","They don't take cash here."],
+"卖":["这家店卖水果。","Zhè jiā diàn mài shuǐguǒ.","This shop sells fruit."],
+"单":["请给我看菜单。","Qǐng gěi wǒ kàn càidān.","Please show me the menu."],
+"免":["小菜是免费的。","Xiǎocài shì miǎnfèi de.","The side dishes are free."],
+"折":["这些鞋打八折。","Zhèxiē xié dǎ bāzhé.","These shoes are 20% off."],
+"市":["我去超市买东西。","Wǒ qù chāoshì mǎi dōngxi.","I'm going to the supermarket."],
+"超":["超市里人很多。","Chāoshì lǐ rén hěn duō.","The supermarket is crowded."],
+"款":["我要取款。","Wǒ yào qǔkuǎn.","I need to withdraw cash."],
+"禁":["这里禁止停车。","Zhèlǐ jìnzhǐ tíngchē.","No parking here."],
+"止":["禁止吸烟。","Jìnzhǐ xīyān.","No smoking."],
+"危":["危险！小心！","Wēixiǎn! Xiǎoxīn!","Danger! Careful!"],
+"险":["这里很危险。","Zhèlǐ hěn wēixiǎn.","It's dangerous here."],
+"注":["注意安全。","Zhùyì ānquán.","Mind your safety. (the classic sign)"],
+"全":["商场十点全部开门。","Shāngchǎng shí diǎn quánbù kāimén.","The whole mall opens at ten."],
+"勿":["请勿吸烟。","Qǐng wù xīyān.","No smoking, please."],
+"警":["有事找警察。","Yǒu shì zhǎo jǐngchá.","If something happens, find the police."],
+"紧":["紧急出口在后面。","Jǐnjí chūkǒu zài hòumiàn.","The emergency exit is at the back."],
+"防":["消防车来了。","Xiāofángchē lái le.","The fire truck is coming."],
+"工":["前面在施工。","Qiánmiàn zài shīgōng.","Construction ahead."],
+"用":["这个怎么用？","Zhège zěnme yòng?","How do you use this?"],
+"厕":["厕所在二楼。","Cèsuǒ zài èr lóu.","The toilet is on the second floor."],
+"所":["洗手间就是厕所。","Xǐshǒujiān jiùshì cèsuǒ.","'Washroom' means the toilet."],
+"男":["男厕在左边。","Náncè zài zuǒbiān.","The men's room is on the left."],
+"女":["女厕在右边。","Nǚcè zài yòubiān.","The women's room is on the right."],
+"医":["医院离这里不远。","Yīyuàn lí zhèlǐ bù yuǎn.","The hospital isn't far from here."],
+"园":["公园里花开了。","Gōngyuán lǐ huā kāi le.","The flowers in the park are blooming."],
+"街":["这条街很热闹。","Zhè tiáo jiē hěn rènao.","This street is lively."],
+"道":["街道两边都是店。","Jiēdào liǎngbiān dōu shì diàn.","Both sides of the street are shops."],
+"酒":["这家酒店很新。","Zhè jiā jiǔdiàn hěn xīn.","This hotel is very new."],
+"卫":["卫生间在里面。","Wèishēngjiān zài lǐmiàn.","The bathroom is inside."],
+"生":["先生，您的票。","Xiānsheng, nín de piào.","Sir, your ticket."],
+"餐":["早餐到十点。","Zǎocān dào shí diǎn.","Breakfast until ten. (hotel sign)"],
+"厅":["餐厅在三楼。","Cāntīng zài sān lóu.","The restaurant is on the third floor."],
+"点":["我们点菜吧。","Wǒmen diǎncài ba.","Let's order."],
+"分":["还有五分钟。","Hái yǒu wǔ fēnzhōng.","Five minutes to go."],
+"半":["现在三点半。","Xiànzài sān diǎn bàn.","It's 3:30."],
+"时":["营业时间：九点到六点。","Yíngyè shíjiān: jiǔ diǎn dào liù diǎn.","Opening hours: 9 to 6."],
+"候":["我在候车室等你。","Wǒ zài hòuchēshì děng nǐ.","I'll wait for you in the waiting room."],
+"早":["早上好！","Zǎoshang hǎo!","Good morning!"],
+"午":["中午吃什么？","Zhōngwǔ chī shénme?","What's for lunch?"],
+"周":["这家店周一休息。","Zhè jiā diàn zhōuyī xiūxi.","This shop is closed on Mondays."],
+"几":["现在几点了？","Xiànzài jǐ diǎn le?","What time is it?"],
+"新":["这家店是新开的。","Zhè jiā diàn shì xīn kāi de.","This shop just opened."],
+"每":["每人一份。","Měi rén yí fèn.","One per person. (sign)"],
+"座":["这个座位有人吗？","Zhège zuòwèi yǒu rén ma?","Is this seat taken?"],
+"共":["一共多少钱？","Yígòng duōshao qián?","How much altogether?"],
+"服":["服务员，买单！","Fúwùyuán, mǎidān!","Waiter, the bill please!"],
+"务":["这里服务很好。","Zhèlǐ fúwù hěn hǎo.","The service here is great."],
+"营":["营业中，请进。","Yíngyè zhōng, qǐng jìn.","Open — come in."],
+"业":["今天不营业。","Jīntiān bù yíngyè.","Closed today."],
+"休":["休息中，下午见。","Xiūxi zhōng, xiàwǔ jiàn.","On break — see you this afternoon."],
+"走":["去地铁站怎么走？","Qù dìtiězhàn zěnme zǒu?","How do I get to the metro station?"],
+"对":["对不起，我没听懂。","Duìbuqǐ, wǒ méi tīngdǒng.","Sorry, I didn't catch that."],
+"没":["没关系！","Méi guānxi!","No problem!"],
+"怎":["这个字怎么读？","Zhège zì zěnme dú?","How do you read this character?"]
+});
+/* Level 5 sentences — life inside the phone */
+Object.assign(SENTS,{
+"网":["这里没有网。","Zhèlǐ méiyǒu wǎng.","There's no internet here."],
+"络":["网络不太好。","Wǎngluò bú tài hǎo.","The connection isn't great."],
+"码":["扫这个二维码。","Sǎo zhège èrwéimǎ.","Scan this QR code."],
+"密":["我忘了密码。","Wǒ wàng le mìmǎ.","I forgot my password."],
+"录":["请先登录。","Qǐng xiān dēnglù.","Please log in first."],
+"信":["加我微信吧！","Jiā wǒ Wēixìn ba!","Add me on WeChat!"],
+"微":["你有微信吗？","Nǐ yǒu Wēixìn ma?","Do you have WeChat?"],
+"确":["请点确认。","Qǐng diǎn quèrèn.","Please tap Confirm."],
+"删":["我把照片删了。","Wǒ bǎ zhàopiàn shān le.","I deleted the photo."],
+"设":["在设置里改。","Zài shèzhì lǐ gǎi.","Change it in Settings."],
+"置":["把位置发给我。","Bǎ wèizhì fā gěi wǒ.","Send me your location."],
+"装":["我装了一个新软件。","Wǒ zhuāng le yí ge xīn ruǎnjiàn.","I installed a new app."],
+"载":["下载要五分钟。","Xiàzài yào wǔ fēnzhōng.","The download takes five minutes."],
+"传":["照片上传好了。","Zhàopiàn shàngchuán hǎo le.","The photos finished uploading."],
+"输":["请输入号码。","Qǐng shūrù hàomǎ.","Please enter the number."],
+"击":["点击这里打开。","Diǎnjī zhèlǐ dǎkāi.","Click here to open."],
+"屏":["我的屏幕碎了。","Wǒ de píngmù suì le.","My screen is cracked."],
+"频":["这个视频很好笑。","Zhège shìpín hěn hǎoxiào.","This video is hilarious."],
+"播":["她在直播卖东西。","Tā zài zhíbō mài dōngxi.","She's livestream-selling stuff."],
+"放":["放心，我知道路。","Fàngxīn, wǒ zhīdào lù.","Don't worry, I know the way."],
+"图":["看地图，别走错。","Kàn dìtú, bié zǒu cuò.","Check the map, don't go the wrong way."],
+"片":["这张照片真好看。","Zhè zhāng zhàopiàn zhēn hǎokàn.","This photo looks great."],
+"声":["手机声音太大了。","Shǒujī shēngyīn tài dà le.","The phone's volume is too loud."],
+"音":["你的拼音很好！","Nǐ de pīnyīn hěn hǎo!","Your pinyin is great!"],
+"乐":["我在听音乐。","Wǒ zài tīng yīnyuè.","I'm listening to music."],
+"戏":["别玩游戏了！","Bié wán yóuxì le!","Stop playing games!"],
+"充":["我要充电了。","Wǒ yào chōngdiàn le.","I need to charge up."],
+"账":["你的账号是什么？","Nǐ de zhànghào shì shénme?","What's your account ID?"],
+"卡":["我的卡不能用了。","Wǒ de kǎ bù néng yòng le.","My card stopped working."],
+"群":["我把你拉进群。","Wǒ bǎ nǐ lā jìn qún.","I'll add you to the group."],
+"聊":["我们聊了很久。","Wǒmen liáo le hěn jiǔ.","We chatted for a long time."],
+"评":["这家店好评很多。","Zhè jiā diàn hǎopíng hěn duō.","This shop has lots of good reviews."],
+"论":["评论区很热闹。","Pínglùn qū hěn rènao.","The comments section is lively."],
+"赞":["给我点个赞！","Gěi wǒ diǎn ge zàn!","Give me a like!"],
+"丝":["她有很多粉丝。","Tā yǒu hěn duō fěnsī.","She has a lot of fans."],
+"搜":["搜一下就知道了。","Sōu yíxià jiù zhīdào le.","Just search it and you'll know."],
+"页":["下一页在哪儿？","Xià yí yè zài nǎr?","Where's the next page?"],
+"链":["把链接发我。","Bǎ liànjiē fā wǒ.","Send me the link."],
+"复":["他还没回复我。","Tā hái méi huífù wǒ.","He hasn't replied to me yet."],
+"制":["先复制，再发送。","Xiān fùzhì, zài fāsòng.","Copy first, then send."],
+"重":["这个很重要。","Zhège hěn zhòngyào.","This is important."],
+"存":["记得保存文件。","Jìde bǎocún wénjiàn.","Remember to save the file."],
+"文":["这是中文菜单。","Zhè shì Zhōngwén càidān.","This is the Chinese menu."],
+"字":["这个字怎么写？","Zhège zì zěnme xiě?","How do you write this character?"],
+"名":["你的名字真好听。","Nǐ de míngzi zhēn hǎotīng.","Your name sounds lovely."],
+"平":["这个平台很好用。","Zhège píngtái hěn hǎoyòng.","This platform is easy to use."],
+"系":["有事联系我。","Yǒu shì liánxì wǒ.","Contact me if anything comes up."],
+"统":["系统在更新。","Xìtǒng zài gēngxīn.","The system is updating."],
+"版":["新版本出了。","Xīn bǎnběn chū le.","The new version is out."],
+"本":["我买了一本书。","Wǒ mǎi le yì běn shū.","I bought a book."],
+"能":["这里能用微信吗？","Zhèlǐ néng yòng Wēixìn ma?","Can I use WeChat here?"],
+"应":["这个应用很好用。","Zhège yìngyòng hěn hǎoyòng.","This app works great."],
+"软":["这个软件是免费的。","Zhège ruǎnjiàn shì miǎnfèi de.","This app is free."],
+"改":["我想改密码。","Wǒ xiǎng gǎi mìmǎ.","I want to change my password."],
+"短":["给我发短信。","Gěi wǒ fā duǎnxìn.","Text me."],
+"长":["长按这个图片。","Cháng àn zhège túpiàn.","Long-press this picture."],
+"按":["按这里开始。","Àn zhèlǐ kāishǐ.","Press here to start."],
+"邮":["发到我的邮箱。","Fā dào wǒ de yóuxiāng.","Send it to my email."],
+"箱":["冰箱里有汽水。","Bīngxiāng lǐ yǒu qìshuǐ.","There's soda in the fridge."],
+"知":["我不知道他的名字。","Wǒ bù zhīdào tā de míngzi.","I don't know his name."],
+"问":["请问，地铁站在哪儿？","Qǐngwèn, dìtiězhàn zài nǎr?","Excuse me, where's the metro?"],
+"回":["我先回家了。","Wǒ xiān huí jiā le.","I'm heading home."],
+"答":["她没回答我。","Tā méi huídá wǒ.","She didn't answer me."],
+"器":["充电器借我用用。","Chōngdiànqì jiè wǒ yòngyong.","Lend me your charger."],
+"品":["这个牌子的产品不错。","Zhège páizi de chǎnpǐn búcuò.","This brand's products are good."],
+"产":["这是国产手机。","Zhè shì guóchǎn shǒujī.","This is a Chinese-made phone."],
+"牌":["看那个路牌。","Kàn nàge lùpái.","Look at that street sign."],
+"广":["广告太多了！","Guǎnggào tài duō le!","Too many ads!"],
+"告":["告诉我你的地址。","Gàosu wǒ nǐ de dìzhǐ.","Tell me your address."],
+"订":["我的订单到哪儿了？","Wǒ de dìngdān dào nǎr le?","Where's my order?"],
+"预":["我预约了三点。","Wǒ yùyuē le sān diǎn.","I booked three o'clock."],
+"约":["我们约个时间吧。","Wǒmen yuē ge shíjiān ba.","Let's set a time."],
+"址":["地址写错了。","Dìzhǐ xiě cuò le.","The address is wrong."],
+"配":["今天可以配送。","Jīntiān kěyǐ pèisòng.","Delivery is available today."],
+"快":["快递到了！","Kuàidì dào le!","The package is here!"],
+"货":["货已经发了。","Huò yǐjīng fā le.","The order has shipped."],
+"物":["我爱网上购物。","Wǒ ài wǎngshàng gòuwù.","I love online shopping."],
+"量":["我的流量用完了。","Wǒ de liúliàng yòng wán le.","I've used up my data."],
+"数":["输入手机号数字。","Shūrù shǒujī hào shùzì.","Enter your phone number digits."],
+"据":["请给我收据。","Qǐng gěi wǒ shōujù.","Please give me a receipt."],
+"骗":["小心，这是骗子！","Xiǎoxīn, zhè shì piànzi!","Careful — that's a scammer!"],
+"隐":["注意保护隐私。","Zhùyì bǎohù yǐnsī.","Mind your privacy."],
+"私":["我私聊你。","Wǒ sīliáo nǐ.","I'll DM you."],
+"限":["限时特价！","Xiànshí tèjià!","Limited-time special!"],
+"份":["来一份饺子。","Lái yí fèn jiǎozi.","One order of dumplings, please."],
+"条":["你有三条新消息。","Nǐ yǒu sān tiáo xīn xiāoxi.","You have three new messages."],
+"张":["买两张票。","Mǎi liǎng zhāng piào.","Two tickets, please."],
+"次":["下次再来！","Xià cì zài lái!","Come again next time!"],
+"些":["这些都是我的。","Zhèxiē dōu shì wǒ de.","These are all mine."],
+"汉":["我会写五百个汉字！","Wǒ huì xiě wǔbǎi ge Hànzì!","I can write five hundred characters!"],
+"拼":["用拼音打字很快。","Yòng pīnyīn dǎzì hěn kuài.","Typing with pinyin is fast."],
+"译":["帮我翻译一下。","Bāng wǒ fānyì yíxià.","Help me translate this."],
+"翻":["我用手机翻译。","Wǒ yòng shǒujī fānyì.","I translate with my phone."],
+"帮":["你能帮我吗？","Nǐ néng bāng wǒ ma?","Can you help me?"],
+"查":["我查一下地图。","Wǒ chá yíxià dìtú.","Let me check the map."],
+"静":["请把手机静音。","Qǐng bǎ shǒujī jìngyīn.","Please mute your phone."],
+"式":["换一个方式试试。","Huàn yí ge fāngshì shìshi.","Try a different way."],
+"功":["注册成功！","Zhùcè chénggōng!","Registration successful!"],
+"成":["支付完成。","Zhīfù wánchéng.","Payment complete."],
+"果":["如果下雨，我们就不去。","Rúguǒ xià yǔ, wǒmen jiù bú qù.","If it rains, we won't go."]
+});
+/* Level 6 sentences — straight off the menu */
+Object.assign(SENTS,{
+"饭":["吃饭了吗？","Chīfàn le ma?","Have you eaten?"],
+"肉":["我要牛肉面。","Wǒ yào niúròu miàn.","I'll have the beef noodles."],
+"牛":["牛肉贵一点。","Niúròu guì yìdiǎn.","Beef is a bit pricier."],
+"羊":["来十串羊肉串！","Lái shí chuàn yángròuchuàn!","Ten lamb skewers, please!"],
+"猪":["我不吃猪肉。","Wǒ bù chī zhūròu.","I don't eat pork."],
+"鱼":["这条鱼很新鲜。","Zhè tiáo yú hěn xīnxiān.","This fish is very fresh."],
+"虾":["虾仁炒饭很好吃。","Xiārén chǎofàn hěn hǎochī.","The shrimp fried rice is great."],
+"米":["米饭免费加。","Mǐfàn miǎnfèi jiā.","Free rice refills."],
+"粥":["早上我喝粥。","Zǎoshang wǒ hē zhōu.","I have congee in the morning."],
+"饼":["煎饼要加蛋吗？","Jiānbing yào jiā dàn ma?","Egg on your jianbing?"],
+"豆":["豆浆要甜的吗？","Dòujiāng yào tián de ma?","Sweet soy milk?"],
+"腐":["麻婆豆腐微辣。","Mápó dòufu wēilà.","The mapo tofu is mildly spicy."],
+"茶":["先来一壶茶。","Xiān lái yì hú chá.","A pot of tea first, please."],
+"咖":["咖啡要热的还是冰的？","Kāfēi yào rè de háishi bīng de?","Hot or iced coffee?"],
+"啡":["黑咖啡，谢谢。","Hēi kāfēi, xièxie.","Black coffee, thanks."],
+"汁":["有西瓜汁吗？","Yǒu xīguāzhī ma?","Do you have watermelon juice?"],
+"啤":["两瓶冰啤酒！","Liǎng píng bīng píjiǔ!","Two cold beers!"],
+"杯":["再来一杯水。","Zài lái yì bēi shuǐ.","Another glass of water, please."],
+"瓶":["一瓶可乐多少钱？","Yì píng kělè duōshao qián?","How much for a bottle of cola?"],
+"甜":["这个甜品太甜了。","Zhège tiánpǐn tài tián le.","This dessert is too sweet."],
+"酸":["酸辣汤来一碗。","Suānlàtāng lái yì wǎn.","A bowl of hot-and-sour soup."],
+"辣":["微辣就好！","Wēilà jiù hǎo!","Mildly spicy is fine!"],
+"咸":["这个菜有点咸。","Zhège cài yǒudiǎn xián.","This dish is a bit salty."],
+"香":["好香啊！","Hǎo xiāng a!","That smells amazing!"],
+"臭":["臭豆腐真的很臭。","Chòudòufu zhēn de hěn chòu.","Stinky tofu really is stinky."],
+"冰":["可乐加冰。","Kělè jiā bīng.","Cola with ice."],
+"烫":["小心烫！","Xiǎoxīn tàng!","Careful — hot!"],
+"凉":["先点几个凉菜。","Xiān diǎn jǐ ge liángcài.","Let's start with some cold dishes."],
+"温":["请给我温水。","Qǐng gěi wǒ wēnshuǐ.","Warm water, please."],
+"度":["今天三十八度！","Jīntiān sānshíbā dù!","It's 38 degrees today!"],
+"素":["我吃素。","Wǒ chīsù.","I'm vegetarian."],
+"少":["少辣，少盐。","Shǎo là, shǎo yán.","Less spice, less salt."],
+"盐":["不要放太多盐。","Búyào fàng tài duō yán.","Don't add too much salt."],
+"醋":["饺子要蘸醋。","Jiǎozi yào zhàn cù.","Dumplings need vinegar."],
+"酱":["加一点酱油。","Jiā yìdiǎn jiàngyóu.","Add a little soy sauce."],
+"苹":["苹果三块一斤。","Píngguǒ sān kuài yì jīn.","Apples: three kuai a jin."],
+"蕉":["香蕉熟了。","Xiāngjiāo shú le.","The bananas are ripe."],
+"瓜":["夏天要吃西瓜。","Xiàtiān yào chī xīguā.","Summer calls for watermelon."],
+"黄":["黄瓜很凉快。","Huángguā hěn liángkuai.","Cucumber is refreshing."],
+"白":["一碗白饭。","Yì wǎn báifàn.","A bowl of plain rice."],
+"黑":["我喝黑咖啡。","Wǒ hē hēi kāfēi.","I drink black coffee."],
+"蓝":["今天天很蓝。","Jīntiān tiān hěn lán.","The sky is really blue today."],
+"色":["特色菜是什么？","Tèsècài shì shénme?","What's the house specialty?"],
+"主":["主食要米饭还是面？","Zhǔshí yào mǐfàn háishi miàn?","Rice or noodles for your staple?"],
+"食":["这条街都是美食。","Zhè tiáo jiē dōu shì měishí.","This street is all good food."],
+"美":["中国美食太多了！","Zhōngguó měishí tài duō le!","China has too much good food!"],
+"国":["我想去中国的很多地方。","Wǒ xiǎng qù Zhōngguó de hěn duō dìfang.","I want to see many places in China."],
+"子":["来一份包子。","Lái yí fèn bāozi.","One order of baozi, please."],
+"头":["两个馒头。","Liǎng ge mántou.","Two mantou, please."],
+"堂":["堂食还是打包？","Tángshí háishi dǎbāo?","Dine in or takeout?"],
+"排":["先排队再点菜。","Xiān páiduì zài diǎncài.","Queue first, then order."],
+"骨":["排骨汤很香。","Páigǔ tāng hěn xiāng.","The rib soup smells wonderful."],
+"锅":["晚上吃火锅怎么样？","Wǎnshang chī huǒguō zěnmeyàng?","Hotpot tonight?"],
+"煮":["水煮鱼很辣！","Shuǐzhǔyú hěn là!","Sichuan boiled fish is spicy!"],
+"蒸":["来一笼蒸饺。","Lái yì lóng zhēngjiǎo.","A basket of steamed dumplings."],
+"炸":["炸鸡要趁热吃。","Zhájī yào chèn rè chī.","Eat fried chicken while it's hot."],
+"煎":["煎蛋要几分熟？","Jiāndàn yào jǐ fēn shú?","How done do you want your egg?"],
+"串":["一人十串不算多。","Yì rén shí chuàn bú suàn duō.","Ten skewers each isn't too many."],
+"卷":["春卷是脆的。","Chūnjuǎn shì cuì de.","Spring rolls are crispy."],
+"馒":["馒头一块钱一个。","Mántou yí kuài qián yí ge.","Mantou: one kuai each."],
+"喜":["我喜欢吃面。","Wǒ xǐhuan chī miàn.","I love noodles."],
+"欢":["欢迎光临！","Huānyíng guānglín!","Welcome in!"],
+"饮":["饮料在冰箱里。","Yǐnliào zài bīngxiāng lǐ.","Drinks are in the fridge."],
+"料":["调料自己拿。","Tiáoliào zìjǐ ná.","Help yourself to seasonings."],
+"叫":["我们叫外卖吧。","Wǒmen jiào wàimài ba.","Let's order delivery."],
+"优":["今天有优惠。","Jīntiān yǒu yōuhuì.","There's a deal today."],
+"惠":["用优惠券少五块。","Yòng yōuhuìquàn shǎo wǔ kuài.","Five off with the coupon."],
+"减":["满三十减五。","Mǎn sānshí jiǎn wǔ.","Spend 30, save 5."],
+"肥":["火锅要点肥牛。","Huǒguō yào diǎn féiniú.","Hotpot needs fatty beef."],
+"筷":["请给我一双筷子。","Qǐng gěi wǒ yì shuāng kuàizi.","A pair of chopsticks, please."],
+"堡":["一个汉堡套餐。","Yí ge hànbǎo tàocān.","A burger combo, please."],
+"薯":["薯条不要盐。","Shǔtiáo búyào yán.","Fries, no salt."],
+"寿":["今天我请你吃寿司。","Jīntiān wǒ qǐng nǐ chī shòusī.","Sushi's on me today."],
+"司":["司机来电话了。","Sījī lái diànhuà le.","The driver is calling."],
+"沙":["沙拉里有鸡肉。","Shālā lǐ yǒu jīròu.","The salad has chicken."],
+"糕":["生日要吃蛋糕！","Shēngrì yào chī dàngāo!","Birthdays need cake!"],
+"巧":["她爱吃巧克力。","Tā ài chī qiǎokèlì.","She loves chocolate."],
+"克":["五百克是一斤。","Wǔbǎi kè shì yì jīn.","500 grams is one jin."],
+"力":["学汉字要努力！","Xué Hànzì yào nǔlì!","Learning hanzi takes effort!"],
+"敏":["我对花生过敏。","Wǒ duì huāshēng guòmǐn.","I'm allergic to peanuts."],
+"麻":["麻辣烫真麻！","Málàtàng zhēn má!","Malatang really numbs your mouth!"],
+"椒":["不要放辣椒。","Búyào fàng làjiāo.","No chili, please."],
+"胡":["我们去逛胡同。","Wǒmen qù guàng hútòng.","Let's wander the hutongs."],
+"同":["我们点一样的，一同吃。","Wǒmen diǎn yíyàng de, yìtóng chī.","Let's order the same and share."],
+"学":["我在学做中国菜。","Wǒ zài xué zuò Zhōngguó cài.","I'm learning to cook Chinese food."],
+"习":["每天练习十个字。","Měitiān liànxí shí ge zì.","Practice ten characters a day."],
+"常":["我常来这家店。","Wǒ cháng lái zhè jiā diàn.","I come to this place a lot."],
+"非":["这家非常好吃。","Zhè jiā fēicháng hǎochī.","This place is extremely good."],
+"特":["今日特价菜！","Jīnrì tèjià cài!","Today's specials!"],
+"做":["我妈妈做饭最好吃。","Wǒ māma zuòfàn zuì hǎochī.","My mom's cooking is the best."],
+"光":["我把饭吃光了。","Wǒ bǎ fàn chīguāng le.","I finished every bite."],
+"净":["这家店很干净。","Zhè jiā diàn hěn gānjìng.","This place is very clean."],
+"干":["干杯！","Gānbēi!","Cheers!"],
+"毒":["蘑菇有的有毒。","Mógu yǒude yǒudú.","Some mushrooms are poisonous."],
+"鲜":["海鲜要吃新鲜的。","Hǎixiān yào chī xīnxiān de.","Seafood must be fresh."],
+"家":["这家店我来过。","Zhè jiā diàn wǒ lái guo.","I've been to this place before."],
+"摊":["路边的摊子最香。","Lùbiān de tānzi zuì xiāng.","Street stalls smell the best."],
+"夹":["肉夹馍加辣。","Ròujiāmó jiā là.","Roujiamo with chili, please."],
+"荐":["有什么推荐的菜？","Yǒu shénme tuījiàn de cài?","What do you recommend?"],
+"套":["套餐比较便宜。","Tàocān bǐjiào piányi.","The set meal is cheaper."]
+});
+/* Level 7 sentences — everyday life */
+Object.assign(SENTS,{
+"很":["今天天气很好。","Jīntiān tiānqì hěn hǎo.","The weather is great today."],
+"太":["这个太贵了！","Zhège tài guì le!","This is too expensive!"],
+"真":["真的吗？","Zhēn de ma?","Really?"],
+"也":["我也想去。","Wǒ yě xiǎng qù.","I want to go too."],
+"还":["我还没吃饭。","Wǒ hái méi chīfàn.","I haven't eaten yet."],
+"再":["再见，明天见！","Zàijiàn, míngtiān jiàn!","Bye — see you tomorrow!"],
+"见":["很高兴见到你！","Hěn gāoxìng jiàndào nǐ!","So glad to meet you!"],
+"爱":["我爱吃中国菜。","Wǒ ài chī Zhōngguó cài.","I love Chinese food."],
+"给":["把菜单给我看看。","Bǎ càidān gěi wǒ kànkan.","Let me see the menu."],
+"从":["我从美国来。","Wǒ cóng Měiguó lái.","I'm from the US."],
+"向":["向前走，别回头。","Xiàng qián zǒu, bié huítóu.","Walk forward, don't look back."],
+"往":["这趟车开往北京。","Zhè tàng chē kāiwǎng Běijīng.","This train is bound for Beijing."],
+"离":["地铁站离这里很近。","Dìtiězhàn lí zhèlǐ hěn jìn.","The metro is close to here."],
+"或":["喝茶或者咖啡？","Hē chá huòzhě kāfēi?","Tea or coffee?"],
+"者":["今天或者明天都行。","Jīntiān huòzhě míngtiān dōu xíng.","Today or tomorrow both work."],
+"但":["很好吃，但是有点辣。","Hěn hǎochī, dànshì yǒudiǎn là.","Delicious, but a bit spicy."],
+"因":["因为下雨，我们没去。","Yīnwèi xià yǔ, wǒmen méi qù.","We didn't go because of the rain."],
+"为":["你为什么学中文？","Nǐ wèishénme xué Zhōngwén?","Why are you learning Chinese?"],
+"以":["这里可以拍照吗？","Zhèlǐ kěyǐ pāizhào ma?","Can I take photos here?"],
+"可":["可以，没问题！","Kěyǐ, méi wèntí!","Sure, no problem!"],
+"该":["不早了，该走了。","Bù zǎo le, gāi zǒu le.","It's late — time to go."],
+"当":["当然可以！","Dāngrán kěyǐ!","Of course you can!"],
+"然":["先吃饭，然后散步。","Xiān chīfàn, ránhòu sànbù.","Eat first, then take a walk."],
+"如":["如果累了就休息。","Rúguǒ lèi le jiù xiūxi.","If you're tired, rest."],
+"又":["这瓜又大又甜。","Zhè guā yòu dà yòu tián.","This melon is big AND sweet."],
+"都":["我们都是朋友。","Wǒmen dōu shì péngyou.","We're all friends."],
+"只":["我只要一个。","Wǒ zhǐ yào yí ge.","I only want one."],
+"种":["这种最好吃。","Zhè zhǒng zuì hǎochī.","This kind is the tastiest."],
+"另":["我要另一个颜色。","Wǒ yào lìng yí ge yánsè.","I want the other color."],
+"其":["其实很简单。","Qíshí hěn jiǎndān.","It's actually very simple."],
+"呢":["我很好，你呢？","Wǒ hěn hǎo, nǐ ne?","I'm good — and you?"],
+"吧":["我们走吧！","Wǒmen zǒu ba!","Let's go!"],
+"哪":["你是哪国人？","Nǐ shì nǎ guó rén?","Which country are you from?"],
+"谁":["门口的人是谁？","Ménkǒu de rén shì shéi?","Who's that at the door?"],
+"会":["我会说一点中文。","Wǒ huì shuō yìdiǎn Zhōngwén.","I can speak a little Chinese."],
+"得":["你说得很好！","Nǐ shuō de hěn hǎo!","You speak really well!"],
+"着":["门开着呢。","Mén kāi zhe ne.","The door is open."],
+"老":["老师教我们汉字。","Lǎoshī jiāo wǒmen Hànzì.","The teacher teaches us characters."],
+"师":["师傅，去火车站。","Shīfu, qù huǒchēzhàn.","Driver, to the train station please."],
+"傅":["李师傅人很好。","Lǐ shīfu rén hěn hǎo.","Master Li is a good person."],
+"阿":["阿姨，买一斤苹果。","Āyí, mǎi yì jīn píngguǒ.","Auntie, a jin of apples please."],
+"姨":["这位阿姨很热情。","Zhè wèi āyí hěn rèqíng.","This auntie is very warm."],
+"孩":["孩子们在公园玩。","Háizimen zài gōngyuán wán.","The kids are playing in the park."],
+"朋":["我的中国朋友教我中文。","Wǒ de Zhōngguó péngyou jiāo wǒ Zhōngwén.","My Chinese friend teaches me Chinese."],
+"友":["她是我最好的朋友。","Tā shì wǒ zuì hǎo de péngyou.","She's my best friend."],
+"事":["没事，别担心。","Méishì, bié dānxīn.","It's fine, don't worry."],
+"作":["我明天要工作。","Wǒ míngtiān yào gōngzuò.","I have work tomorrow."],
+"假":["下周放假！","Xià zhōu fàngjià!","Holiday next week!"],
+"旅":["我想去云南旅游。","Wǒ xiǎng qù Yúnnán lǚyóu.","I want to travel to Yunnan."],
+"相":["我们照张相吧！","Wǒmen zhào zhāng xiàng ba!","Let's take a photo!"],
+"处":["到处都是人。","Dàochù dōu shì rén.","There are people everywhere."],
+"联":["到了联系我。","Dào le liánxì wǒ.","Contact me when you arrive."],
+"希":["希望明天是晴天。","Xīwàng míngtiān shì qíngtiān.","Hope tomorrow is sunny."],
+"康":["祝你身体健康！","Zhù nǐ shēntǐ jiànkāng!","Wishing you good health!"],
+"身":["我今天身体不舒服。","Wǒ jīntiān shēntǐ bù shūfu.","I'm not feeling well today."],
+"体":["多运动，身体好。","Duō yùndòng, shēntǐ hǎo.","Exercise more, stay healthy."],
+"护":["别忘了带护照！","Bié wàng le dài hùzhào!","Don't forget your passport!"],
+"签":["我的签证下个月到期。","Wǒ de qiānzhèng xià ge yuè dàoqī.","My visa expires next month."],
+"际":["从国际到达出来。","Cóng guójì dàodá chūlái.","Come out of International Arrivals."],
+"内":["国内机票很便宜。","Guónèi jīpiào hěn piányi.","Domestic flights are cheap."],
+"房":["我的房间在五楼。","Wǒ de fángjiān zài wǔ lóu.","My room is on the fifth floor."],
+"懂":["对不起，我听不懂。","Duìbuqǐ, wǒ tīng bu dǒng.","Sorry, I don't understand."],
+"听":["你听，有人在唱歌。","Nǐ tīng, yǒu rén zài chànggē.","Listen — someone's singing."],
+"写":["请帮我写下来。","Qǐng bāng wǒ xiě xiàlái.","Please write it down for me."],
+"教":["你教我这个字吧。","Nǐ jiāo wǒ zhège zì ba.","Teach me this character."],
+"备":["准备好了吗？","Zhǔnbèi hǎo le ma?","Are you ready?"],
+"带":["两个包子，带走。","Liǎng ge bāozi, dàizǒu.","Two baozi, to go."],
+"钥":["钥匙在包里。","Yàoshi zài bāo lǐ.","The keys are in the bag."],
+"匙":["我把钥匙丢了！","Wǒ bǎ yàoshi diū le!","I lost my keys!"],
+"伞":["下雨了，带伞吧。","Xià yǔ le, dài sǎn ba.","It's raining — bring an umbrella."],
+"雨":["雨下得很大。","Yǔ xià de hěn dà.","It's raining hard."],
+"校":["学校门口见。","Xuéxiào ménkǒu jiàn.","See you at the school gate."],
+"冒":["我感冒了。","Wǒ gǎnmào le.","I've caught a cold."],
+"舒":["今天不太舒服。","Jīntiān bú tài shūfu.","Not feeling great today."],
+"气":["今天天气怎么样？","Jīntiān tiānqì zěnmeyàng?","How's the weather today?"],
+"阴":["明天阴天。","Míngtiān yīntiān.","Cloudy tomorrow."],
+"风":["外面风很大。","Wàimiàn fēng hěn dà.","It's very windy outside."],
+"云":["今天多云。","Jīntiān duōyún.","Cloudy today."],
+"冷":["冬天北京很冷。","Dōngtiān Běijīng hěn lěng.","Beijing winters are cold."],
+"季":["我最喜欢这个季节。","Wǒ zuì xǐhuan zhège jìjié.","This is my favorite season."],
+"夏":["夏天太热了。","Xiàtiān tài rè le.","Summer is too hot."],
+"冬":["冬天要吃火锅。","Dōngtiān yào chī huǒguō.","Winter calls for hotpot."],
+"秋":["秋天不冷不热。","Qiūtiān bù lěng bú rè.","Autumn is neither cold nor hot."],
+"世":["我想看看世界。","Wǒ xiǎng kànkan shìjiè.","I want to see the world."],
+"京":["北京的秋天最美。","Běijīng de qiūtiān zuì měi.","Beijing's autumn is the most beautiful."],
+"州":["广州的早茶很有名。","Guǎngzhōu de zǎochá hěn yǒumíng.","Guangzhou's morning tea is famous."],
+"港":["我们去香港玩吧。","Wǒmen qù Xiānggǎng wán ba.","Let's go visit Hong Kong."],
+"兴":["认识你很高兴！","Rènshi nǐ hěn gāoxìng!","Nice to meet you!"],
+"趣":["这本书很有趣。","Zhè běn shū hěn yǒuqù.","This book is really interesting."],
+"化":["我喜欢中国文化。","Wǒ xǐhuan Zhōngguó wénhuà.","I love Chinese culture."],
+"历":["西安的历史很长。","Xī'ān de lìshǐ hěn cháng.","Xi'an has a long history."],
+"史":["他给我讲历史故事。","Tā gěi wǒ jiǎng lìshǐ gùshi.","He tells me history stories."],
+"故":["故宫人太多了！","Gùgōng rén tài duō le!","The Forbidden City is packed!"],
+"宫":["我们明天去故宫。","Wǒmen míngtiān qù Gùgōng.","We're going to the Forbidden City tomorrow."],
+"庙":["春节有庙会。","Chūnjié yǒu miàohuì.","There are temple fairs at Spring Festival."],
+"简":["汉字没那么难，很简单！","Hànzì méi nàme nán, hěn jiǎndān!","Characters aren't that hard — easy!"],
+"容":["这个字很容易记。","Zhège zì hěn róngyì jì.","This character is easy to remember."],
+"易":["学中文不容易。","Xué Zhōngwén bù róngyì.","Learning Chinese isn't easy."],
+"步":["晚饭后去散步。","Wǎnfàn hòu qù sànbù.","A walk after dinner."],
+"差":["差不多了，走吧！","Chàbuduō le, zǒu ba!","Close enough — let's go!"]
+});
 </script>
 
 <script>
@@ -936,25 +1885,28 @@ function migrate(){
     }
     delete S.prog;
   }
+  /* Level 0 basics: pre-mark 🟢 known once per save (she can demote any) */
+  if(!S.l0){BASICS.forEach(d=>{if(!S.nb[d.c])S.known[d.c]=1});S.l0=1}
 }
 let S=DEFAULTS();
 function load(){try{const raw=localStorage.getItem(LSKEY);if(raw){S=Object.assign(DEFAULTS(),JSON.parse(raw));}}catch(e){storageOK=false}
   migrate();}
-function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){storageOK=false}}
+function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){storageOK=false}paintStreak()}
 function dayStr(d){d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
 function touchStreak(){const t=dayStr();if(S.lastDay===t)return;const y=dayStr(new Date(Date.now()-864e5));S.streak=(S.lastDay===y)?S.streak+1:1;S.lastDay=t;save();paintStreak()}
 function todayCount(){const t=dayStr();if(S.today.day!==t){S.today={day:t,n:0}}return S.today.n}
 function quotaMax(){todayCount();return S.newPerDay+(S.today.extra||0)}
-function byChar(c){return DATA.find(d=>d.c===c)}
+const ALLD=DATA.concat(BASICS); /* full lookup incl. Level 0 basics */
+function byChar(c){return ALLD.find(d=>d.c===c)}
 function info(c){const d=byChar(c);if(d)return d;const e=EXTRAS[c];return e?{c:c,py:e.py,t:e.t,m:e.m}:null}
 
 /* ================= LEVELS ================= */
 const IDX={};DATA.forEach((d,i)=>IDX[d.c]=i);
 const LV_NEED=100;
-const PASS={2:"jiayou",3:"lihai"}; /* level unlock codes: 加油 / 厉害 */
+const PASS={2:"jiayou",3:"lihai",4:"chufa",5:"saoma",6:"haochi",7:"zhenbang"}; /* 加油/厉害/出发/扫码/好吃/真棒 */
 const GATE="liya"; /* 丽雅 — app entry magic word */
 function maxLevel(){return Math.ceil(DATA.length/100)}
-function lvOf(c){return Math.floor(IDX[c]/100)+1}
+function lvOf(c){return IDX[c]===undefined?0:Math.floor(IDX[c]/100)+1}
 function lvChars(n){return DATA.slice((n-1)*100,n*100)}
 function lvStarted(n){return lvChars(n).filter(d=>stateOf(d.c)!=="new").length}
 function lvProgress(n){return lvChars(n).filter(d=>stateOf(d.c)!=="new").length}
@@ -1274,14 +2226,14 @@ function paintScope(){
 function basePool(){
   if(QSCOPE===null)QSCOPE="all";
   if(QSCOPE==="notebook")return Object.keys(S.nb).map(byChar).filter(Boolean);
-  if(QSCOPE==="learned")return DATA.filter(d=>stateOf(d.c)==="mastered");
+  if(QSCOPE==="learned")return ALLD.filter(d=>stateOf(d.c)==="mastered");
   return startedChars().map(byChar).filter(Boolean);
 }
 function buildCharMode(mode){
   const pool=basePool();
   return shuffle(pool).slice(0,QLEN).map(t=>{
     const field=mode==="c2p"?"py":(mode==="c2m"?"m":"c");
-    const ds=distract(t,DATA,field,3);
+    const ds=distract(t,ALLD,field,3);
     let p,fmt,cls="opt";
     if(mode==="c2m"){p='<div class="qprompt"><div class="bigchar">'+t.c+"</div></div>";fmt=d=>esc(d.m)}
     else if(mode==="c2p"){p='<div class="qprompt"><div class="bigchar">'+t.c+"</div></div>";fmt=d=>'<span class="t'+d.t+'">'+esc(d.py)+"</span>"}
@@ -1298,7 +2250,7 @@ function mkWordPool(list){
 }
 function wordsPool(){return mkWordPool(basePool())}
 let WORDS_ALL=null;
-function wordsPoolAll(){if(!WORDS_ALL)WORDS_ALL=mkWordPool(DATA);return WORDS_ALL}
+function wordsPoolAll(){if(!WORDS_ALL)WORDS_ALL=mkWordPool(ALLD);return WORDS_ALL}
 function buildW2M(){
   const pool=shuffle(wordsPool());
   if(pool.length<1)return [];
@@ -1341,8 +2293,8 @@ function compEntries(list){
   return Object.keys(map).map(g=>({g:g,m:map[g]}));
 }
 let COMPS_ALL=null;
-function compAll(){if(!COMPS_ALL)COMPS_ALL=compEntries(DATA);return COMPS_ALL}
-function compChars(g){return DATA.filter(d=>d.k.some(k=>k[0]===g)).slice(0,6).map(d=>d.c).join(" ")}
+function compAll(){if(!COMPS_ALL)COMPS_ALL=compEntries(ALLD);return COMPS_ALL}
+function compChars(g){return ALLD.filter(d=>d.k.some(k=>k[0]===g)).slice(0,6).map(d=>d.c).join(" ")}
 function buildComp(){
   const pool=shuffle(compEntries(basePool()));
   if(pool.length<1)return [];
@@ -1501,11 +2453,15 @@ function renderBrowse(query){
   const box=document.getElementById("b-res");let h="";
   if(query){
     const nq=norm(query);
-    const hits=DATA.filter(d=>d.c===query||norm(d.py).includes(nq)||d.m.toLowerCase().includes(nq)||
+    const hits=ALLD.filter(d=>d.c===query||norm(d.py).includes(nq)||d.m.toLowerCase().includes(nq)||
       d.w.some(w=>w[0].includes(query)||norm(w[1]).includes(nq)||w[2].toLowerCase().includes(nq)));
     h=hits.length?('<p class="muted">'+hits.length+" result"+(hits.length>1?"s":"")+'</p><div class="grid">'+hits.map(chipHTML).join("")+"</div>")
       :'<p class="muted">No matches. Try pinyin without tone marks (e.g. “qing”) or an English word.</p>';
   }else{
+    const b0=BASICS.filter(d=>stateOf(d.c)==="mastered").length;
+    h+='<div class="lvhead">Level 0 · The basics <span class="muted">'+b0+"/"+BASICS.length+' known</span></div>'+
+       '<p class="famnote">You almost certainly know these already — so they start marked 🟢 and Learn will never deal them as new cards. If one looks unfamiliar, tap it and switch it to 🟡 Notebook: it\'ll join your quizzes like any other character.</p>'+
+       '<div class="grid">'+BASICS.map(chipHTML).join("")+"</div>";
     for(let n=1;n<=maxLevel();n++){
       if(!unlocked(n)){
         h+='<div class="lock">🔒 <b>Level '+n+"</b><br>Unlocks when "+LV_NEED+" of Level "+(n-1)+" characters are underway (now: "+lvProgress(n-1)+")"+
@@ -1564,6 +2520,7 @@ function openModal(c){
 }
 /* repaint whichever view sits under the modal so lists & dots stay fresh */
 function refreshUnder(){
+  if(document.getElementById("nbsheet").classList.contains("on"))paintNbList();
   const v=document.querySelector(".view.on");
   if(!v)return;
   if(v.id==="view-stats")paintStats();
@@ -1574,13 +2531,10 @@ function closeModal(){document.getElementById("modal").classList.remove("on")}
 document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 
 /* ================= STATS ================= */
-let NB_OPEN=false,KN_OPEN=false;
 function paintStats(){
   const mastered=DATA.filter(d=>stateOf(d.c)==="mastered").length;
   const learning=DATA.filter(d=>stateOf(d.c)==="learning").length;
-  const knownList=DATA.filter(d=>stateOf(d.c)==="mastered");
-  const nbk=Object.keys(S.nb).sort((a,b)=>S.nb[b].ts-S.nb[a].ts);
-  let lvhtml="";
+  let lvhtml='<div class="setrow"><span>Level 0 · the basics<br><span class="muted" style="font-size:12.5px">'+BASICS.filter(d=>stateOf(d.c)==="mastered").length+"/"+BASICS.length+" known · assumed from the start</span></span></div>";
   for(let n=1;n<=maxLevel();n++){
     const lc=lvChars(n),started=lvStarted(n),mast=lc.filter(d=>stateOf(d.c)==="mastered").length;
     lvhtml+='<div class="setrow"><span>Level '+n+(unlocked(n)?"":" 🔒")+'<br><span class="muted" style="font-size:12.5px">'+started+"/"+lc.length+" started · "+mast+" mastered</span></span></div>";
@@ -1592,16 +2546,6 @@ function paintStats(){
    '<div class="stat"><b>'+(DATA.length-mastered-learning)+'</b><span>⚪ new</span></div></div>'+
   '<div class="card"><div class="row"><span class="grow">🔥 Day streak</span><b>'+S.streak+'</b></div></div>'+
   '<h2>Levels</h2><div class="card">'+lvhtml+'</div>'+
-  '<h2>My lists</h2><div class="card" style="padding:0;overflow:hidden">'+
-   '<button class="listtoggle" id="t-nb">📓 Notebook ('+nbk.length+')<span>'+(NB_OPEN?"▾":"▸")+"</span></button>"+
-   (NB_OPEN?('<div style="padding:0 16px 12px">'+(nbk.length?nbk.map(c=>{
-      const d=byChar(c);
-      return '<div class="nb-row" data-c="'+c+'"><span class="nb-zi">'+c+'</span><div class="nb-mid"><div>'+pyHTML(d)+" · "+esc(d.m)+"</div>"+(S.notes[c]?'<div class="nb-note">'+esc(S.notes[c])+"</div>":"")+"</div></div>";
-     }).join(""):'<p class="muted" style="margin:6px 0">Empty so far — swipe right in Learn on anything you don\'t know.</p>')+"</div>"):"")+
-   '<div style="border-top:1px solid var(--line)"></div>'+
-   '<button class="listtoggle" id="t-kn">🟢 Known ('+knownList.length+')<span>'+(KN_OPEN?"▾":"▸")+"</span></button>"+
-   (KN_OPEN?('<div style="padding:0 16px 14px">'+(knownList.length?('<div class="grid">'+knownList.map(chipHTML).join("")+"</div>"):'<p class="muted" style="margin:6px 0">Swipe left in Learn on characters you already know.</p>')+"</div>"):"")+
-  "</div>"+
   '<h2>Settings</h2><div class="card">'+
    '<div class="setrow"><span>New characters per day</span><select id="s-new"><option>3</option><option>5</option><option>10</option></select></div>'+
    '<div class="setrow"><span>Audio (pronunciation)</span><select id="s-audio"><option value="1">on</option><option value="0">off</option></select></div>'+
@@ -1616,9 +2560,6 @@ function paintStats(){
   const sa=document.getElementById("s-audio");sa.value=S.audio?"1":"0";
   sa.onchange=()=>{S.audio=sa.value==="1";save()};
   document.getElementById("stats-area").querySelectorAll(".chip").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
-  document.getElementById("stats-area").querySelectorAll(".nb-row").forEach(b=>b.onclick=()=>openModal(b.dataset.c));
-  document.getElementById("t-nb").onclick=()=>{NB_OPEN=!NB_OPEN;paintStats()};
-  document.getElementById("t-kn").onclick=()=>{KN_OPEN=!KN_OPEN;paintStats()};
   document.getElementById("s-exp").onclick=()=>{
     const data=JSON.stringify(S);
     document.getElementById("s-io").innerHTML='<p class="muted">Copy this text and save it anywhere (e.g. a note):</p><textarea id="s-txt" readonly></textarea>';
@@ -1638,7 +2579,7 @@ function paintStats(){
     };
   };
   document.getElementById("s-reset").onclick=()=>{
-    if(confirm("Erase ALL progress? This cannot be undone.")){S=DEFAULTS();UNDO=null;SES={learned:[]};save();paintStats();paintStreak();nextCard()}
+    if(confirm("Erase ALL progress? This cannot be undone.")){S=DEFAULTS();migrate();UNDO=null;SES={learned:[]};save();paintStats();paintStreak();nextCard()}
   };
 }
 
@@ -1655,7 +2596,72 @@ function switchView(v){
 }
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
 document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>startQuiz(b.dataset.mode));
-function paintStreak(){document.getElementById("streak").textContent=S.streak>0?("🔥 "+S.streak+" day"+(S.streak>1?"s":"")):""}
+function paintStreak(){const el=document.getElementById("nb-count");if(el)el.textContent=Object.keys(S.nb).length}
+
+/* ================= NOTEBOOK SHEET (all tabs) ================= */
+let NBUI={q:"",sort:"new",grp:"none"};
+function openNb(){
+  const b=document.getElementById("nbsheet-body");
+  b.innerHTML=
+   '<div class="row" style="align-items:center;gap:8px;margin-bottom:8px"><h2 style="margin:0">📓 Notebook <span class="muted" id="nb-total" style="font-size:14px"></span></h2><span class="grow"></span>'+
+   '<button class="btn sm line" id="nb-quiz">Quiz these</button><button class="btn sm line" id="nb-x">✕</button></div>'+
+   '<input class="search" id="nb-q" placeholder="🔍 Search character, pinyin, meaning, notes…" autocomplete="off" value="'+esc(NBUI.q)+'">'+
+   '<div class="nb-pills"><span class="nb-plab">Sort</span>'+
+    [["new","Newest"],["old","Oldest"],["az","A–Z"]].map(x=>'<button class="nb-pill" data-srt="'+x[0]+'">'+x[1]+"</button>").join("")+
+    '<span class="nb-plab" style="margin-left:8px">Group</span>'+
+    [["none","None"],["lv","Level"],["fam","Family"]].map(x=>'<button class="nb-pill" data-grp="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>"+
+   '<div id="nb-list"></div>';
+  b.querySelector("#nb-x").onclick=closeNb;
+  b.querySelector("#nb-quiz").onclick=()=>{closeNb();QSCOPE="notebook";switchView("quiz")};
+  const q=b.querySelector("#nb-q");
+  q.oninput=()=>{NBUI.q=q.value;paintNbList()};
+  b.querySelectorAll(".nb-pill").forEach(p=>p.onclick=()=>{
+    if(p.dataset.srt)NBUI.sort=p.dataset.srt;else NBUI.grp=p.dataset.grp;
+    paintNbPills();paintNbList();
+  });
+  paintNbPills();paintNbList();
+  document.getElementById("nbsheet").classList.add("on");
+}
+function paintNbPills(){
+  document.querySelectorAll("#nbsheet-body .nb-pill").forEach(p=>{
+    p.classList.toggle("on",p.dataset.srt?NBUI.sort===p.dataset.srt:NBUI.grp===p.dataset.grp);
+  });
+}
+function nbRow(x){
+  const note=S.notes[x.c];
+  return '<div class="nb-row" data-c="'+x.c+'"><span class="nb-zi">'+x.c+'</span><div class="nb-mid"><div>'+pyHTML(x.d)+" · "+esc(x.d.m)+"</div>"+
+   (note?'<div class="nb-note">📝 '+esc(note)+"</div>":"")+'</div><span class="muted" style="font-size:12px;white-space:nowrap">L'+lvOf(x.c)+"</span></div>";
+}
+function paintNbList(){
+  const box=document.getElementById("nb-list");if(!box)return;
+  const keys=Object.keys(S.nb);
+  document.getElementById("nb-total").textContent="("+keys.length+")";
+  let items=keys.map(c=>({c:c,d:byChar(c),ts:(S.nb[c]&&S.nb[c].ts)||0})).filter(x=>x.d);
+  const raw=NBUI.q.trim(),nq=norm(raw);
+  if(raw)items=items.filter(x=>x.c===raw||norm(x.d.py).includes(nq)||x.d.m.toLowerCase().includes(nq)||
+    (S.notes[x.c]||"").toLowerCase().includes(nq)||x.d.w.some(w=>w[0].includes(raw)));
+  if(NBUI.sort==="az")items.sort((a,b)=>norm(a.d.py)<norm(b.d.py)?-1:1);
+  else items.sort((a,b)=>NBUI.sort==="old"?a.ts-b.ts:b.ts-a.ts);
+  let h="";
+  if(!keys.length)h='<p class="muted" style="margin-top:14px">Nothing here yet! Swipe right in Learn on a tricky character, or tap any character and mark it 🟡.</p>';
+  else if(!items.length)h='<p class="muted" style="margin-top:14px">No matches — try pinyin without tones, or an English word.</p>';
+  else if(NBUI.grp==="none")h=items.map(nbRow).join("");
+  else{
+    const key=x=>NBUI.grp==="lv"?lvOf(x.c):x.d.f;
+    const label=k=>NBUI.grp==="lv"?(k===0?"Level 0 · the basics":"Level "+k):('<span class="zi">'+FAMS[k][0]+"</span> "+FAMS[k][1]+" family");
+    const order=[...new Set(items.map(key))];
+    if(NBUI.grp==="lv")order.sort((a,b)=>a-b);
+    order.forEach(k=>{
+      const grp=items.filter(x=>key(x)===k);
+      h+='<div class="nb-ghead">'+label(k)+' <span class="muted" style="font-weight:400">· '+grp.length+"</span></div>"+grp.map(nbRow).join("");
+    });
+  }
+  box.innerHTML=h;
+  box.querySelectorAll(".nb-row").forEach(r=>r.onclick=()=>openModal(r.dataset.c));
+}
+function closeNb(){document.getElementById("nbsheet").classList.remove("on")}
+document.getElementById("nb-btn").onclick=openNb;
+document.getElementById("nbsheet").addEventListener("click",e=>{if(e.target.id==="nbsheet")closeNb()});
 /* speaker buttons everywhere (event delegation) */
 document.body.addEventListener("click",e=>{
   if(SWIPED)return;
