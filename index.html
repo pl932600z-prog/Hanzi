@@ -37,6 +37,7 @@ header h1 span{color:var(--acc)}
 .hbtns{display:flex;gap:8px;align-items:center}
 #nb-btn,#ask-btn{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:6px;min-width:68px}
 #ask-btn b{font-size:16px;color:var(--acc)}
+#ask-btn svg{color:var(--acc);flex-shrink:0;margin-right:-2px}
 #ask-btn:disabled{opacity:.35;cursor:default}
 #nb-btn b{font-size:13.5px;color:var(--acc)}
 #nbsheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:40}
@@ -59,7 +60,7 @@ nav button.on{color:var(--acc);background:var(--acc-soft)}
 /* ---------- shared ---------- */
 .card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:18px;margin:10px 0}
 .btn{display:inline-block;border:none;border-radius:14px;padding:14px 18px;font-size:16px;font-weight:600;cursor:pointer;
-  background:var(--acc);color:#fff;min-height:48px}
+  background:linear-gradient(135deg,#63a9f6 0%,#3d7ef0 100%);color:#fff;min-height:48px} /* softer sky→blue wash for the big action buttons */
 .btn.line{background:none;border:1.5px solid var(--line);color:var(--ink)}
 .btn.ok{background:var(--ok)} .btn.bad{background:var(--bad)}
 .btn.sm{padding:8px 14px;min-height:38px;font-size:14px;font-weight:500}
@@ -200,7 +201,7 @@ textarea{width:100%;height:90px}
     <div class="tagline">For Leah - happy learning! 💙</div>
   </div>
   <div class="hbtns">
-    <button id="ask-btn" title="Ask Paul"><b>P</b></button>
+    <button id="ask-btn" title="Ask Paul"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10a7 7 0 1 0-2.9 5.7L17.5 17l-.9-3.3A7 7 0 0 0 17 10Z"/><path d="M8.2 8.1a1.9 1.9 0 1 1 2.6 1.8c-.6.25-.8.6-.8 1.2"/><circle cx="10" cy="13.6" r=".35" fill="currentColor"/></svg><b>P</b></button>
     <button id="nb-btn" title="My notebook">📓 <b id="nb-count">0</b></button>
   </div>
 </header>
@@ -2214,11 +2215,13 @@ function paintCard(){
   const a=document.getElementById("learn-area");
   a.innerHTML='<div class="hintline">Swipe ← if you already know it · swipe → to add to notebook & study</div>'+
     '<div class="card swipeable" id="c-card">'+SWTAGS+cardBackHTML(cur,false)+"</div>"+
+    '<div class="wrow"><button class="btn sm line" id="b-strokes">✍️ Practice strokes</button></div>'+
     '<div class="ansrow"><button class="btn line" id="b-know">← Already know it</button><button class="btn" id="b-learn">Add to notebook →</button></div>';
   const el=document.getElementById("c-card");
   bindSwipe(el,gradeNewKnown,gradeNew);
   document.getElementById("b-know").onclick=gradeNewKnown;
   document.getElementById("b-learn").onclick=gradeNew;
+  document.getElementById("b-strokes").onclick=()=>startWritePractice(cur.c,"learn");
   speak(cur.c);
 }
 function gradeNewKnown(){
@@ -2357,8 +2360,10 @@ function askContext(){
   if(document.getElementById("modal").classList.contains("on")&&MODAL_C&&byChar(MODAL_C))
     return {ds:[byChar(MODAL_C)],from:"a character card"};
   if(v==="view-quiz"&&Q&&Q.qs[Q.i]){
-    const ds=qChars(Q.qs[Q.i]).map(byChar).filter(Boolean);
-    return {ds:ds.slice(0,3),from:"a quiz question"};
+    /* share the QUESTION as posed — never the answer */
+    const q=Q.qs[Q.i];
+    if(q.ask)return {ds:[],ask:q.ask,from:"a quiz question"};
+    return {ds:qChars(q).map(byChar).filter(Boolean).slice(0,3),from:"a quiz question"};
   }
   if(v==="view-learn"&&cur)return {ds:[cur],from:"a Learn card"};
   return {ds:[],from:"the "+(names[v]||"Hanzi")+" tab"};
@@ -2379,7 +2384,18 @@ function drawAskCard(ctx){
   g.fillText("Paul, Leah has a question!",W/2,130);
   g.fillStyle="rgba(255,255,255,.85)";g.font="400 38px "+UI;
   g.fillText(new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"}),W/2,196);
-  if(ctx.ds.length){
+  if(ctx.ask){
+    /* the question as Leah sees it — the answer stays hidden */
+    const a=ctx.ask;
+    g.fillStyle="#fff";
+    if(a.z){g.font="700 "+(a.big.length<=2?220:a.big.length<=4?150:110)+"px "+ZH;g.fillText(a.big,W/2,H/2-40)}
+    else{
+      let b=a.big;if(b.length>30)b=b.slice(0,29)+"…”";
+      g.font="700 "+(b.length>20?54:68)+"px "+UI;g.fillText(b,W/2,H/2-40);
+    }
+    g.fillStyle="rgba(255,255,255,.9)";g.font="500 44px "+UI;
+    g.fillText(a.sub,W/2,H/2+(a.z?150:80));
+  }else if(ctx.ds.length){
     const chars=ctx.ds.map(d=>d.c).join("  ");
     g.fillStyle="#fff";g.font="700 "+(ctx.ds.length>1?150:220)+"px "+ZH;
     g.fillText(chars,W/2,H/2-40);
@@ -2409,14 +2425,15 @@ function drawAskCard(ctx){
 /* P button lights up only when there's actual learnable content on screen to share */
 function updateAskBtn(){
   const b=document.getElementById("ask-btn");
-  if(b)b.disabled=askContext().ds.length===0;
+  if(b){const ctx=askContext();b.disabled=!ctx.ask&&ctx.ds.length===0}
 }
 function askPaul(){
   const ctx=askContext();
-  if(!ctx.ds.length)return;
+  if(!ctx.ask&&!ctx.ds.length)return;
   const textFallback=()=>{
     let txt="Paul, Leah has a question! 🙋\n";
-    if(ctx.ds.length)txt+=ctx.ds.map(d=>d.c+" ("+d.py+") — "+d.m).join("\n")+"\n";
+    if(ctx.ask)txt+=ctx.ask.big+" — "+ctx.ask.sub+"\n";
+    else if(ctx.ds.length)txt+=ctx.ds.map(d=>d.c+" ("+d.py+") — "+d.m).join("\n")+"\n";
     txt+="From "+ctx.from+" — can you explain? 谢谢! 💙";
     if(navigator.share){navigator.share({text:txt}).catch(()=>{})}
     else{
@@ -2480,8 +2497,12 @@ function buildCharMode(mode){
     else if(mode==="c2p"){p='<div class="qprompt"><div class="bigchar">'+t.c+"</div></div>";fmt=d=>'<span class="t'+d.t+'">'+esc(d.py)+"</span>"}
     else if(mode==="m2c"){p='<div class="qprompt">“'+esc(t.m)+'”</div>';fmt=d=>d.c;cls="opt zi"}
     else{p='<div class="qprompt"><button class="spk" style="width:64px;height:64px;font-size:26px" data-say="'+t.c+'">🔊</button><div class="muted" style="font-size:13px;margin-top:6px">tap to replay</div></div>';fmt=d=>d.c;cls="opt zi"}
+    const ask=mode==="c2m"?{z:1,big:t.c,sub:"What does this character mean?"}
+      :mode==="c2p"?{z:1,big:t.c,sub:"How do you pronounce this?"}
+      :mode==="m2c"?{z:0,big:"“"+t.m+"”",sub:"Which character is this?"}
+      :{z:1,big:t.c,sub:"A listening question — how does this sound?"};
     return {p:p,opts:shuffle([{h:fmt(t),ok:true}].concat(ds.map(d=>({h:fmt(d),ok:false})))),
-      expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),say:(mode==="a2c"?t.c:null),cls:cls,c:t.c};
+      expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),say:(mode==="a2c"?t.c:null),cls:cls,c:t.c,ask:ask};
   });
 }
 function mkWordPool(list){
@@ -2506,7 +2527,8 @@ function buildW2M(){
     if(ds.length<3)return null;
     return {p:'<div class="qprompt"><div style="font-size:44px">'+t.wd+"</div></div>",
       opts:shuffle([{h:esc(t.m),ok:true}].concat(ds.map(d=>({h:esc(d.m),ok:false})))),
-      expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt",cs:wordChars(t.wd)};
+      expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt",cs:wordChars(t.wd),
+      ask:{z:1,big:t.wd,sub:"What does this word mean?"}};
   }).filter(Boolean);
 }
 const TONEMAP={"ā":1,"ē":1,"ī":1,"ō":1,"ū":1,"ǖ":1,"á":2,"é":2,"í":2,"ó":2,"ú":2,"ǘ":2,"ǎ":3,"ě":3,"ǐ":3,"ǒ":3,"ǔ":3,"ǚ":3,"à":4,"è":4,"ì":4,"ò":4,"ù":4,"ǜ":4};
@@ -2525,7 +2547,8 @@ function buildTone(){
     }
     if(opts.length<4)return null;
     return {p:'<div class="qprompt"><div style="font-size:50px">'+t.wd+'</div><div class="muted" style="font-size:13px;margin-top:4px">which tone pattern?</div></div>',
-      opts:shuffle(opts),expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt tonebtn",cs:wordChars(t.wd)};
+      opts:shuffle(opts),expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt tonebtn",cs:wordChars(t.wd),
+      ask:{z:1,big:t.wd,sub:"Which tone pattern is this?"}};
   }).filter(Boolean);
 }
 function compEntries(list){
@@ -2555,7 +2578,8 @@ function buildComp(){
       opts=shuffle([{h:t.g,ok:true}].concat(others.map(o=>({h:o.g,ok:false}))));cls="opt zi";
     }
     return {p:p,opts:opts,expl:t.g+" — "+esc(t.m)+" · appears in: "+compChars(t.g),cls:cls,
-      cs:byChar(t.g)?[t.g]:[]}; /* component that is itself a taught char → status row */
+      cs:byChar(t.g)?[t.g]:[], /* component that is itself a taught char → status row */
+      ask:i%2===0?{z:1,big:t.g,sub:"What does this component mean?"}:{z:0,big:"“"+t.m+"”",sub:"Which component means this?"}};
   }).filter(Boolean);
 }
 /* ---------- tone by ear: hear a char, pick its tone ---------- */
@@ -2566,7 +2590,8 @@ function buildEar(){
     p:'<div class="qprompt"><button class="spk" style="width:64px;height:64px;font-size:26px" data-say="'+t.c+'">🔊</button><div class="muted" style="font-size:13px;margin-top:6px">which tone do you hear?</div></div>',
     /* fixed 1-4 order — you answer with your ear, not by hunting the layout */
     opts:[1,2,3,4].map(n=>({h:'<span class="t'+n+'">'+EAR_NAMES[n][0]+'</span><br><span class="muted" style="font-size:12px">'+EAR_NAMES[n][1]+"</span>",ok:n===t.t})),
-    expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),say:t.c,cls:"opt",cs:[t.c]}));
+    expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),say:t.c,cls:"opt",cs:[t.c],
+    ask:{z:1,big:t.c,sub:"Which tone does this have?"}}));
 }
 /* ---------- component assembly: build a char from its parts ---------- */
 let ASM=null;
@@ -2584,7 +2609,7 @@ function buildAsm(){
     if(decoys.length<2)return null;
     return {asm:{t:x.d,parts:x.parts,bank:shuffle(x.parts.concat(decoys))},
       expl:x.d.c+' <span class="t'+x.d.t+'">'+esc(x.d.py)+"</span> — "+esc(x.d.m)+" · "+x.parts.join(" + "),
-      cs:[x.d.c]};
+      cs:[x.d.c],ask:{z:0,big:"“"+x.d.m.split(",")[0]+"” ("+x.d.py+")",sub:"Which parts build this character?"}};
   }).filter(Boolean);
 }
 function paintAsm(q){
@@ -2629,27 +2654,31 @@ function finishAsm(){
   document.getElementById("asm-undo").disabled=true;
   if(right)Q.score++;
   document.getElementById("q-expl").innerHTML=
+   '<button class="spk" data-say="'+a.t.c+'" style="margin-right:6px">🔊</button>'+
    (right?"":sameSet?"Right parts — but the order was: ":"")+(q.expl||"")+qChars(q).map(qStatusRow).join("")+
    '<div style="margin-top:10px"><button class="btn sm line" id="q-next">Next →</button></div>';
   bindQStatus();
   document.getElementById("q-next").onclick=qAdvance;
+  speak(a.t.c); /* hear the character you just built */
   touchStreak();save();
 }
 /* ---------- writing: stroke tracing (data in STROKES_RAW near end of file) ---------- */
 let STROKES=null,W=null;
 function strokesDB(){if(!STROKES){try{STROKES=JSON.parse(STROKES_RAW)}catch(e){STROKES={}}}return STROKES}
-function writeQ(t){return {write:t.c,d:t,c:t.c,expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m)}}
+function writeQ(t){return {write:t.c,d:t,c:t.c,expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),
+  ask:{z:1,big:t.c,sub:"How do you write this?"}}}
 function buildWrite(){
   const db=strokesDB();
   const pool=shuffle(basePool().filter(d=>db[d.c]));
   return pool.slice(0,QLEN).map(writeQ);
 }
-/* one-character practice, launched from a notebook row — no scoreboard, returns to the notebook */
-function startWritePractice(c){
+/* one-character GUIDED practice, launched from a notebook row or a Learn card —
+   no scoreboard; returns wherever it was launched from */
+function startWritePractice(c,origin){
   const t=byChar(c);
   if(!t||!strokesDB()[c]){toast("No stroke data for "+c+" yet!");return}
   closeNb();switchView("quiz");
-  Q={mode:"write",qs:[writeQ(t)],i:0,score:0,practice:true};
+  Q={mode:"write",qs:[writeQ(t)],i:0,score:0,practice:origin||"nb"};
   document.getElementById("quiz-home").classList.add("hidden");
   document.getElementById("quiz-play").classList.remove("hidden");
   paintQ();
@@ -2685,11 +2714,13 @@ function wPoint(e,svg){
   const r=svg.getBoundingClientRect();
   return [(e.clientX-r.left)/r.width*1024,900-(e.clientY-r.top)/r.height*1024];
 }
-/* first pass is GUIDED: the current stroke is always highlighted, trace along.
-   "Write again" repeats the char from memory — 💡 button available, no auto-tips. */
+/* PRACTICE (from Learn card / notebook row) is GUIDED: the current stroke is always
+   highlighted, trace along; "Write again" then repeats from memory.
+   QUIZ rounds are a pure TEST: no guides from the start — 💡 peeks cost the point. */
 function paintWrite(q){
   const sd=strokesDB()[q.write],t=q.d;
-  W={q:q,i:0,miss:0,hints:0,badTries:0,guided:true,scored:false,done:false};
+  const guided=!!(Q&&Q.practice);
+  W={q:q,i:0,miss:0,hints:0,badTries:0,guided:guided,scored:false,done:false};
   document.getElementById("quiz-play").innerHTML=
    '<div class="qbar"><span>'+(Q.i+1)+" / "+Q.qs.length+'</span><button class="btn sm line" id="q-quit">quit</button></div>'+
    '<div class="qprompt" style="margin:8px 0"><span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m)+"</div>"+
@@ -2705,8 +2736,13 @@ function paintWrite(q){
   document.getElementById("q-quit").onclick=endQuiz;
   document.getElementById("w-hint").onclick=()=>wHint(sd);
   bindWrite(sd);
-  wShowStroke(sd);
-  document.getElementById("wmeta").textContent="Trace the highlighted stroke (1 of "+sd[0].length+")";
+  if(W.guided){
+    wShowStroke(sd);
+    document.getElementById("wmeta").textContent="Trace the highlighted stroke (1 of "+sd[0].length+")";
+  }else{
+    document.getElementById("w-hint").classList.remove("hidden");
+    document.getElementById("wmeta").textContent="Stroke 1 of "+sd[0].length+" — from memory (💡 if you need a peek)";
+  }
 }
 function wShowStroke(sd){
   document.getElementById("whintg").innerHTML='<path class="whint" d="'+sd[0][W.i]+'"/>';
@@ -2773,11 +2809,14 @@ function wRewrite(sd){
 function finishWrite(){
   W.done=true;
   const q=W.q,sd=strokesDB()[q.write];
+  if(!W.scored){ /* only the first completion of a question can score */
+    W.scored=true;
+    if(W.guided?W.badTries===0:W.hints===0)Q.score++;
+  }
   if(W.guided){
-    if(!W.scored&&W.badTries===0){Q.score++;W.scored=true}
     document.getElementById("wmeta").textContent=W.badTries===0?"✓ Clean trace!":"✓ Done — "+W.badTries+" stroke"+(W.badTries>1?"s":"")+" took a retry";
   }else{
-    document.getElementById("wmeta").textContent=W.hints===0?"✓ From memory, no peeks!":"✓ Written again — "+W.hints+" peek"+(W.hints>1?"s":"");
+    document.getElementById("wmeta").textContent=W.hints===0?"✓ From memory, no peeks!":"✓ Done — "+W.hints+" peek"+(W.hints>1?"s":"");
   }
   document.getElementById("w-hint").classList.add("hidden");
   document.getElementById("q-expl").innerHTML=
@@ -2850,7 +2889,11 @@ function answerQ(i){
 }
 function endQuiz(showScore){
   if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null}
-  if(showScore===true&&Q&&Q.practice){endQuiz();openNb();return} /* single-char practice: straight back to the notebook */
+  if(showScore===true&&Q&&Q.practice){ /* single-char practice: straight back where it came from */
+    const org=Q.practice;endQuiz();
+    if(org==="learn")switchView("learn");else openNb();
+    return;
+  }
   if(showScore===true){
     document.getElementById("quiz-play").innerHTML=
     '<div class="card done"><div class="big">'+(Q.score>=8?"🏆":Q.score>=5?"👍":"💪")+'</div><b>'+Q.score+" / "+Q.qs.length+'</b><p class="muted">'+
