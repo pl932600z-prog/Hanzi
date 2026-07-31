@@ -2380,6 +2380,10 @@ function mkWordPool(list){
   list.forEach(d=>d.w.forEach(w=>{if(!seen.has(w[0])){seen.add(w[0]);out.push({wd:w[0],py:w[1],m:w[2],c:d.c})}}));
   return out;
 }
+function wordChars(wd){ /* distinct taught chars in a word, for status rows */
+  const out=[];for(const ch of wd)if(byChar(ch)&&!out.includes(ch))out.push(ch);
+  return out;
+}
 function wordsPool(){return mkWordPool(basePool())}
 let WORDS_ALL=null;
 function wordsPoolAll(){if(!WORDS_ALL)WORDS_ALL=mkWordPool(ALLD);return WORDS_ALL}
@@ -2393,7 +2397,7 @@ function buildW2M(){
     if(ds.length<3)return null;
     return {p:'<div class="qprompt"><div style="font-size:44px">'+t.wd+"</div></div>",
       opts:shuffle([{h:esc(t.m),ok:true}].concat(ds.map(d=>({h:esc(d.m),ok:false})))),
-      expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt",c:t.c};
+      expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt",cs:wordChars(t.wd)};
   }).filter(Boolean);
 }
 const TONEMAP={"ā":1,"ē":1,"ī":1,"ō":1,"ū":1,"ǖ":1,"á":2,"é":2,"í":2,"ó":2,"ú":2,"ǘ":2,"ǎ":3,"ě":3,"ǐ":3,"ǒ":3,"ǔ":3,"ǚ":3,"à":4,"è":4,"ì":4,"ò":4,"ù":4,"ǜ":4};
@@ -2412,7 +2416,7 @@ function buildTone(){
     }
     if(opts.length<4)return null;
     return {p:'<div class="qprompt"><div style="font-size:50px">'+t.wd+'</div><div class="muted" style="font-size:13px;margin-top:4px">which tone pattern?</div></div>',
-      opts:shuffle(opts),expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt tonebtn",c:t.c};
+      opts:shuffle(opts),expl:t.wd+" "+esc(t.py)+" — "+esc(t.m),say:t.wd,cls:"opt tonebtn",cs:wordChars(t.wd)};
   }).filter(Boolean);
 }
 function compEntries(list){
@@ -2441,7 +2445,8 @@ function buildComp(){
       p='<div class="qprompt">Which component means<br>“<b>'+esc(t.m)+'</b>”?</div>';
       opts=shuffle([{h:t.g,ok:true}].concat(others.map(o=>({h:o.g,ok:false}))));cls="opt zi";
     }
-    return {p:p,opts:opts,expl:t.g+" — "+esc(t.m)+" · appears in: "+compChars(t.g),cls:cls};
+    return {p:p,opts:opts,expl:t.g+" — "+esc(t.m)+" · appears in: "+compChars(t.g),cls:cls,
+      cs:byChar(t.g)?[t.g]:[]}; /* component that is itself a taught char → status row */
   }).filter(Boolean);
 }
 /* ---------- writing: stroke tracing (data in STROKES_RAW near end of file) ---------- */
@@ -2484,9 +2489,11 @@ function wPoint(e,svg){
   const r=svg.getBoundingClientRect();
   return [(e.clientX-r.left)/r.width*1024,900-(e.clientY-r.top)/r.height*1024];
 }
+/* first pass is GUIDED: the current stroke is always highlighted, trace along.
+   "Write again" repeats the char from memory — 💡 button available, no auto-tips. */
 function paintWrite(q){
   const sd=strokesDB()[q.write],t=q.d;
-  W={q:q,i:0,miss:0,hints:0,done:false};
+  W={q:q,i:0,miss:0,hints:0,badTries:0,guided:true,scored:false,done:false};
   document.getElementById("quiz-play").innerHTML=
    '<div class="qbar"><span>'+(Q.i+1)+" / "+Q.qs.length+'</span><button class="btn sm line" id="q-quit">quit</button></div>'+
    '<div class="qprompt" style="margin:8px 0"><span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m)+"</div>"+
@@ -2496,12 +2503,17 @@ function paintWrite(q){
       sd[0].map(p=>'<path class="wbg" d="'+p+'"/>').join("")+
       '<g id="wdoneg"></g><g id="whintg"></g><g id="wtraceg"></g>'+
     "</g></svg></div>"+
-   '<div class="wmeta" id="wmeta">Stroke 1 of '+sd[0].length+" — draw it on the character</div>"+
-   '<div class="wrow"><button class="btn sm line" id="w-hint">💡 Show stroke</button></div>'+
+   '<div class="wmeta" id="wmeta"></div>'+
+   '<div class="wrow"><button class="btn sm line hidden" id="w-hint">💡 Show stroke</button></div>'+
    '<div class="expl" id="q-expl"></div>';
   document.getElementById("q-quit").onclick=endQuiz;
   document.getElementById("w-hint").onclick=()=>wHint(sd);
   bindWrite(sd);
+  wShowStroke(sd);
+  document.getElementById("wmeta").textContent="Trace the highlighted stroke (1 of "+sd[0].length+")";
+}
+function wShowStroke(sd){
+  document.getElementById("whintg").innerHTML='<path class="whint" d="'+sd[0][W.i]+'"/>';
 }
 function bindWrite(sd){
   const svg=document.getElementById("wsvg"),tg=document.getElementById("wtraceg");
@@ -2534,32 +2546,51 @@ function wAttempt(user,sd,pl){
     p.setAttribute("class","wdone");p.setAttribute("d",sd[0][W.i]);
     document.getElementById("wdoneg").appendChild(p);
     W.i++;W.miss=0;
-    if(W.i>=sd[0].length)finishWrite();
-    else document.getElementById("wmeta").textContent="Stroke "+(W.i+1)+" of "+sd[0].length;
+    if(W.i>=sd[0].length){finishWrite();return}
+    if(W.guided){
+      wShowStroke(sd);
+      document.getElementById("wmeta").textContent="Trace the highlighted stroke ("+(W.i+1)+" of "+sd[0].length+")";
+    }else document.getElementById("wmeta").textContent="Stroke "+(W.i+1)+" of "+sd[0].length;
   }else{
     if(pl)pl.classList.add("bad");
     setTimeout(()=>{const g=document.getElementById("wtraceg");if(g&&pl&&g.contains(pl))g.innerHTML=""},350);
-    W.miss++;
-    if(W.miss>=3)wHint(sd);
+    W.miss++;if(W.guided)W.badTries++;
+    if(!W.guided&&W.miss>=3)wHint(sd);
     else document.getElementById("wmeta").textContent="Not quite — try stroke "+(W.i+1)+" again";
   }
 }
 function wHint(sd){
   if(!W||W.done)return;
   W.hints++;W.miss=0;
-  document.getElementById("whintg").innerHTML='<path class="whint" d="'+sd[0][W.i]+'"/>';
+  wShowStroke(sd);
   document.getElementById("wmeta").textContent="Trace the highlighted stroke";
+}
+function wRewrite(sd){
+  W.i=0;W.miss=0;W.hints=0;W.guided=false;W.done=false;
+  document.getElementById("wdoneg").innerHTML="";
+  document.getElementById("whintg").innerHTML="";
+  document.getElementById("wtraceg").innerHTML="";
+  document.getElementById("q-expl").innerHTML="";
+  document.getElementById("w-hint").classList.remove("hidden");
+  document.getElementById("wmeta").textContent="From memory now — stroke 1 of "+sd[0].length+" (💡 if you need a peek)";
 }
 function finishWrite(){
   W.done=true;
-  const q=W.q,right=W.hints===0;
-  if(right)Q.score++;
-  document.getElementById("wmeta").textContent=right?"✓ Every stroke, no hints!":"Done — "+W.hints+" stroke"+(W.hints>1?"s":"")+" needed a hint";
+  const q=W.q,sd=strokesDB()[q.write];
+  if(W.guided){
+    if(!W.scored&&W.badTries===0){Q.score++;W.scored=true}
+    document.getElementById("wmeta").textContent=W.badTries===0?"✓ Clean trace!":"✓ Done — "+W.badTries+" stroke"+(W.badTries>1?"s":"")+" took a retry";
+  }else{
+    document.getElementById("wmeta").textContent=W.hints===0?"✓ From memory, no peeks!":"✓ Written again — "+W.hints+" peek"+(W.hints>1?"s":"");
+  }
   document.getElementById("w-hint").classList.add("hidden");
-  document.getElementById("q-expl").innerHTML=(q.expl||"")+(q.c?qStatusRow(q.c):"")+
-   '<div style="margin-top:10px"><button class="btn sm line" id="q-next">Next →</button></div>';
-  if(q.c)bindQStatus(q.c);
+  document.getElementById("q-expl").innerHTML=
+   '<button class="spk" data-say="'+q.write+'" style="margin-right:6px">🔊</button>'+(q.expl||"")+qChars(q).map(qStatusRow).join("")+
+   '<div style="margin-top:10px"><button class="btn sm line" id="q-rewrite">↺ Write again</button> <button class="btn sm line" id="q-next">Next →</button></div>';
+  bindQStatus();
+  document.getElementById("q-rewrite").onclick=()=>wRewrite(sd);
   document.getElementById("q-next").onclick=qAdvance;
+  speak(q.write); /* hear it as the character completes */
   touchStreak();save();
 }
 function startQuiz(mode){
@@ -2587,34 +2618,37 @@ function qAdvance(){
   if(Q.timer){clearTimeout(Q.timer);Q.timer=null}
   Q.i++;Q.i>=Q.qs.length?endQuiz(true):paintQ();
 }
+function qChars(q){return q.cs||(q.c?[q.c]:[])} /* every taught char a question involves */
 function qStatusRow(c){
   const map={new:"new",learning:"nb",mastered:"known"};
   const cur=map[stateOf(c)];
-  return '<div class="q-status" id="q-status"><span>'+c+"</span>"+
+  return '<div class="q-status" data-c="'+c+'"><span>'+c+"</span>"+
    [["new","⚪"],["nb","🟡"],["known","🟢"]].map(x=>'<button class="qs-btn'+(cur===x[0]?" on":"")+'" data-st="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
 }
-function bindQStatus(c){
-  document.querySelectorAll("#q-status .qs-btn").forEach(b=>b.onclick=()=>{
-    if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null} /* pause auto-advance while editing */
-    setStatus(c,b.dataset.st);
-    const row=document.getElementById("q-status");
-    if(row){row.outerHTML=qStatusRow(c);bindQStatus(c)}
-    toast(c+(b.dataset.st==="new"?" → new ⚪":b.dataset.st==="nb"?" → notebook 🟡":" → known 🟢"));
+function bindQStatus(){
+  document.querySelectorAll("#q-expl .q-status").forEach(row=>{
+    const c=row.dataset.c;
+    row.querySelectorAll(".qs-btn").forEach(b=>b.onclick=()=>{
+      if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null} /* pause auto-advance while editing */
+      setStatus(c,b.dataset.st);
+      row.outerHTML=qStatusRow(c);bindQStatus();
+      toast(c+(b.dataset.st==="new"?" → new ⚪":b.dataset.st==="nb"?" → notebook 🟡":" → known 🟢"));
+    });
   });
 }
 function answerQ(i){
-  const q=Q.qs[Q.i],right=q.opts[i].ok;
+  const q=Q.qs[Q.i],right=q.opts[i].ok,cs=qChars(q);
   document.querySelectorAll("#quiz-play .opt").forEach((b,j)=>{
     b.disabled=true;
     if(q.opts[j].ok)b.classList.add("right");else if(j===i)b.classList.add("wrong");
   });
-  document.getElementById("q-expl").innerHTML=(q.expl||"")+(q.c?qStatusRow(q.c):"")+
+  document.getElementById("q-expl").innerHTML=(q.expl||"")+cs.map(qStatusRow).join("")+
    '<div style="margin-top:10px"><button class="btn sm line" id="q-next">Next →</button></div>';
-  if(q.c)bindQStatus(q.c);
+  bindQStatus();
   document.getElementById("q-next").onclick=qAdvance;
   if(right)Q.score++;
   touchStreak();save();
-  Q.timer=(right&&!q.c)?setTimeout(qAdvance,1300):null; /* status-row questions always wait for Next */
+  Q.timer=(right&&!cs.length)?setTimeout(qAdvance,1300):null; /* status-row questions always wait for Next */
 }
 function endQuiz(showScore){
   if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null}
@@ -2854,7 +2888,7 @@ function openNb(){
   const b=document.getElementById("nbsheet-body");
   b.innerHTML=
    '<div class="row" style="align-items:center;gap:8px;margin-bottom:8px"><h2 style="margin:0">📓 Notebook <span class="muted" id="nb-total" style="font-size:14px"></span></h2><span class="grow"></span>'+
-   '<button class="btn sm line" id="nb-quiz">Quiz these</button><button class="btn sm line" id="nb-x">✕</button></div>'+
+   '<button class="btn sm line" id="nb-quiz">Quiz these</button><button class="btn sm line" id="nb-write">✍️ Strokes</button><button class="btn sm line" id="nb-x">✕</button></div>'+
    '<input class="search" id="nb-q" placeholder="🔍 Search character, pinyin, meaning, notes…" autocomplete="off" value="'+esc(NBUI.q)+'">'+
    '<div class="nb-pills"><span class="nb-plab">Sort</span>'+
     [["new","Newest"],["old","Oldest"],["az","A–Z"]].map(x=>'<button class="nb-pill" data-srt="'+x[0]+'">'+x[1]+"</button>").join("")+
@@ -2863,6 +2897,7 @@ function openNb(){
    '<div id="nb-list"></div>';
   b.querySelector("#nb-x").onclick=closeNb;
   b.querySelector("#nb-quiz").onclick=()=>{closeNb();QSCOPE="notebook";switchView("quiz")};
+  b.querySelector("#nb-write").onclick=()=>{closeNb();QSCOPE="notebook";switchView("quiz");startQuiz("write")};
   const q=b.querySelector("#nb-q");
   q.oninput=()=>{NBUI.q=q.value;paintNbList()};
   b.querySelectorAll(".nb-pill").forEach(p=>p.onclick=()=>{
