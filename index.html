@@ -9,19 +9,19 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Hanzi">
-<meta name="theme-color" content="#b4552d">
+<meta name="theme-color" content="#2e6eea">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <style>
 :root{
   --bg:#f6f5f2; --card:#ffffff; --ink:#26241f; --ink2:#6b675e; --line:#e5e2da;
-  --acc:#b4552d; --acc-soft:#f6e3d9; --ok:#2e9e4f; --ok-soft:#e0f2e5; --bad:#d64541; --bad-soft:#fae3e2;
+  --acc:#2e6eea; --acc-soft:#e4edfd; --ok:#2e9e4f; --ok-soft:#e0f2e5; --bad:#d64541; --bad-soft:#fae3e2;
   --amber:#d98e1f; --t1:#d64541; --t2:#2e9e4f; --t3:#2b7de0; --t4:#9b59b6; --t0:#8a8f98;
   --sh:0 1px 3px rgba(0,0,0,.07),0 4px 14px rgba(0,0,0,.05); --r:16px;
 }
 @media (prefers-color-scheme: dark){
   :root{ --bg:#17161a; --card:#232227; --ink:#eceae5; --ink2:#a09c93; --line:#37353c;
-    --acc:#e0764a; --acc-soft:#3a2a22; --ok:#4cba6e; --ok-soft:#20321f; --bad:#e0605c; --bad-soft:#3a2323;
+    --acc:#6ba1ff; --acc-soft:#22314e; --ok:#4cba6e; --ok-soft:#20321f; --bad:#e0605c; --bad-soft:#3a2323;
     --amber:#e0a33e; --t1:#ef7b74; --t2:#5fc983; --t3:#6aa6ef; --t4:#bd87d6; --t0:#8a8f98;
     --sh:0 1px 3px rgba(0,0,0,.4); }
 }
@@ -34,7 +34,8 @@ header h1{font-size:18px;margin:0;letter-spacing:.3px}
 header h1 span{color:var(--acc)}
 .tagline{font-size:12px;color:var(--ink2);margin-top:1px}
 .pos{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--ink2);vertical-align:2px;margin-left:6px;white-space:nowrap}
-#nb-btn{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:6px}
+.hbtns{display:flex;gap:8px;align-items:center}
+#nb-btn,#ask-btn{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:6px}
 #nb-btn b{font-size:13.5px;color:var(--acc)}
 #nbsheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:40}
 #nbsheet.on{display:flex}
@@ -102,6 +103,12 @@ h2{font-size:16px;margin:18px 4px 6px}
 .wtrace.bad{stroke:var(--bad)}
 .wrow{display:flex;gap:10px;justify-content:center;margin-top:10px}
 .wmeta{text-align:center;font-size:13px;color:var(--ink2);margin-top:6px}
+/* ---------- component assembly ---------- */
+.asm-slots{display:flex;gap:10px;justify-content:center;margin:12px 0}
+.asm-slot{width:56px;height:56px;border:2px dashed var(--line);border-radius:14px;font-size:32px;display:flex;align-items:center;justify-content:center;background:var(--card);color:var(--ink)}
+.asm-slot.fill{border-style:solid;border-color:var(--acc)}
+.asm-slot.okk{border-color:var(--ok);background:var(--ok-soft)}
+.asm-slot.badd{border-color:var(--bad);background:var(--bad-soft)}
 .mode{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:14px;cursor:pointer;text-align:left;font-size:15px;color:var(--ink)}
 .mode b{display:block;font-size:16px;margin-bottom:3px}
 .qprompt{text-align:center;font-size:20px;margin:14px 0}
@@ -184,7 +191,10 @@ textarea{width:100%;height:90px}
     <h1>Han<span>zi</span></h1>
     <div class="tagline">For Leah - happy learning! 💛</div>
   </div>
-  <button id="nb-btn" title="My notebook">📓 <b id="nb-count">0</b></button>
+  <div class="hbtns">
+    <button id="ask-btn" title="Ask Paul">💬</button>
+    <button id="nb-btn" title="My notebook">📓 <b id="nb-count">0</b></button>
+  </div>
 </header>
 <main>
   <!-- LEARN -->
@@ -213,10 +223,12 @@ textarea{width:100%;height:90px}
       <div class="qgroup" id="qg-listen"><div class="qg-t">👂 Listening</div>
       <div class="modes">
         <button class="mode" data-mode="a2c" id="mode-audio"><b>🔊 Listening</b>Hear it, pick the character</button>
+        <button class="mode" data-mode="ear"><b>调 Tone by ear</b>Hear a character, pick its tone</button>
       </div></div>
       <div class="qgroup"><div class="qg-t">✍️ Writing</div>
       <div class="modes">
         <button class="mode" data-mode="write"><b>写 Strokes</b>Trace the strokes, one by one</button>
+        <button class="mode" data-mode="asm"><b>拼 Build</b>Assemble a character from its parts</button>
       </div></div>
     </div>
     <div id="quiz-play" class="hidden"></div>
@@ -2249,7 +2261,7 @@ function drawShareCard(){
   if(!g)return null;
   const ZH="'PingFang SC','Hiragino Sans GB','Heiti SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif";
   const UI="'Helvetica Neue',Helvetica,Arial,"+ZH;
-  const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,"#c4653c");gr.addColorStop(1,"#9d4522");
+  const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,"#4a9df6");gr.addColorStop(1,"#2454cf");
   g.fillStyle=gr;g.fillRect(0,0,W,H);
   g.textAlign="center";g.textBaseline="middle";
   g.fillStyle="rgba(255,255,255,0.09)";g.font="700 640px "+ZH;
@@ -2294,33 +2306,108 @@ function drawShareCard(){
   })(W/2+82,H-116,30);
   return cv;
 }
-function shareProgress(){
-  const cv=drawShareCard();
-  if(!cv){shareTextFlow();return}
+function shareProgress(){shareCanvasFlow(drawShareCard(),"hanzi-progress.png","Progress card 💛",shareTextFlow)}
+function shareCanvasFlow(cv,fname,title,textFallback){
+  if(!cv){textFallback();return}
   if(cv.toBlob&&navigator.canShare&&navigator.share){
     try{
       cv.toBlob(b=>{
-        if(!b){shareImgFallback(cv);return}
-        const f=new File([b],"hanzi-progress.png",{type:"image/png"});
+        if(!b){shareImgFallback(cv,title,textFallback);return}
+        const f=new File([b],fname,{type:"image/png"});
         if(navigator.canShare({files:[f]}))navigator.share({files:[f]}).catch(()=>{});
-        else shareImgFallback(cv);
+        else shareImgFallback(cv,title,textFallback);
       },"image/png");
       return;
     }catch(e){}
   }
-  shareImgFallback(cv);
+  shareImgFallback(cv,title,textFallback);
 }
-function shareImgFallback(cv){
+function shareImgFallback(cv,title,textFallback){
   let url=null;
   try{url=cv.toDataURL("image/png")}catch(e){}
-  if(!url){shareTextFlow();return}
-  document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">Progress card 💛</h2>'+
+  if(!url){textFallback();return}
+  document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">'+title+'</h2>'+
    '<p class="muted">Press and hold the picture, then save or share it to Paul.</p>'+
-   '<div style="text-align:center"><img id="share-img" style="width:100%;border-radius:16px" alt="progress card"></div>'+
+   '<div style="text-align:center"><img id="share-img" style="width:100%;border-radius:16px" alt="'+title+'"></div>'+
    '<div class="ansrow"><button class="btn" id="m-close">Close</button></div>';
   document.getElementById("share-img").src=url;
   document.getElementById("modal").classList.add("on");
   document.getElementById("m-close").onclick=closeModal;
+}
+/* ---------- Ask Paul: send whatever Leah is looking at right now ---------- */
+function askContext(){
+  const v=(document.querySelector(".view.on")||{id:""}).id;
+  const names={"view-learn":"Learn","view-quiz":"Quiz","view-browse":"Browse","view-stats":"Me"};
+  if(document.getElementById("modal").classList.contains("on")&&MODAL_C&&byChar(MODAL_C))
+    return {ds:[byChar(MODAL_C)],from:"a character card"};
+  if(v==="view-quiz"&&Q&&Q.qs[Q.i]){
+    const ds=qChars(Q.qs[Q.i]).map(byChar).filter(Boolean);
+    return {ds:ds.slice(0,3),from:"a quiz question"};
+  }
+  if(v==="view-learn"&&cur)return {ds:[cur],from:"a Learn card"};
+  return {ds:[],from:"the "+(names[v]||"Hanzi")+" tab"};
+}
+function drawAskCard(ctx){
+  const W=1000,H=1080;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;
+  const g=cv.getContext?cv.getContext("2d"):null;
+  if(!g)return null;
+  const ZH="'PingFang SC','Hiragino Sans GB','Heiti SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif";
+  const UI="'Helvetica Neue',Helvetica,Arial,"+ZH;
+  const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,"#4a9df6");gr.addColorStop(1,"#2454cf");
+  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.textAlign="center";g.textBaseline="middle";
+  g.fillStyle="rgba(255,255,255,0.09)";g.font="700 620px "+ZH;
+  g.fillText("汉",W/2,H/2+30);
+  g.fillStyle="#fff";g.font="700 58px "+UI;
+  g.fillText("Leah has a question!",W/2,130);
+  g.fillStyle="rgba(255,255,255,.85)";g.font="400 38px "+UI;
+  g.fillText(new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"}),W/2,196);
+  if(ctx.ds.length){
+    const chars=ctx.ds.map(d=>d.c).join("  ");
+    g.fillStyle="#fff";g.font="700 "+(ctx.ds.length>1?150:220)+"px "+ZH;
+    g.fillText(chars,W/2,H/2-40);
+    g.font="500 52px "+UI;
+    g.fillText(ctx.ds.map(d=>d.py).join("  ·  "),W/2,H/2+(ctx.ds.length>1?90:130));
+    g.fillStyle="rgba(255,255,255,.85)";g.font="400 36px "+UI;
+    let m=ctx.ds.map(d=>d.m.split(",")[0]).join(" · ");
+    if(m.length>44)m=m.slice(0,43)+"…";
+    g.fillText(m,W/2,H/2+(ctx.ds.length>1?160:200));
+  }else{
+    g.fillStyle="#fff";g.font="700 240px "+UI;
+    g.fillText("?",W/2,H/2-10);
+  }
+  g.fillStyle="rgba(255,255,255,.75)";g.font="400 32px "+UI;
+  g.fillText("From "+ctx.from+" — can you explain?",W/2,H-210);
+  g.fillStyle="#fff";g.font="600 58px "+ZH;
+  g.fillText("谢谢!",W/2-30,H-105);
+  (function(x,yy,s){
+    g.fillStyle="#ffd34d";g.beginPath();
+    g.moveTo(x,yy+s*0.9);
+    g.bezierCurveTo(x+s*1.4,yy-s*0.1,x+s*0.6,yy-s*1.15,x,yy-s*0.35);
+    g.bezierCurveTo(x-s*0.6,yy-s*1.15,x-s*1.4,yy-s*0.1,x,yy+s*0.9);
+    g.fill();
+  })(W/2+78,H-111,28);
+  return cv;
+}
+function askPaul(){
+  const ctx=askContext();
+  const textFallback=()=>{
+    let txt="Question for Paul 🙋\n";
+    if(ctx.ds.length)txt+=ctx.ds.map(d=>d.c+" ("+d.py+") — "+d.m).join("\n")+"\n";
+    txt+="From "+ctx.from+" — can you explain? 谢谢! 💛";
+    if(navigator.share){navigator.share({text:txt}).catch(()=>{})}
+    else{
+      document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">Ask Paul 💬</h2>'+
+       '<textarea id="share-txt" readonly style="height:130px">'+esc(txt)+"</textarea>"+
+       '<p class="muted">Copy this and send it to Paul.</p>'+
+       '<div class="ansrow"><button class="btn" id="m-close">Close</button></div>';
+      document.getElementById("modal").classList.add("on");
+      document.getElementById("m-close").onclick=closeModal;
+      const ta=document.getElementById("share-txt");ta.focus();ta.select();
+    }
+  };
+  shareCanvasFlow(drawAskCard(ctx),"hanzi-question.png","Ask Paul 💬",textFallback);
 }
 function shareTextFlow(){
   const st=shareStats(),togo=DATA.length-st.known-st.nb;
@@ -2448,6 +2535,83 @@ function buildComp(){
     return {p:p,opts:opts,expl:t.g+" — "+esc(t.m)+" · appears in: "+compChars(t.g),cls:cls,
       cs:byChar(t.g)?[t.g]:[]}; /* component that is itself a taught char → status row */
   }).filter(Boolean);
+}
+/* ---------- tone by ear: hear a char, pick its tone ---------- */
+const EAR_NAMES={1:["1st · ā","high & flat"],2:["2nd · á","rising"],3:["3rd · ǎ","dip & rise"],4:["4th · à","falling"]};
+function buildEar(){
+  const pool=shuffle(basePool().filter(d=>d.t>=1&&d.t<=4));
+  return pool.slice(0,QLEN).map(t=>({
+    p:'<div class="qprompt"><button class="spk" style="width:64px;height:64px;font-size:26px" data-say="'+t.c+'">🔊</button><div class="muted" style="font-size:13px;margin-top:6px">which tone do you hear?</div></div>',
+    /* fixed 1-4 order — you answer with your ear, not by hunting the layout */
+    opts:[1,2,3,4].map(n=>({h:'<span class="t'+n+'">'+EAR_NAMES[n][0]+'</span><br><span class="muted" style="font-size:12px">'+EAR_NAMES[n][1]+"</span>",ok:n===t.t})),
+    expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),say:t.c,cls:"opt",cs:[t.c]}));
+}
+/* ---------- component assembly: build a char from its parts ---------- */
+let ASM=null;
+function asmParts(d){ /* part glyphs in mnemonic order, when all are tappable tiles */
+  const ps=d.k.map(k=>k[0]);
+  if(ps.length<2||ps.some(g=>g.length>2||/[+ ]/.test(g)))return null;
+  return ps;
+}
+function buildAsm(){
+  const pool=shuffle(basePool().map(d=>({d:d,parts:asmParts(d)})).filter(x=>x.parts));
+  const glyphs=compAll().map(x=>x.g);
+  return pool.slice(0,QLEN).map(x=>{
+    const decoys=[],used=new Set(x.parts);
+    for(const g of shuffle(glyphs)){if(decoys.length>=Math.max(2,6-x.parts.length))break;if(used.has(g))continue;used.add(g);decoys.push(g)}
+    if(decoys.length<2)return null;
+    return {asm:{t:x.d,parts:x.parts,bank:shuffle(x.parts.concat(decoys))},
+      expl:x.d.c+' <span class="t'+x.d.t+'">'+esc(x.d.py)+"</span> — "+esc(x.d.m)+" · "+x.parts.join(" + "),
+      cs:[x.d.c]};
+  }).filter(Boolean);
+}
+function paintAsm(q){
+  const a=q.asm,t=a.t;
+  ASM={q:q,picks:[],done:false};
+  document.getElementById("quiz-play").innerHTML=
+   '<div class="qbar"><span>'+(Q.i+1)+" / "+Q.qs.length+'</span><button class="btn sm line" id="q-quit">quit</button></div>'+
+   '<div class="qprompt">Build “<b>'+esc(t.m)+'</b>” <span class="t'+t.t+'">'+esc(t.py)+'</span><div class="muted" style="font-size:13px;margin-top:4px">tap the parts in order</div></div>'+
+   '<div class="asm-slots" id="asm-slots"></div>'+
+   '<div class="opts" style="grid-template-columns:repeat(3,1fr)" id="asm-bank">'+
+    a.bank.map((g,i)=>'<button class="opt zi" data-i="'+i+'">'+g+"</button>").join("")+"</div>"+
+   '<div class="wrow"><button class="btn sm line" id="asm-undo">⌫ Undo</button></div>'+
+   '<div class="expl" id="q-expl"></div>';
+  paintAsmSlots();
+  document.getElementById("q-quit").onclick=endQuiz;
+  document.getElementById("asm-bank").querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    if(ASM.done)return;
+    ASM.picks.push(+b.dataset.i);b.disabled=true;paintAsmSlots();
+    if(ASM.picks.length>=ASM.q.asm.parts.length)finishAsm();
+  });
+  document.getElementById("asm-undo").onclick=()=>{
+    if(ASM.done||!ASM.picks.length)return;
+    const i=ASM.picks.pop();
+    document.getElementById("asm-bank").querySelector('[data-i="'+i+'"]').disabled=false;
+    paintAsmSlots();
+  };
+}
+function paintAsmSlots(cls){
+  const a=ASM.q.asm;
+  document.getElementById("asm-slots").innerHTML=a.parts.map((p,i)=>{
+    const g=i<ASM.picks.length?a.bank[ASM.picks[i]]:"";
+    return '<div class="asm-slot'+(g?" fill":"")+(cls?" "+cls:"")+'">'+g+"</div>";
+  }).join("");
+}
+function finishAsm(){
+  ASM.done=true;
+  const q=ASM.q,a=q.asm,got=ASM.picks.map(i=>a.bank[i]);
+  const right=got.join("\x1f")===a.parts.join("\x1f");
+  const sameSet=!right&&got.slice().sort().join("\x1f")===a.parts.slice().sort().join("\x1f");
+  paintAsmSlots(right?"okk":"badd");
+  document.getElementById("asm-bank").querySelectorAll(".opt").forEach(b=>b.disabled=true);
+  document.getElementById("asm-undo").disabled=true;
+  if(right)Q.score++;
+  document.getElementById("q-expl").innerHTML=
+   (right?"":sameSet?"Right parts — but the order was: ":"")+(q.expl||"")+qChars(q).map(qStatusRow).join("")+
+   '<div style="margin-top:10px"><button class="btn sm line" id="q-next">Next →</button></div>';
+  bindQStatus();
+  document.getElementById("q-next").onclick=qAdvance;
+  touchStreak();save();
 }
 /* ---------- writing: stroke tracing (data in STROKES_RAW near end of file) ---------- */
 let STROKES=null,W=null;
@@ -2595,7 +2759,7 @@ function finishWrite(){
 }
 function startQuiz(mode){
   let qs;
-  if(mode==="w2m")qs=buildW2M();else if(mode==="tone")qs=buildTone();else if(mode==="comp")qs=buildComp();else if(mode==="write")qs=buildWrite();else qs=buildCharMode(mode);
+  if(mode==="w2m")qs=buildW2M();else if(mode==="tone")qs=buildTone();else if(mode==="comp")qs=buildComp();else if(mode==="write")qs=buildWrite();else if(mode==="ear")qs=buildEar();else if(mode==="asm")qs=buildAsm();else qs=buildCharMode(mode);
   if(!qs||qs.length<2){toast("Not enough characters here yet — try another scope!");return}
   Q={mode:mode,qs:qs,i:0,score:0};
   document.getElementById("quiz-home").classList.add("hidden");
@@ -2605,6 +2769,7 @@ function startQuiz(mode){
 function paintQ(){
   const q=Q.qs[Q.i];
   if(q.write){paintWrite(q);return}
+  if(q.asm){paintAsm(q);return}
   document.getElementById("quiz-play").innerHTML=
    '<div class="qbar"><span>'+(Q.i+1)+" / "+Q.qs.length+'</span><button class="btn sm line" id="q-quit">quit</button></div>'+
    q.p+'<div class="opts">'+q.opts.map((o,i)=>'<button class="'+(q.cls||"opt")+'" data-i="'+i+'">'+o.h+"</button>").join("")+"</div>"+
@@ -2661,7 +2826,7 @@ function endQuiz(showScore){
     document.getElementById("q-back").onclick=endQuiz;
     return;
   }
-  Q=null;W=null;
+  Q=null;W=null;ASM=null;
   document.getElementById("quiz-play").classList.add("hidden");
   document.getElementById("quiz-home").classList.remove("hidden");
 }
@@ -2778,6 +2943,7 @@ function renderBrowse(query){
   });
 }
 function openModal(c){
+  MODAL_C=c;
   const d=byChar(c),st=stateOf(c);
   const cur2st={new:"new",learning:"nb",mastered:"known"};
   const stRow='<div class="statusrow">'+[["new","⚪ New"],["nb","🟡 Notebook"],["known","🟢 Known"]].map(x=>
@@ -2811,7 +2977,8 @@ function refreshUnder(){
   else if(v.id==="view-browse"){const q=document.getElementById("b-q");renderBrowse(q?q.value.trim():"")}
   else if(v.id==="view-learn")paintLearnStatus();
 }
-function closeModal(){document.getElementById("modal").classList.remove("on")}
+let MODAL_C=null;
+function closeModal(){MODAL_C=null;document.getElementById("modal").classList.remove("on")}
 document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 
 /* ================= STATS ================= */
@@ -2946,6 +3113,7 @@ function paintNbList(){
 }
 function closeNb(){document.getElementById("nbsheet").classList.remove("on")}
 document.getElementById("nb-btn").onclick=openNb;
+document.getElementById("ask-btn").onclick=askPaul;
 document.getElementById("nbsheet").addEventListener("click",e=>{if(e.target.id==="nbsheet")closeNb()});
 /* speaker buttons everywhere (event delegation) */
 document.body.addEventListener("click",e=>{
