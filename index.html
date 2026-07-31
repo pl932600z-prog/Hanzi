@@ -16,13 +16,13 @@
 :root{
   --bg:#f6f5f2; --card:#ffffff; --ink:#26241f; --ink2:#6b675e; --line:#e5e2da;
   --acc:#2e6eea; --acc-soft:#e4edfd; --ok:#2e9e4f; --ok-soft:#e0f2e5; --bad:#d64541; --bad-soft:#fae3e2;
-  --amber:#d98e1f; --t1:#d64541; --t2:#2e9e4f; --t3:#2b7de0; --t4:#9b59b6; --t0:#8a8f98;
+  --amber:#1f8fe0; --t1:#d64541; --t2:#2e9e4f; --t3:#2b7de0; --t4:#9b59b6; --t0:#8a8f98; /* --amber = notebook-dot blue (name kept from old amber scheme) */
   --sh:0 1px 3px rgba(0,0,0,.07),0 4px 14px rgba(0,0,0,.05); --r:16px;
 }
 @media (prefers-color-scheme: dark){
   :root{ --bg:#17161a; --card:#232227; --ink:#eceae5; --ink2:#a09c93; --line:#37353c;
     --acc:#6ba1ff; --acc-soft:#22314e; --ok:#4cba6e; --ok-soft:#20321f; --bad:#e0605c; --bad-soft:#3a2323;
-    --amber:#e0a33e; --t1:#ef7b74; --t2:#5fc983; --t3:#6aa6ef; --t4:#bd87d6; --t0:#8a8f98;
+    --amber:#54b2f0; --t1:#ef7b74; --t2:#5fc983; --t3:#6aa6ef; --t4:#bd87d6; --t0:#8a8f98;
     --sh:0 1px 3px rgba(0,0,0,.4); }
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
@@ -35,7 +35,9 @@ header h1 span{color:var(--acc)}
 .tagline{font-size:12px;color:var(--ink2);margin-top:1px}
 .pos{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--ink2);vertical-align:2px;margin-left:6px;white-space:nowrap}
 .hbtns{display:flex;gap:8px;align-items:center}
-#nb-btn,#ask-btn{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:6px}
+#nb-btn,#ask-btn{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:6px;min-width:68px}
+#ask-btn b{font-size:16px;color:var(--acc)}
+#ask-btn:disabled{opacity:.35;cursor:default}
 #nb-btn b{font-size:13.5px;color:var(--acc)}
 #nbsheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:40}
 #nbsheet.on{display:flex}
@@ -142,9 +144,13 @@ textarea{width:100%;height:90px}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 #modal.on{display:flex}
 #modal .sheet{background:var(--card);border-radius:20px 20px 0 0;max-width:560px;width:100%;max-height:82vh;overflow-y:auto;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}
-#gate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
+#gate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
 #gate .inner{max-width:340px;width:100%;text-align:center}
 #gate .bigzi{font-size:64px;margin-bottom:8px;color:var(--acc)}
+.gate-step{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;box-shadow:var(--sh)}
+.gate-step>b{display:block;font-size:15px;margin-bottom:6px;color:var(--acc)}
+.gate-step p{margin:0;font-size:14px;color:var(--ink2);line-height:1.55}
+.shareicon{display:inline-block;vertical-align:-3px}
 .toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);
   padding:10px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none;max-width:86vw;width:max-content;text-align:center;line-height:1.35}
 .toast.on{opacity:1}
@@ -156,6 +162,7 @@ textarea{width:100%;height:90px}
 .lvhead{display:flex;align-items:baseline;gap:10px;margin:22px 4px 2px;font-size:17px;font-weight:700}
 .lvhead .muted{font-weight:400;font-size:13px}
 .lock{background:var(--card);border:1.5px dashed var(--line);border-radius:var(--r);padding:16px;margin:14px 0;text-align:center;color:var(--ink2);font-size:14px}
+.lvteaser{display:inline-block;color:var(--ink);font-size:13.5px;margin:6px 0 4px;line-height:1.5}
 .sent{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;cursor:pointer}
 .sent .sz{font-size:18px;line-height:1.5}
 .sent .sp{font-size:12.5px;color:var(--ink2)}
@@ -179,6 +186,7 @@ textarea{width:100%;height:90px}
 .statusrow .stbtn.on{border-color:var(--acc);background:var(--acc-soft);font-weight:700}
 .listtoggle{width:100%;text-align:left;background:none;border:none;color:var(--ink);font-size:16px;font-weight:700;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .nb-row{display:flex;gap:12px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.nb-strokes{background:var(--acc-soft);color:var(--acc);border:none;border-radius:10px;padding:7px 10px;font-size:15px;cursor:pointer;flex-shrink:0}
 .nb-row:last-child{border-bottom:none}
 .nb-zi{font-size:30px}
 .nb-mid{flex:1;min-width:0;font-size:14.5px}
@@ -189,10 +197,10 @@ textarea{width:100%;height:90px}
 <header>
   <div>
     <h1>Han<span>zi</span></h1>
-    <div class="tagline">For Leah - happy learning! 💛</div>
+    <div class="tagline">For Leah - happy learning! 💙</div>
   </div>
   <div class="hbtns">
-    <button id="ask-btn" title="Ask Paul">💬</button>
+    <button id="ask-btn" title="Ask Paul"><b>P</b></button>
     <button id="nb-btn" title="My notebook">📓 <b id="nb-count">0</b></button>
   </div>
 </header>
@@ -2000,7 +2008,7 @@ function migrate(){
   if(!S.notes)S.notes={};
   if(!S.known)S.known={};
   for(const c in S.nb){const e=S.nb[c];if(!e)continue;if(e.note){if(!S.notes[c])S.notes[c]=e.note;delete e.note}delete e.n}
-  /* legacy SRS saves: box>=5 or known flag → 🟢, everything else started → 🟡 */
+  /* legacy SRS saves: box>=5 or known flag → 🟢, everything else started → 🔵 */
   if(S.prog){
     for(const c in S.prog){
       const p=S.prog[c];
@@ -2041,6 +2049,14 @@ function lvChars(n){return DATA.slice((n-1)*100,n*100)}
 function lvStarted(n){return lvChars(n).filter(d=>stateOf(d.c)!=="new").length}
 function lvProgress(n){return lvChars(n).filter(d=>stateOf(d.c)!=="new").length}
 function unlocked(n){if(n<=1)return true;if(S.forceUnlock[n])return true;return lvProgress(n-1)>=LV_NEED}
+/* teasers shown on locked Browse cards — what's inside the next level */
+const LVINFO={
+ 2:"Your body, rooms & guests, plants and seasons — 100 characters for the world around you: 花 · 脸 · 睡 · 城",
+ 3:"Verbs that make sentences flow — telling, discussing, connecting, plus photos & travel: 谈 · 拍 · 运 · 富",
+ 4:"Street China 🪧 — read signs, directions, transit and money: 东 · 西 · 出 · 入 · 元",
+ 5:"Digital China 📱 — WeChat, QR codes, delivery and payments: 网 · 码 · 微 · 信",
+ 6:"Food & menus 🍜 — order like a local: 饭 · 肉 · 牛 · 茶 · 甜 · 辣",
+ 7:"Everyday glue ✨ — the little words in every sentence, plus weather & seasons: 真 · 还 · 给 · 因为 · 当然"};
 
 /* ================= AUDIO ================= */
 let zhVoice=null,ttsOK=false;
@@ -2064,7 +2080,7 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function pyHTML(d){return '<span class="t'+d.t+'">'+esc(d.py)+"</span>"}
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),1800)}
-/* status model — the dot IS the notebook: 🟡 in notebook, 🟢 known, ⚪ new */
+/* status model — the dot IS the notebook: 🔵 in notebook, 🟢 known, ⚪ new */
 function stateOf(c){
   if(S.nb[c])return"learning";
   if(S.known[c])return"mastered";
@@ -2174,18 +2190,18 @@ function bindSwipe(el,onLeft,onRight){
   el.addEventListener("pointercancel",end);
 }
 function nextCard(){
-  if(!S.hello){paintWelcome();return}
+  if(!S.hello){cur=null;paintWelcome();updateAskBtn();return}
   paintLearnStatus();
   const nl=newList();
-  if(nl.length&&todayCount()<quotaMax()){cur=byChar(nl[0]);paintCard();return}
-  cur=null;paintDone(nl.length)
+  if(nl.length&&todayCount()<quotaMax()){cur=byChar(nl[0]);paintCard();updateAskBtn();return}
+  cur=null;paintDone(nl.length);updateAskBtn()
 }
 /* one-time dedication card, shown on first visit to Learn */
 function paintWelcome(){
   document.getElementById("learn-status").innerHTML="";
   document.getElementById("learn-area").innerHTML=
    '<div class="card" style="text-align:center;padding:36px 24px;margin-top:24px">'+
-    '<div style="font-size:44px;margin-bottom:14px">💛</div>'+
+    '<div style="font-size:44px;margin-bottom:14px">💙</div>'+
     '<div style="font-size:20px;font-weight:800;margin-bottom:10px">For Leah,</div>'+
     '<div style="font-size:16px;line-height:1.6">I hope you enjoy using this app!</div>'+
     '<div class="muted" style="margin:14px 0 24px;font-size:14.5px">Paul · July 2027</div>'+
@@ -2224,7 +2240,7 @@ function paintDone(newLeft){
      '<p class="muted" style="margin:0 0 2px">Learned '+SES.learned.length+' new:</p><div class="sumlist">'+SES.learned.map(c=>'<span class="zi2">'+c+"</span>").join("")+"</div></div>";
   }
   if(newLeft>0)h+='<p style="margin-top:12px"><button class="btn line" id="b-more">+ Learn '+S.newPerDay+' extra new character'+(S.newPerDay>1?"s":"")+'</button></p>';
-  h+='<p style="margin-top:8px"><button class="btn" id="b-brag">Show off progress to Paul 💛</button></p>';
+  h+='<p style="margin-top:8px"><button class="btn" id="b-brag">Show off progress to Paul 💙</button></p>';
   h+='<p class="muted" style="margin-top:10px">Or try a Quiz or Browse 👇</p></div>';
   document.getElementById("learn-area").innerHTML=h;
   const m=document.getElementById("b-more");
@@ -2284,7 +2300,7 @@ function drawShareCard(){
   }else{g.fillText("All reviews done ✓",W/2,y);y+=96}
   y+=60;
   /* status trio: drawn circles (emoji-independent) */
-  const cols=[["#3ecb74",st.known,"known"],["#ffc12e",st.nb,"notebook"],["rgba(255,255,255,.6)",togo,"to go"]];
+  const cols=[["#3ecb74",st.known,"known"],["#8fd4ff",st.nb,"notebook"],["rgba(255,255,255,.6)",togo,"to go"]];
   const xs=[W/2-300,W/2,W/2+300];
   cols.forEach((c,i)=>{
     g.beginPath();g.fillStyle=c[0];g.arc(xs[i],y,26,0,7);g.fill();
@@ -2298,7 +2314,7 @@ function drawShareCard(){
   g.fillStyle="#fff";g.font="600 62px "+ZH;
   g.fillText("加油!",W/2-34,H-110);
   (function(x,yy,s){
-    g.fillStyle="#ffd34d";g.beginPath();
+    g.fillStyle="#ffffff";g.beginPath();
     g.moveTo(x,yy+s*0.9);
     g.bezierCurveTo(x+s*1.4,yy-s*0.1,x+s*0.6,yy-s*1.15,x,yy-s*0.35);
     g.bezierCurveTo(x-s*0.6,yy-s*1.15,x-s*1.4,yy-s*0.1,x,yy+s*0.9);
@@ -2306,7 +2322,7 @@ function drawShareCard(){
   })(W/2+82,H-116,30);
   return cv;
 }
-function shareProgress(){shareCanvasFlow(drawShareCard(),"hanzi-progress.png","Progress card 💛",shareTextFlow)}
+function shareProgress(){shareCanvasFlow(drawShareCard(),"hanzi-progress.png","Progress card 💙",shareTextFlow)}
 function shareCanvasFlow(cv,fname,title,textFallback){
   if(!cv){textFallback();return}
   if(cv.toBlob&&navigator.canShare&&navigator.share){
@@ -2359,8 +2375,8 @@ function drawAskCard(ctx){
   g.textAlign="center";g.textBaseline="middle";
   g.fillStyle="rgba(255,255,255,0.09)";g.font="700 620px "+ZH;
   g.fillText("汉",W/2,H/2+30);
-  g.fillStyle="#fff";g.font="700 58px "+UI;
-  g.fillText("Leah has a question!",W/2,130);
+  g.fillStyle="#fff";g.font="700 54px "+UI;
+  g.fillText("Paul, Leah has a question!",W/2,130);
   g.fillStyle="rgba(255,255,255,.85)";g.font="400 38px "+UI;
   g.fillText(new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"}),W/2,196);
   if(ctx.ds.length){
@@ -2382,7 +2398,7 @@ function drawAskCard(ctx){
   g.fillStyle="#fff";g.font="600 58px "+ZH;
   g.fillText("谢谢!",W/2-30,H-105);
   (function(x,yy,s){
-    g.fillStyle="#ffd34d";g.beginPath();
+    g.fillStyle="#ffffff";g.beginPath();
     g.moveTo(x,yy+s*0.9);
     g.bezierCurveTo(x+s*1.4,yy-s*0.1,x+s*0.6,yy-s*1.15,x,yy-s*0.35);
     g.bezierCurveTo(x-s*0.6,yy-s*1.15,x-s*1.4,yy-s*0.1,x,yy+s*0.9);
@@ -2390,12 +2406,18 @@ function drawAskCard(ctx){
   })(W/2+78,H-111,28);
   return cv;
 }
+/* P button lights up only when there's actual learnable content on screen to share */
+function updateAskBtn(){
+  const b=document.getElementById("ask-btn");
+  if(b)b.disabled=askContext().ds.length===0;
+}
 function askPaul(){
   const ctx=askContext();
+  if(!ctx.ds.length)return;
   const textFallback=()=>{
-    let txt="Question for Paul 🙋\n";
+    let txt="Paul, Leah has a question! 🙋\n";
     if(ctx.ds.length)txt+=ctx.ds.map(d=>d.c+" ("+d.py+") — "+d.m).join("\n")+"\n";
-    txt+="From "+ctx.from+" — can you explain? 谢谢! 💛";
+    txt+="From "+ctx.from+" — can you explain? 谢谢! 💙";
     if(navigator.share){navigator.share({text:txt}).catch(()=>{})}
     else{
       document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">Ask Paul 💬</h2>'+
@@ -2414,11 +2436,11 @@ function shareTextFlow(){
   let txt="Leah's Hanzi progress · "+st.date+"\n";
   if(S.streak>0)txt+="🔥 "+S.streak+"-day streak\n";
   txt+=(st.today>0?("✨ New today: "+st.today+(SES.learned.length?" — "+SES.learned.join(" "):"")):"📖 All reviews done today")+"\n";
-  txt+="🟢 Known: "+st.known+" · 🟡 Notebook: "+st.nb+" · ⚪ To go: "+togo+" of "+DATA.length+"\n";
-  txt+="加油! 💛";
+  txt+="🟢 Known: "+st.known+" · 🔵 Notebook: "+st.nb+" · ⚪ To go: "+togo+" of "+DATA.length+"\n";
+  txt+="加油! 💙";
   if(navigator.share){navigator.share({text:txt}).catch(()=>{})}
   else{
-    document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">Progress card 💛</h2>'+
+    document.getElementById("modal-body").innerHTML='<h2 style="margin-top:0">Progress card 💙</h2>'+
      '<textarea id="share-txt" readonly style="height:130px">'+esc(txt)+"</textarea>"+
      '<p class="muted">Copy this and send it to Paul.</p>'+
      '<div class="ansrow"><button class="btn" id="m-close">Close</button></div>';
@@ -2433,12 +2455,12 @@ const QLEN=10;
 let Q=null,QSCOPE=null;
 function startedChars(){return Object.keys(S.nb).concat(Object.keys(S.known))}
 /* scopes follow the status model — never-seen ⚪ chars are never quizzed:
-   all = 🟡+🟢 (everything started) · learned = 🟢 known · notebook = 🟡 */
+   all = 🔵+🟢 (everything started) · learned = 🟢 known · notebook = 🔵 */
 function paintScope(){
   if(QSCOPE===null)QSCOPE="all";
   const el=document.getElementById("q-scope");
   el.innerHTML='<div class="scoperow"><span class="muted" style="font-size:13px">Test scope:</span>'+
-   [["all","All"],["learned","🟢 Learned"],["notebook","🟡 Notebook"]].map(x=>
+   [["all","All"],["learned","🟢 Learned"],["notebook","🔵 Notebook"]].map(x=>
     '<button class="scope-btn'+(QSCOPE===x[0]?" on":"")+'" data-sc="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
   el.querySelectorAll(".scope-btn").forEach(b=>b.onclick=()=>{QSCOPE=b.dataset.sc;paintScope()});
 }
@@ -2616,11 +2638,21 @@ function finishAsm(){
 /* ---------- writing: stroke tracing (data in STROKES_RAW near end of file) ---------- */
 let STROKES=null,W=null;
 function strokesDB(){if(!STROKES){try{STROKES=JSON.parse(STROKES_RAW)}catch(e){STROKES={}}}return STROKES}
+function writeQ(t){return {write:t.c,d:t,c:t.c,expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m)}}
 function buildWrite(){
   const db=strokesDB();
   const pool=shuffle(basePool().filter(d=>db[d.c]));
-  return pool.slice(0,QLEN).map(t=>({write:t.c,d:t,c:t.c,
-    expl:t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m)}));
+  return pool.slice(0,QLEN).map(writeQ);
+}
+/* one-character practice, launched from a notebook row — no scoreboard, returns to the notebook */
+function startWritePractice(c){
+  const t=byChar(c);
+  if(!t||!strokesDB()[c]){toast("No stroke data for "+c+" yet!");return}
+  closeNb();switchView("quiz");
+  Q={mode:"write",qs:[writeQ(t)],i:0,score:0,practice:true};
+  document.getElementById("quiz-home").classList.add("hidden");
+  document.getElementById("quiz-play").classList.remove("hidden");
+  paintQ();
 }
 function resamplePts(pts,n){
   const L=[0];let tot=0;
@@ -2768,6 +2800,7 @@ function startQuiz(mode){
 }
 function paintQ(){
   const q=Q.qs[Q.i];
+  updateAskBtn();
   if(q.write){paintWrite(q);return}
   if(q.asm){paintAsm(q);return}
   document.getElementById("quiz-play").innerHTML=
@@ -2788,7 +2821,7 @@ function qStatusRow(c){
   const map={new:"new",learning:"nb",mastered:"known"};
   const cur=map[stateOf(c)];
   return '<div class="q-status" data-c="'+c+'"><span>'+c+"</span>"+
-   [["new","⚪"],["nb","🟡"],["known","🟢"]].map(x=>'<button class="qs-btn'+(cur===x[0]?" on":"")+'" data-st="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
+   [["new","⚪"],["nb","🔵"],["known","🟢"]].map(x=>'<button class="qs-btn'+(cur===x[0]?" on":"")+'" data-st="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
 }
 function bindQStatus(){
   document.querySelectorAll("#q-expl .q-status").forEach(row=>{
@@ -2797,7 +2830,7 @@ function bindQStatus(){
       if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null} /* pause auto-advance while editing */
       setStatus(c,b.dataset.st);
       row.outerHTML=qStatusRow(c);bindQStatus();
-      toast(c+(b.dataset.st==="new"?" → new ⚪":b.dataset.st==="nb"?" → notebook 🟡":" → known 🟢"));
+      toast(c+(b.dataset.st==="new"?" → new ⚪":b.dataset.st==="nb"?" → notebook 🔵":" → known 🟢"));
     });
   });
 }
@@ -2817,6 +2850,7 @@ function answerQ(i){
 }
 function endQuiz(showScore){
   if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null}
+  if(showScore===true&&Q&&Q.practice){endQuiz();openNb();return} /* single-char practice: straight back to the notebook */
   if(showScore===true){
     document.getElementById("quiz-play").innerHTML=
     '<div class="card done"><div class="big">'+(Q.score>=8?"🏆":Q.score>=5?"👍":"💪")+'</div><b>'+Q.score+" / "+Q.qs.length+'</b><p class="muted">'+
@@ -2824,11 +2858,13 @@ function endQuiz(showScore){
     '</p><button class="btn" id="q-again">Another round</button> <button class="btn line" id="q-back">Done</button></div>';
     document.getElementById("q-again").onclick=()=>startQuiz(Q.mode);
     document.getElementById("q-back").onclick=endQuiz;
+    updateAskBtn();
     return;
   }
   Q=null;W=null;ASM=null;
   document.getElementById("quiz-play").classList.add("hidden");
   document.getElementById("quiz-home").classList.remove("hidden");
+  updateAskBtn();
 }
 
 /* ================= PAIRS ================= */
@@ -2910,11 +2946,13 @@ function renderBrowse(query){
   }else{
     const b0=BASICS.filter(d=>stateOf(d.c)==="mastered").length;
     h+='<div class="lvhead">Level 0 · The basics <span class="muted">'+b0+"/"+BASICS.length+' known</span></div>'+
-       '<p class="famnote">You almost certainly know these already — so they start marked 🟢 and Learn will never deal them as new cards. If one looks unfamiliar, tap it and switch it to 🟡 Notebook: it\'ll join your quizzes like any other character.</p>'+
+       '<p class="famnote">You almost certainly know these already — so they start marked 🟢 and Learn will never deal them as new cards. If one looks unfamiliar, tap it and switch it to 🔵 Notebook: it\'ll join your quizzes like any other character.</p>'+
        '<div class="grid">'+BASICS.map(chipHTML).join("")+"</div>";
     for(let n=1;n<=maxLevel();n++){
       if(!unlocked(n)){
-        h+='<div class="lock">🔒 <b>Level '+n+"</b><br>Unlocks when "+LV_NEED+" of Level "+(n-1)+" characters are underway (now: "+lvProgress(n-1)+")"+
+        h+='<div class="lock">🔒 <b>Level '+n+"</b>"+
+           '<br><span class="lvteaser">'+(LVINFO[n]||"100 new characters")+"</span>"+
+           "<br>Unlocks when "+LV_NEED+" of Level "+(n-1)+" characters are underway (now: "+lvProgress(n-1)+")"+
            '<br><span style="font-size:13px">To unlock now, ask Paul for the passcode!</span>'+
            '<div style="margin-top:8px"><input class="search" style="max-width:160px;display:inline-block;margin:0;padding:8px 12px" placeholder="passcode" id="pw'+n+'" autocomplete="off"> '+
            '<button class="btn sm line b-unlock" data-lv="'+n+'">Unlock</button></div></div>';
@@ -2946,7 +2984,7 @@ function openModal(c){
   MODAL_C=c;
   const d=byChar(c),st=stateOf(c);
   const cur2st={new:"new",learning:"nb",mastered:"known"};
-  const stRow='<div class="statusrow">'+[["new","⚪ New"],["nb","🟡 Notebook"],["known","🟢 Known"]].map(x=>
+  const stRow='<div class="statusrow">'+[["new","⚪ New"],["nb","🔵 Notebook"],["known","🟢 Known"]].map(x=>
     '<button class="stbtn'+(cur2st[st]===x[0]?" on":"")+'" data-st="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>";
   const noteUI=(st!=="new")
    ?('<textarea id="nb-note" placeholder="Your notes — memory tricks, reminders, anything…">'+esc(S.notes[c]||"")+"</textarea>"+
@@ -2956,10 +2994,11 @@ function openModal(c){
    '<div class="ansrow"><button class="btn" id="m-close">Close</button></div>';
   document.getElementById("modal").classList.add("on");
   document.getElementById("m-close").onclick=closeModal;
+  updateAskBtn();
   document.querySelectorAll("#modal-body .stbtn").forEach(b=>b.onclick=()=>{
     if(cur2st[stateOf(c)]===b.dataset.st)return;
     setStatus(c,b.dataset.st);refreshUnder();openModal(c);
-    toast(c+(b.dataset.st==="new"?" reset to new ⚪":b.dataset.st==="nb"?" added to notebook 🟡":" marked as known 🟢"));
+    toast(c+(b.dataset.st==="new"?" reset to new ⚪":b.dataset.st==="nb"?" added to notebook 🔵":" marked as known 🟢"));
   });
   const sv=document.getElementById("nb-save");
   if(sv)sv.onclick=()=>{
@@ -2978,7 +3017,7 @@ function refreshUnder(){
   else if(v.id==="view-learn")paintLearnStatus();
 }
 let MODAL_C=null;
-function closeModal(){MODAL_C=null;document.getElementById("modal").classList.remove("on")}
+function closeModal(){MODAL_C=null;document.getElementById("modal").classList.remove("on");updateAskBtn()}
 document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 
 /* ================= STATS ================= */
@@ -2993,7 +3032,7 @@ function paintStats(){
   document.getElementById("stats-area").innerHTML=
   '<h2>Progress</h2><div class="statgrid">'+
    '<div class="stat"><b style="color:var(--ok)">'+mastered+'</b><span>🟢 known</span></div>'+
-   '<div class="stat"><b style="color:var(--amber)">'+learning+'</b><span>🟡 in notebook</span></div>'+
+   '<div class="stat"><b style="color:var(--amber)">'+learning+'</b><span>🔵 in notebook</span></div>'+
    '<div class="stat"><b>'+(ALLD.length-mastered-learning)+'</b><span>⚪ new</span></div></div>'+
   '<div class="card"><div class="row"><span class="grow">🔥 Day streak</span><b>'+S.streak+'</b></div></div>'+
   '<h2>Levels</h2><div class="card">'+lvhtml+'</div>'+
@@ -3043,6 +3082,7 @@ function switchView(v){
   if(v==="quiz")paintScope();
   if(v==="browse")paintBrowse();
   if(v==="stats")paintStats();
+  updateAskBtn();
   window.scrollTo(0,0);
 }
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
@@ -3055,7 +3095,7 @@ function openNb(){
   const b=document.getElementById("nbsheet-body");
   b.innerHTML=
    '<div class="row" style="align-items:center;gap:8px;margin-bottom:8px"><h2 style="margin:0">📓 Notebook <span class="muted" id="nb-total" style="font-size:14px"></span></h2><span class="grow"></span>'+
-   '<button class="btn sm line" id="nb-quiz">Quiz these</button><button class="btn sm line" id="nb-write">✍️ Strokes</button><button class="btn sm line" id="nb-x">✕</button></div>'+
+   '<button class="btn sm line" id="nb-quiz">Quiz these</button><button class="btn sm line" id="nb-x">✕</button></div>'+
    '<input class="search" id="nb-q" placeholder="🔍 Search character, pinyin, meaning, notes…" autocomplete="off" value="'+esc(NBUI.q)+'">'+
    '<div class="nb-pills"><span class="nb-plab">Sort</span>'+
     [["new","Newest"],["old","Oldest"],["az","A–Z"]].map(x=>'<button class="nb-pill" data-srt="'+x[0]+'">'+x[1]+"</button>").join("")+
@@ -3064,7 +3104,6 @@ function openNb(){
    '<div id="nb-list"></div>';
   b.querySelector("#nb-x").onclick=closeNb;
   b.querySelector("#nb-quiz").onclick=()=>{closeNb();QSCOPE="notebook";switchView("quiz")};
-  b.querySelector("#nb-write").onclick=()=>{closeNb();QSCOPE="notebook";switchView("quiz");startQuiz("write")};
   const q=b.querySelector("#nb-q");
   q.oninput=()=>{NBUI.q=q.value;paintNbList()};
   b.querySelectorAll(".nb-pill").forEach(p=>p.onclick=()=>{
@@ -3082,7 +3121,9 @@ function paintNbPills(){
 function nbRow(x){
   const note=S.notes[x.c];
   return '<div class="nb-row" data-c="'+x.c+'"><span class="nb-zi">'+x.c+'</span><div class="nb-mid"><div>'+pyHTML(x.d)+" · "+esc(x.d.m)+"</div>"+
-   (note?'<div class="nb-note">📝 '+esc(note)+"</div>":"")+'</div><span class="muted" style="font-size:12px;white-space:nowrap">L'+lvOf(x.c)+"</span></div>";
+   (note?'<div class="nb-note">📝 '+esc(note)+"</div>":"")+'</div>'+
+   '<button class="nb-strokes" data-c="'+x.c+'" title="Practice writing '+x.c+'">✍️</button>'+
+   '<span class="muted" style="font-size:12px;white-space:nowrap">L'+lvOf(x.c)+"</span></div>";
 }
 function paintNbList(){
   const box=document.getElementById("nb-list");if(!box)return;
@@ -3095,7 +3136,7 @@ function paintNbList(){
   if(NBUI.sort==="az")items.sort((a,b)=>norm(a.d.py)<norm(b.d.py)?-1:1);
   else items.sort((a,b)=>NBUI.sort==="old"?a.ts-b.ts:b.ts-a.ts);
   let h="";
-  if(!keys.length)h='<p class="muted" style="margin-top:14px">Nothing here yet! Swipe right in Learn on a tricky character, or tap any character and mark it 🟡.</p>';
+  if(!keys.length)h='<p class="muted" style="margin-top:14px">Nothing here yet! Swipe right in Learn on a tricky character, or tap any character and mark it 🔵.</p>';
   else if(!items.length)h='<p class="muted" style="margin-top:14px">No matches — try pinyin without tones, or an English word.</p>';
   else if(NBUI.grp==="none")h=items.map(nbRow).join("");
   else{
@@ -3110,6 +3151,7 @@ function paintNbList(){
   }
   box.innerHTML=h;
   box.querySelectorAll(".nb-row").forEach(r=>r.onclick=()=>openModal(r.dataset.c));
+  box.querySelectorAll(".nb-strokes").forEach(b=>b.onclick=e=>{e.stopPropagation();startWritePractice(b.dataset.c)});
 }
 function closeNb(){document.getElementById("nbsheet").classList.remove("on")}
 document.getElementById("nb-btn").onclick=openNb;
@@ -3126,15 +3168,23 @@ document.body.addEventListener("click",e=>{
 function paintGate(){
   if(S.gate)return;
   const g=document.createElement("div");g.id="gate";
+  /* already installed on the home screen? skip the install step */
+  const standalone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
+  const shareSvg='<svg class="shareicon" width="15" height="18" viewBox="0 0 15 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h-1.2v9.5h11.4V7H12"/><path d="M7.5 1v10M4.3 4.2 7.5 1l3.2 3.2"/></svg>';
   g.innerHTML='<div class="inner"><div class="bigzi">汉</div><h2 style="margin:0 0 6px">你好!</h2>'+
-   '<p class="muted">This app was made just for Leah 💛<br>Enter the magic word to come in.</p>'+
+   '<p class="muted">This app was made just for Leah 💙</p>'+
+   (standalone?"":
+    '<div class="gate-step"><b>Step 1 · Save the app to your phone 📲</b>'+
+    '<p>In Safari, tap the <b>Share</b> button '+shareSvg+' at the bottom, scroll down, and tap <b>“Add to Home Screen”</b>.<br>'+
+    'Then open the 汉 icon — it works offline and keeps your progress safe!</p></div>')+
+   '<div class="gate-step"><b>'+(standalone?"":"Step 2 · ")+'Enter the magic word 🗝️</b>'+
    '<input class="search" id="gate-in" placeholder="magic word" autocomplete="off" autocapitalize="none" style="text-align:center">'+
    '<div style="margin-top:10px"><button class="btn" id="gate-go" style="width:100%">Enter</button></div>'+
-   '<p class="muted" id="gate-err" style="min-height:18px;font-size:13px;margin-top:8px"></p></div>';
+   '<p class="muted" id="gate-err" style="min-height:18px;font-size:13px;margin-top:8px;margin-bottom:0"></p></div></div>';
   document.body.appendChild(g);
   const tryGo=()=>{
     const v=(document.getElementById("gate-in").value||"").trim().toLowerCase();
-    if(v===GATE){S.gate=1;save();g.remove();toast("欢迎! Welcome in 💛")}
+    if(v===GATE){S.gate=1;save();g.remove();toast("欢迎! Welcome in 💙")}
     else document.getElementById("gate-err").textContent=v?"Hmm, that's not it — ask Paul!":"";
   };
   document.getElementById("gate-go").onclick=tryGo;
