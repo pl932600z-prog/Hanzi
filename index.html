@@ -152,6 +152,10 @@ textarea{width:100%;height:90px}
 .gate-step>b{display:block;font-size:15px;margin-bottom:6px;color:var(--acc)}
 .gate-step p{margin:0;font-size:14px;color:var(--ink2);line-height:1.55}
 .shareicon{display:inline-block;vertical-align:-3px}
+/* Paul's handwritten signature (vectorized) — signs the milestone cards */
+.sigrow{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:2px 0 14px}
+.sigrow svg{width:130px;height:auto;color:var(--acc)}
+.sigrow span{font-size:17px;padding-bottom:10px}
 .toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);
   padding:10px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none;max-width:86vw;width:max-content;text-align:center;line-height:1.35}
 .toast.on{opacity:1}
@@ -223,6 +227,7 @@ textarea{width:100%;height:90px}
         <button class="mode" data-mode="m2c"><b>English → 字</b>See the meaning, pick the character</button>
         <button class="mode" data-mode="w2m"><b>词 Words</b>See a word, pick the meaning</button>
         <button class="mode" data-mode="comp"><b>部 Components</b>Match parts to their meanings</button>
+        <button class="mode" data-mode="cloze"><b>句 Sentences</b>Fill in the missing character</button>
       </div></div>
       <div class="qgroup"><div class="qg-t">🗣️ Pronunciation</div>
       <div class="modes">
@@ -2003,7 +2008,36 @@ Object.assign(SENTS,{
 /* ================= STATE ================= */
 const LSKEY="hanzi100";
 let storageOK=true;
-function DEFAULTS(){return {nb:{},known:{},notes:{},newPerDay:3,audio:true,streak:0,lastDay:"",today:{day:"",n:0},forceUnlock:{}}}
+function DEFAULTS(){return {nb:{},known:{},notes:{},newPerDay:3,audio:true,streak:0,lastDay:"",today:{day:"",n:0},forceUnlock:{},mile:{}}}
+/* ---------- milestones: personal notes from Paul, shown once each ----------
+   Counted over DATA only (Level 0 basics excluded — they start pre-known). */
+const MILES=[
+ {n:50, e:"🌱", msg:"Fifty characters already! Not long ago these were squiggles — now they're words. 加油, you've got this! 💙"},
+ {n:100,e:"⭐", msg:"100! That's a whole level of hanzi living in your head. Next time we see each other, I'm testing you 😄 你真棒!"},
+ {n:200,e:"🍜", msg:"200 characters — you can officially survive a Chinese menu. Dinner's on me the day you order in Chinese."},
+ {n:300,e:"🏮", msg:"300! This app was originally called Hanzi 300 — you just hit the original goal. And there's more waiting. 厉害了!"},
+ {n:400,e:"📱", msg:"400 — more than halfway there! You can now read the streets AND your phone. 真了不起!"},
+ {n:500,e:"🚄", msg:"FIVE HUNDRED. You now read more hanzi than most people who visit China ever learn. Keep it up!"},
+ {n:600,e:"🌟", msg:"600! Only one level of characters left. 快到终点了, keep going — I'm with you!"},
+ {n:700,e:"🏆", msg:"Leah宝贝，恭喜你学完了全部700个汉字，我真为你骄傲！很高兴陪你走过这段学习历程，now move to China with me? 😄"}];
+const SIG='<svg class="sig" viewBox="0 0 1847 1288"><g transform="translate(0.000000,1288.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"><path d="M5150 12059 c-357 -30 -744 -236 -1205 -642 -614 -540 -1139 -1318 -1468 -2174 -249 -648 -286 -865 -287 -1678 0 -711 47 -1259 161 -1885 102 -562 177 -891 308 -1355 l39 -140 -38 -35 c-385 -356 -733 -598 -964 -669 -144 -44 -64 10 145 98 187 79 254 119 254 151 0 39 -28 35 -133 -18 -53 -28 -132 -64 -175 -81 -154 -61 -236 -116 -255 -170 -47 -135 243 -70 554 125 141 88 427 313 584 458 47 44 55 48 58 31 10 -46 106 -326 158 -457 188 -473 391 -863 620 -1188 224 -320 342 -423 545 -476 72 -19 99 -15 99 14 0 27 -15 36 -90 57 -121 33 -168 60 -255 148 -309 311 -760 1164 -963 1824 l-49 158 95 100 c526 552 1048 1316 1609 2355 383 709 578 1160 826 1915 353 1073 422 1419 434 2175 10 637 -24 939 -129 1159 -61 129 -141 187 -265 197 -38 3 -81 6 -98 7 -16 2 -68 0 -115 -4z m250 -90 c116 -25 201 -189 245 -474 22 -137 34 -651 24 -954 -22 -625 -103 -996 -431 -1991 -204 -619 -328 -924 -579 -1430 -407 -820 -933 -1697 -1324 -2205 -243 -316 -575 -691 -575 -649 0 4 -29 115 -65 248 -194 728 -334 1502 -385 2131 -43 540 -41 1453 5 1752 50 333 255 906 486 1364 471 933 1225 1759 1904 2085 231 111 516 162 695 123z M13337 10490 c-122 -31 -245 -172 -328 -376 -101 -247 -239 -831 -298 -1264 -55 -401 -92 -1239 -72 -1624 27 -493 84 -696 291 -1023 16 -24 -9 -61 -199 -293 -345 -421 -1144 -1187 -1334 -1279 -52 -25 -182 -39 -207 -22 -18 12 -18 31 -6 1061 12 1026 2 1130 -113 1130 -147 -1 -251 -165 -682 -1080 -332 -705 -532 -1054 -705 -1233 -76 -77 -118 -96 -212 -97 -90 0 -124 16 -154 73 -23 41 -23 48 -23 397 0 838 57 1312 231 1905 90 311 100 368 65 399 -91 83 -273 -297 -536 -1124 -440 -1379 -467 -1460 -592 -1775 -122 -308 -238 -520 -338 -621 -120 -119 -304 -117 -407 7 -95 113 -103 184 -103 884 0 800 26 1089 136 1501 41 157 38 204 -16 204 -24 0 -18 10 -145 -225 -100 -185 -140 -252 -126 -212 59 174 118 785 99 1015 -22 254 -87 299 -423 290 -181 -5 -236 -19 -380 -94 -285 -149 -673 -640 -874 -1104 -256 -594 -385 -1277 -386 -2045 0 -454 35 -568 189 -620 71 -23 248 -18 303 9 129 62 408 489 773 1182 169 320 413 749 422 740 6 -5 -129 -334 -212 -516 -75 -164 -100 -231 -131 -348 -14 -53 -41 -147 -60 -208 -38 -126 -41 -152 -18 -161 40 -15 56 21 135 312 23 83 59 188 79 235 21 47 68 153 105 235 87 193 179 428 248 631 46 137 67 183 144 310 49 82 109 186 133 231 24 46 45 81 47 79 2 -2 -4 -34 -13 -72 -77 -333 -114 -782 -114 -1404 0 -611 26 -784 139 -912 70 -79 128 -103 251 -103 131 0 175 18 265 108 199 200 355 571 726 1732 337 1053 423 1309 514 1515 37 83 93 190 100 190 4 0 1 -11 -58 -200 -182 -583 -272 -1325 -254 -2100 6 -280 25 -342 120 -393 62 -33 221 -32 290 2 190 93 441 503 878 1431 321 683 477 950 556 950 50 0 57 -164 48 -1125 -10 -1094 -14 -1003 48 -1049 37 -28 172 -28 244 -1 122 46 337 227 802 674 304 293 503 511 722 792 l74 95 50 -69 c251 -350 950 -980 1440 -1299 496 -323 742 -443 1122 -548 278 -76 352 -85 748 -84 379 0 488 10 658 58 45 14 109 31 142 40 l60 15 -45 -41 c-78 -71 -184 -134 -257 -153 -91 -24 -105 -32 -101 -58 9 -61 191 -6 331 99 139 105 180 158 152 200 -22 34 -64 32 -247 -15 -212 -55 -264 -61 -583 -68 -473 -10 -739 33 -1129 181 -316 121 -837 440 -1211 741 -464 374 -856 757 -1025 1001 l-52 74 50 68 c282 384 526 860 892 1737 76 182 179 425 230 540 149 340 223 547 250 699 23 131 8 393 -30 529 -64 232 -394 611 -597 687 -120 45 -412 74 -506 50z m353 -84 c157 -29 248 -84 400 -243 142 -146 248 -312 282 -436 29 -108 37 -392 14 -507 -25 -123 -86 -297 -178 -509 -89 -206 -223 -521 -390 -916 -188 -444 -348 -777 -515 -1070 -76 -133 -293 -465 -304 -465 -11 0 -129 217 -162 301 -122 305 -149 866 -87 1824 34 520 147 1134 290 1574 73 226 176 392 271 439 53 27 254 30 379 8z m-6281 -3391 c65 -38 76 -76 79 -285 7 -346 -42 -721 -136 -1051 l-39 -137 -195 -323 c-234 -389 -251 -420 -408 -719 -254 -486 -526 -939 -662 -1102 -67 -80 -96 -93 -218 -93 -225 0 -250 54 -250 545 0 281 13 534 35 700 131 976 417 1662 905 2173 156 163 298 256 461 302 86 24 382 17 428 -10z"/></g></svg>'; /* Paul’s signature, potrace-vectorized from his handwriting */
+function dataStarted(){let n=0;for(const d of DATA)if(stateOf(d.c)!=="new")n++;return n}
+function pendingMilestone(){
+  if(!S.gate)return null; /* not before the welcome gate */
+  if(document.getElementById("modal").classList.contains("on"))return null; /* don't clobber an open card */
+  const n=dataStarted();
+  return MILES.find(m=>n>=m.n&&!S.mile[m.n])||null;
+}
+function showMilestone(m){
+  document.getElementById("modal-body").innerHTML=
+   '<div style="text-align:center"><div style="font-size:56px">'+m.e+'</div>'+
+   '<h2 style="margin:6px 0 2px">'+m.n+" characters!</h2>"+
+   '<p style="font-size:15.5px;line-height:1.6;margin:10px 4px">'+m.msg+"</p>"+
+   '<div class="sigrow">'+SIG+"<span>💙</span></div>"+
+   '<button class="btn" id="m-close" style="width:100%">Keep going ✨</button></div>';
+  document.getElementById("modal").classList.add("on");
+  document.getElementById("m-close").onclick=closeModal;
+}
 function migrate(){
   if(![3,5,10].includes(S.newPerDay))S.newPerDay=3;
   if(!S.notes)S.notes={};
@@ -2026,11 +2060,21 @@ function migrate(){
     BASICS.forEach(d=>{if(!S.nb[d.c])S.known[d.c]=1});
     S.l0=3;
   }
+  /* milestones already passed at load/import time are marked silently —
+     Paul's notes only pop when a threshold is crossed live */
+  if(!S.mile)S.mile={};
+  const ms=dataStarted();
+  MILES.forEach(m=>{if(ms>=m.n)S.mile[m.n]=1});
 }
 let S=DEFAULTS();
 function load(){try{const raw=localStorage.getItem(LSKEY);if(raw){S=Object.assign(DEFAULTS(),JSON.parse(raw));}}catch(e){storageOK=false}
   migrate();}
-function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){storageOK=false}paintStreak()}
+function save(){
+  const m=pendingMilestone(); if(m)S.mile[m.n]=1; /* mark before write so it persists */
+  try{localStorage.setItem(LSKEY,JSON.stringify(S))}catch(e){storageOK=false}
+  paintStreak();
+  if(m)showMilestone(m);
+}
 function dayStr(d){d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
 function touchStreak(){const t=dayStr();if(S.lastDay===t)return;const y=dayStr(new Date(Date.now()-864e5));S.streak=(S.lastDay===y)?S.streak+1:1;S.lastDay=t;save();paintStreak()}
 function todayCount(){const t=dayStr();if(S.today.day!==t){S.today={day:t,n:0}}return S.today.n}
@@ -2205,7 +2249,7 @@ function paintWelcome(){
     '<div style="font-size:44px;margin-bottom:14px">💙</div>'+
     '<div style="font-size:20px;font-weight:800;margin-bottom:10px">For Leah,</div>'+
     '<div style="font-size:16px;line-height:1.6">I hope you enjoy using this app!</div>'+
-    '<div class="muted" style="margin:14px 0 24px;font-size:14.5px">Paul · July 2027</div>'+
+    '<div class="muted" style="margin:14px 0 24px;font-size:14.5px">Paul · August 2026</div>'+
     '<button class="btn" id="b-hello" style="width:100%">Start learning ✨</button>'+
    "</div>";
   document.getElementById("b-hello").onclick=()=>{S.hello=1;save();nextCard()};
@@ -2388,7 +2432,7 @@ function drawAskCard(ctx){
     /* the question as Leah sees it — the answer stays hidden */
     const a=ctx.ask;
     g.fillStyle="#fff";
-    if(a.z){g.font="700 "+(a.big.length<=2?220:a.big.length<=4?150:110)+"px "+ZH;g.fillText(a.big,W/2,H/2-40)}
+    if(a.z){g.font="700 "+(a.big.length<=2?220:a.big.length<=4?150:Math.max(44,Math.min(110,Math.floor(920/a.big.length))))+"px "+ZH;g.fillText(a.big,W/2,H/2-40)}
     else{
       let b=a.big;if(b.length>30)b=b.slice(0,29)+"…”";
       g.font="700 "+(b.length>20?54:68)+"px "+UI;g.fillText(b,W/2,H/2-40);
@@ -2581,6 +2625,21 @@ function buildComp(){
       cs:byChar(t.g)?[t.g]:[], /* component that is itself a taught char → status row */
       ask:i%2===0?{z:1,big:t.g,sub:"What does this component mean?"}:{z:0,big:"“"+t.m+"”",sub:"Which component means this?"}};
   }).filter(Boolean);
+}
+/* ---------- sentence cloze: fill the missing character in its sentence ---------- */
+function buildCloze(){
+  const pool=shuffle(basePool().filter(d=>SENTS[d.c]&&SENTS[d.c][0].includes(d.c)));
+  return pool.slice(0,QLEN).map(t=>{
+    const sn=SENTS[t.c];
+    const blanked=sn[0].split(t.c).join("＿");
+    const ds=distract(t,ALLD,"c",3);
+    return {p:'<div class="qprompt"><div style="font-size:30px;line-height:1.6">'+esc(blanked)+'</div><div class="muted" style="font-size:14px;margin-top:8px">“'+esc(sn[2])+'”</div></div>',
+      opts:shuffle([{h:t.c,ok:true}].concat(ds.map(d=>({h:d.c,ok:false})))),
+      /* no auto-say — hearing the sentence would give the answer away */
+      expl:'<button class="spk" data-say="'+esc(sn[0])+'" style="margin-right:6px">🔊</button>'+sn[0]+"<br>"+esc(sn[1])+"<br>"+t.c+' <span class="t'+t.t+'">'+esc(t.py)+"</span> — "+esc(t.m),
+      cls:"opt zi",cs:[t.c],
+      ask:{z:1,big:blanked,sub:"Which character fills the blank?"}};
+  });
 }
 /* ---------- tone by ear: hear a char, pick its tone ---------- */
 const EAR_NAMES={1:["1st · ā","high & flat"],2:["2nd · á","rising"],3:["3rd · ǎ","dip & rise"],4:["4th · à","falling"]};
@@ -2830,7 +2889,7 @@ function finishWrite(){
 }
 function startQuiz(mode){
   let qs;
-  if(mode==="w2m")qs=buildW2M();else if(mode==="tone")qs=buildTone();else if(mode==="comp")qs=buildComp();else if(mode==="write")qs=buildWrite();else if(mode==="ear")qs=buildEar();else if(mode==="asm")qs=buildAsm();else qs=buildCharMode(mode);
+  if(mode==="w2m")qs=buildW2M();else if(mode==="tone")qs=buildTone();else if(mode==="comp")qs=buildComp();else if(mode==="write")qs=buildWrite();else if(mode==="ear")qs=buildEar();else if(mode==="asm")qs=buildAsm();else if(mode==="cloze")qs=buildCloze();else qs=buildCharMode(mode);
   if(!qs||qs.length<2){toast("Not enough characters here yet — try another scope!");return}
   Q={mode:mode,qs:qs,i:0,score:0};
   document.getElementById("quiz-home").classList.add("hidden");
@@ -2889,12 +2948,8 @@ function answerQ(i){
 }
 function endQuiz(showScore){
   if(Q&&Q.timer){clearTimeout(Q.timer);Q.timer=null}
-  if(showScore===true&&Q&&Q.practice){ /* single-char practice: straight back where it came from */
-    const org=Q.practice;endQuiz();
-    if(org==="learn")switchView("learn");else openNb();
-    return;
-  }
-  if(showScore===true){
+  const org=Q&&Q.practice; /* practice returns to its origin on ANY exit — Next or quit */
+  if(showScore===true&&!org){
     document.getElementById("quiz-play").innerHTML=
     '<div class="card done"><div class="big">'+(Q.score>=8?"🏆":Q.score>=5?"👍":"💪")+'</div><b>'+Q.score+" / "+Q.qs.length+'</b><p class="muted">'+
     (Q.score>=8?"Excellent!":Q.score>=5?"Solid — the misses are back in your review queue.":"Tough round — those characters will come back in Learn.")+
@@ -2908,6 +2963,8 @@ function endQuiz(showScore){
   document.getElementById("quiz-play").classList.add("hidden");
   document.getElementById("quiz-home").classList.remove("hidden");
   updateAskBtn();
+  if(org==="learn")switchView("learn");
+  else if(org)openNb();
 }
 
 /* ================= PAIRS ================= */
